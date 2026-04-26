@@ -21,6 +21,7 @@ __pycache__/
 *.pyw
 .Python
 py.typed
+.mypy_cache
 
 # Instalação e build
 *.egg
@@ -117,6 +118,7 @@ datasets/data/promise_nfr/*.json
 datasets/data/nfric/*.csv
 datasets/data/nfric/*.json
 datasets/data/nfric/*.arff
+datasets\data\promise_nfr
 *.arff
 
 # -----------------------------------------------------------------------------
