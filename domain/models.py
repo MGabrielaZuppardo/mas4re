@@ -9,8 +9,6 @@ from pydantic import BaseModel, Field, field_validator
 from domain.enums import MoSCoWPriority, NFRCategory, RequirementType
 
 
-# ── Modelos base ──────────────────────────────────────────────────────────────
-
 class Requirement(BaseModel):
     """Requisito de software bruto — entrada do dataset ou do Elicitor."""
 
@@ -101,7 +99,6 @@ class PrioritizedRequirement(ClassifiedRequirement):
         )
 
 
-# ── Estado do pipeline LangGraph ──────────────────────────────────────────────
 
 class PipelineState(BaseModel):
     """Estado compartilhado entre os agentes no pipeline LangGraph."""
