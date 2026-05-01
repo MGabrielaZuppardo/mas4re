@@ -1,35 +1,36 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class RequirementType(str, Enum):
+class RequirementType(StrEnum):
     FUNCTIONAL = "F"
     NON_FUNCTIONAL = "NF"
 
 
-class NFRCategory(str, Enum):
+class NFRCategory(StrEnum):
     """Categorias NFR do dataset PROMISE NFR+ (Cleland-Huang et al., 2007)."""
-    AVAILABILITY    = "A"
+
+    AVAILABILITY = "A"
     FAULT_TOLERANCE = "FT"
-    LOOK_AND_FEEL   = "LF"
+    LOOK_AND_FEEL = "LF"
     MAINTAINABILITY = "MN"
-    OPERATIONAL     = "O"
-    PERFORMANCE     = "PE"
-    PORTABILITY     = "PO"
-    SCALABILITY     = "SC"
-    SECURITY        = "SE"
-    USABILITY       = "US"
-    FUNCTIONAL      = "F"
+    OPERATIONAL = "O"
+    PERFORMANCE = "PE"
+    PORTABILITY = "PO"
+    SCALABILITY = "SC"
+    SECURITY = "SE"
+    USABILITY = "US"
+    FUNCTIONAL = "F"
 
     @classmethod
     def nfr_only(cls) -> list["NFRCategory"]:
         return [c for c in cls if c != cls.FUNCTIONAL]
 
 
-class MoSCoWPriority(str, Enum):
-    MUST_HAVE   = "M"
+class MoSCoWPriority(StrEnum):
+    MUST_HAVE = "M"
     SHOULD_HAVE = "S"
-    COULD_HAVE  = "C"
-    WONT_HAVE   = "W"
+    COULD_HAVE = "C"
+    WONT_HAVE = "W"
 
     @property
     def score(self) -> float:

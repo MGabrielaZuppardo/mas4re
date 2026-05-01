@@ -2,8 +2,8 @@
 Testes de integração do PrioritizationAgent contra PROMISE NFR+.
 Requer Ollama rodando localmente com llama3.1:8b.
 """
+
 import pytest
-from collections import Counter
 from scipy.stats import kendalltau
 
 from agents.prioritizer import PrioritizationAgent
@@ -20,13 +20,13 @@ def agent():
 def prioritized_sample(agent, promise_sample):
     """Classifica amostra e prioriza — pipeline completo."""
     from agents.classifier import ClassificationAgent
+
     classifier = ClassificationAgent(model=settings.classifier_model)
     classified = classifier.classify_batch(promise_sample)
     return agent.prioritize_batch(classified)
 
 
 class TestPriorizadorPromise:
-
     def test_todos_priorizados(self, prioritized_sample, promise_sample):
         assert len(prioritized_sample) == len(promise_sample)
 
@@ -52,6 +52,7 @@ class TestPriorizadorPromise:
     def test_distribuicao_moscow(self, prioritized_sample):
         """Verifica que a distribuição MoSCoW não está degenerada (tudo M)."""
         from evaluation.metrics.prioritization import compute_moscow_distribution
+
         dist = compute_moscow_distribution(prioritized_sample)
         print(f"\nDistribuição MoSCoW: {dist}")
         # Nenhuma categoria deve concentrar mais de 80% dos requisitos
@@ -61,7 +62,7 @@ class TestPriorizadorPromise:
     def test_kendall_tau_consistencia(self, prioritized_sample):
         """Verifica correlação interna: score alto → rank baixo (1 = mais prioritário)."""
         scores = [r.priority_score or 0.0 for r in prioritized_sample]
-        ranks  = [r.priority_rank or 0 for r in prioritized_sample]
+        ranks = [r.priority_rank or 0 for r in prioritized_sample]
         # Rank é crescente, score é decrescente → correlação negativa esperada
         tau, _ = kendalltau(scores, ranks)
         print(f"\nKendall Tau (score vs rank): {tau:.4f}")
@@ -69,7 +70,6 @@ class TestPriorizadorPromise:
 
 
 class TestPriorizadorIdioma:
-
     def test_divergencia_moscow_en_vs_pt(self, agent, promise_sample):
         """Mede impacto do idioma na priorização MoSCoW."""
         from agents.classifier import ClassificationAgent
@@ -93,8 +93,7 @@ class TestPriorizadorIdioma:
 
         pt_map = {r.id: r for r in prioritized_pt}
         divergencias = [
-            r for r in prioritized_en
-            if r.id in pt_map and r.priority != pt_map[r.id].priority
+            r for r in prioritized_en if r.id in pt_map and r.priority != pt_map[r.id].priority
         ]
 
         taxa = len(divergencias) / len(with_en)

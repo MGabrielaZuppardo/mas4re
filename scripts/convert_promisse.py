@@ -4,6 +4,7 @@ Converte o dataset PROMISE NFR (.arff) para CSV e traduz para PT-BR.
 Uso:
     python scripts/convert_promise.py
 """
+
 from __future__ import annotations
 
 import time
@@ -13,17 +14,17 @@ import pandas as pd
 from deep_translator import GoogleTranslator
 
 ARFF_PATH = Path("datasets/data/promise_nfr/nfr/nfr.arff")
-OUT_EN    = Path("datasets/data/promise_nfr/promise_nfr_en.csv")
-OUT_PT    = Path("datasets/data/promise_nfr/promise_nfr_pt.csv")
+OUT_EN = Path("datasets/data/promise_nfr/promise_nfr_en.csv")
+OUT_PT = Path("datasets/data/promise_nfr/promise_nfr_pt.csv")
 
 # ── Mapeamento de categorias ───────────────────────────────
 CATEGORY_MAP = {
-    "F":  "F",   # Functional
-    "A":  "A",   # Availability
-    "L":  "LF",  # Legal → agrupado em Look & Feel
+    "F": "F",  # Functional
+    "A": "A",  # Availability
+    "L": "LF",  # Legal → agrupado em Look & Feel
     "LF": "LF",  # Look and Feel
     "MN": "MN",  # Maintainability
-    "O":  "O",   # Operational
+    "O": "O",  # Operational
     "PE": "PE",  # Performance
     "SC": "SC",  # Scalability
     "SE": "SE",  # Security
@@ -53,7 +54,7 @@ def load_arff() -> pd.DataFrame:
             rest = parts[1].strip()
             last_comma = rest.rfind(",")
             req_text = rest[:last_comma].strip().strip("'\"")
-            label = rest[last_comma + 1:].strip()
+            label = rest[last_comma + 1 :].strip()
             rows.append({"ProjectID": int(project_id), "RequirementText": req_text, "class": label})
 
     df = pd.DataFrame(rows)
@@ -80,7 +81,6 @@ def translate_to_pt(df: pd.DataFrame) -> pd.DataFrame:
         if i % 50 == 0:
             print(f"  → {i}/{len(df)} traduzidos...")
 
-
         time.sleep(0.3)
 
     df["RequirementText_PT"] = translated
@@ -94,9 +94,7 @@ def save(df: pd.DataFrame) -> None:
     print(f"💾 Salvo: {OUT_EN}")
 
     # CSV em português
-    df[["ProjectID", "RequirementText", "RequirementText_PT", "class"]].to_csv(
-        OUT_PT, index=False
-    )
+    df[["ProjectID", "RequirementText", "RequirementText_PT", "class"]].to_csv(OUT_PT, index=False)
     print(f"💾 Salvo: {OUT_PT}")
 
 

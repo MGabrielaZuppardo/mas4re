@@ -1,4 +1,5 @@
-from __future__ import annotations 
+from __future__ import annotations
+
 import uuid
 from datetime import datetime
 from typing import Annotated, Any
@@ -56,7 +57,7 @@ class ClassifiedRequirement(Requirement):
         cls,
         req: Requirement,
         output: ClassificationOutput,
-    ) -> "ClassifiedRequirement":
+    ) -> ClassifiedRequirement:
         return cls(
             **req.model_dump(),
             requirement_type=output.requirement_type,
@@ -89,7 +90,7 @@ class PrioritizedRequirement(ClassifiedRequirement):
         cls,
         req: ClassifiedRequirement,
         output: PrioritizationOutput,
-    ) -> "PrioritizedRequirement":
+    ) -> PrioritizedRequirement:
         return cls(
             **req.model_dump(),
             priority=output.priority,
@@ -97,7 +98,6 @@ class PrioritizedRequirement(ClassifiedRequirement):
             priority_rank=output.priority_rank,
             justification_priority=output.justification,
         )
-
 
 
 class PipelineState(BaseModel):

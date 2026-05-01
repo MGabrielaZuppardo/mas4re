@@ -89,10 +89,7 @@ def build_prioritization_messages(
         nfr_category: Sigla da categoria NFR (ex: 'SE', 'PE') ou None.
         lang: 'pt' para prompt em português, 'en' para inglês.
     """
-    system = (
-        PRIORITIZATION_SYSTEM_PROMPT_PT if lang == "pt"
-        else PRIORITIZATION_SYSTEM_PROMPT_EN
-    )
+    system = PRIORITIZATION_SYSTEM_PROMPT_PT if lang == "pt" else PRIORITIZATION_SYSTEM_PROMPT_EN
     nfr_line = f"\nCategoria NFR: {nfr_category}" if nfr_category else ""
     user = PRIORITIZATION_USER_PROMPT.format(
         requirement_text=requirement_text,
