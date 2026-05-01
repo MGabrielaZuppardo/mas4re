@@ -17,7 +17,7 @@ _LABEL_TO_TYPE: dict[str, RequirementType] = {
 
 _LABEL_TO_CATEGORY: dict[str, NFRCategory] = {c.value: c for c in NFRCategory}
 
-_DEFAULT_PATH = Path("datasets\data\promise_nfr\promise_nfr_pt.csv")
+_DEFAULT_PATH = Path("datasets/data/promise_nfr/promise_nfr_pt.csv")
 
 
 class PromiseAdapter:
