@@ -55,8 +55,6 @@ def make_prioritized(req, score: float, priority: MoSCoWPriority = MoSCoWPriorit
 
 
 class TestPrioritizationAgentUnit:
-    # ── _parse_response ───────────────────────────────────────────────────────
-
     def test_parse_must_have(self, agent):
         content = '{"priority": "M", "priority_score": 0.95, "priority_rank": 1, "justification": "Crítico."}'  # noqa: E501
         output = agent._parse_response(content, "req-01")
@@ -99,8 +97,6 @@ class TestPrioritizationAgentUnit:
         output = agent._parse_response(content, "req-07")
         assert output.justification == "Muito relevante."
 
-    # ── run ───────────────────────────────────────────────────────────────────
-
     def test_run_atualiza_estado(self, agent, classified_requirements):
         state = PipelineState(
             run_id="run-test",
@@ -121,8 +117,6 @@ class TestPrioritizationAgentUnit:
         with patch.object(agent, "prioritize_batch", return_value=mock_prioritized):
             result = agent.run(state)
             assert len(result.prioritized_requirements) == 1
-
-    # ── prioritize_batch (ranking) ────────────────────────────────────────────
 
     def test_ranking_global_ordenado(self, agent, classified_requirements):
         scores = [0.5, 0.9, 0.7]
@@ -154,7 +148,6 @@ class TestPrioritizationAgentUnit:
             results = agent.prioritize_batch(classified_requirements)
             assert results == []
 
-    # ── _process_single ───────────────────────────────────────────────────────
 
     def test_process_single_chama_llm(self, agent, classified_requirements):
         req = classified_requirements[0]
