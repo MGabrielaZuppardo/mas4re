@@ -39,8 +39,6 @@ class PromiseAdapter:
         self._df: pd.DataFrame | None = None
         logger.info("PromiseAdapter inicializado | path=%s", self.path)
 
-
-
     def load(self) -> list[Requirement]:
         """Carrega e valida o dataset. Retorna lista de Requirement."""
         logger.info("Carregando PROMISE NFR+ | path=%s", self.path)
@@ -74,7 +72,6 @@ class PromiseAdapter:
             raise RuntimeError("Chame load() antes de acessar o dataframe.")
         return self._df
 
-
     def _read_csv(self) -> pd.DataFrame:
         if not self.path.exists():
             raise FileNotFoundError(
@@ -92,8 +89,7 @@ class PromiseAdapter:
         missing = required - set(df.columns)
         if missing:
             raise ValueError(
-                f"Colunas obrigatórias ausentes: {missing}\n"
-                f"Colunas disponíveis: {list(df.columns)}"
+                f"Colunas obrigatórias ausentes: {missing}\nColunas disponíveis: {list(df.columns)}"
             )
         return df
 

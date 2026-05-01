@@ -1,8 +1,10 @@
-import pytest
 from unittest.mock import MagicMock, patch
-from domain.enums import RequirementType, NFRCategory
-from domain.models import Requirement, ClassificationOutput, PipelineState, ClassifiedRequirement
+
+import pytest
+
 from agents.classifier import ClassificationAgent
+from domain.enums import NFRCategory, RequirementType
+from domain.models import ClassificationOutput, ClassifiedRequirement, PipelineState, Requirement
 
 
 @pytest.fixture
@@ -20,17 +22,21 @@ def requirements():
 
 
 class TestClassificationAgentUnit:
-
-
     def test_parse_resposta_funcional(self, agent):
-        content = '{"requirement_type": "F", "nfr_category": null, "confidence": 0.95, "justification": "Descreve comportamento funcional."}'
+        content = (
+            '{"requirement_type": "F", "nfr_category": null, "confidence": 0.95,'
+            ' "justification": "Descreve comportamento funcional."}'
+        )
         output = agent._parse_response(content, "req-01")
         assert output.requirement_type == RequirementType.FUNCTIONAL
         assert output.nfr_category is None
         assert output.confidence == 0.95
 
     def test_parse_resposta_nfr(self, agent):
-        content = '{"requirement_type": "NF", "nfr_category": "SE", "confidence": 0.88, "justification": "Requisito de segurança."}'
+        content = (
+            '{"requirement_type": "NF", "nfr_category": "SE", "confidence": 0.88,'
+            ' "justification": "Requisito de segurança."}'
+        )
         output = agent._parse_response(content, "req-02")
         assert output.requirement_type == RequirementType.NON_FUNCTIONAL
         assert output.nfr_category == NFRCategory.SECURITY
@@ -42,7 +48,10 @@ class TestClassificationAgentUnit:
         assert output.confidence == 0.0
 
     def test_parse_com_markdown(self, agent):
-        content = '```json\n{"requirement_type": "F", "nfr_category": null, "confidence": 0.9, "justification": "ok"}\n```'
+        content = (
+            '```json\n{"requirement_type": "F", "nfr_category": null,'
+            ' "confidence": 0.9, "justification": "ok"}\n```'
+        )
         output = agent._parse_response(content, "req-04")
         assert output.requirement_type == RequirementType.FUNCTIONAL
 
@@ -69,7 +78,6 @@ class TestClassificationAgentUnit:
         with patch.object(agent, "classify_batch", return_value=mock_classified):
             result = agent.run(state)
             assert len(result.classified_requirements) == 1
-
 
     def test_classify_batch_ignora_falhas(self, agent, requirements):
         def process_side_effect(req):
@@ -98,7 +106,9 @@ class TestClassificationAgentUnit:
     def test_process_single_chama_llm(self, agent):
         req = Requirement(id="req-01", text="O sistema deve logar eventos")
         mock_response = MagicMock()
-        mock_response.content = '{"requirement_type": "F", "confidence": 0.9, "justification": "funcional"}'
+        mock_response.content = (
+            '{"requirement_type": "F", "confidence": 0.9, "justification": "funcional"}'
+        )
         agent._llm.invoke = MagicMock(return_value=mock_response)
 
         result = agent._process_single(req)

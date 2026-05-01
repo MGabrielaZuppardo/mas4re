@@ -60,6 +60,7 @@ log_cli_level = "INFO"
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+exclude = ["notebooks/"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP"]
@@ -72,4 +73,3 @@ ignore_missing_imports = true
 init_forbid_extra = false
 init_typed = true
 warn_required_dynamic_aliases = false
-

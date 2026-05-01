@@ -46,6 +46,5 @@ def build_llm(model: str, temperature: float = 0.0) -> BaseChatModel:
         )
 
     raise ValueError(
-        f"Modelo não reconhecido: {model!r}\n"
-        "Use prefixo 'ollama/' para modelos locais."
+        f"Modelo não reconhecido: {model!r}\nUse prefixo 'ollama/' para modelos locais."
     )

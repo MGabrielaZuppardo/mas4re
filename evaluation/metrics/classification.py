@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from collections import defaultdict
 
 from sklearn.metrics import (
     accuracy_score,
@@ -44,17 +43,14 @@ def compute_classification_metrics(
         return {}
 
     y_true = [gt_map[i].metadata["label_type"] for i in common_ids]
-    y_pred = [
-        next(r.requirement_type.value for r in predictions if r.id == i)
-        for i in common_ids
-    ]
+    y_pred = [next(r.requirement_type.value for r in predictions if r.id == i) for i in common_ids]
 
     metrics = {
-        "accuracy":     round(accuracy_score(y_true, y_pred), 4),
-        "f1_macro":     round(f1_score(y_true, y_pred, average="macro",    zero_division=0), 4),
-        "f1_weighted":  round(f1_score(y_true, y_pred, average="weighted", zero_division=0), 4),
-        "mcc":          round(float(matthews_corrcoef(y_true, y_pred)), 4),
-        "n_evaluated":  len(common_ids),
+        "accuracy": round(accuracy_score(y_true, y_pred), 4),
+        "f1_macro": round(f1_score(y_true, y_pred, average="macro", zero_division=0), 4),
+        "f1_weighted": round(f1_score(y_true, y_pred, average="weighted", zero_division=0), 4),
+        "mcc": round(float(matthews_corrcoef(y_true, y_pred)), 4),
+        "n_evaluated": len(common_ids),
     }
     logger.info("Métricas de classificação: %s", metrics)
     return metrics
@@ -77,7 +73,8 @@ def compute_subcategory_metrics(
 
     # Filtra apenas NFRs com label de categoria
     nfr_preds = [
-        r for r in predictions
+        r
+        for r in predictions
         if r.id in gt_map
         and gt_map[r.id].metadata.get("label_category")
         and r.requirement_type == RequirementType.NON_FUNCTIONAL
@@ -103,19 +100,19 @@ def compute_subcategory_metrics(
         key = cat.value
         if key in report:
             result[key] = {
-                "f1":        round(report[key]["f1-score"], 4),
+                "f1": round(report[key]["f1-score"], 4),
                 "precision": round(report[key]["precision"], 4),
-                "recall":    round(report[key]["recall"], 4),
-                "support":   int(report[key]["support"]),
+                "recall": round(report[key]["recall"], 4),
+                "support": int(report[key]["support"]),
             }
 
     # Macro médio geral das subcategorias
     macro = report.get("macro avg", {})
     result["macro_avg"] = {
-        "f1":        round(macro.get("f1-score", 0.0), 4),
+        "f1": round(macro.get("f1-score", 0.0), 4),
         "precision": round(macro.get("precision", 0.0), 4),
-        "recall":    round(macro.get("recall", 0.0), 4),
-        "support":   int(macro.get("support", 0)),
+        "recall": round(macro.get("recall", 0.0), 4),
+        "support": int(macro.get("support", 0)),
     }
 
     return result

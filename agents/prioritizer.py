@@ -62,7 +62,6 @@ class PrioritizationAgent(BaseAgent):
         )
         return state
 
-
     def prioritize_batch(
         self,
         requirements: list[ClassifiedRequirement],
@@ -72,18 +71,13 @@ class PrioritizationAgent(BaseAgent):
         results: dict[str, PrioritizedRequirement] = {}
 
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = {
-                executor.submit(self._process_single, req): req
-                for req in requirements
-            }
+            futures = {executor.submit(self._process_single, req): req for req in requirements}
             for future in as_completed(futures):
                 req = futures[future]
                 try:
                     results[req.id] = future.result()
                 except Exception as e:
-                    logger.error(
-                        "Falha ao priorizar | id=%s | erro=%s", req.id, e
-                    )
+                    logger.error("Falha ao priorizar | id=%s | erro=%s", req.id, e)
 
         # Preserva ordem original
         ordered = [results[r.id] for r in requirements if r.id in results]
@@ -130,7 +124,9 @@ class PrioritizationAgent(BaseAgent):
         except Exception as e:
             logger.error(
                 "Parse falhou | req_id=%s | erro=%s | conteúdo=%r",
-                req_id, e, content[:200],
+                req_id,
+                e,
+                content[:200],
             )
             return PrioritizationOutput(
                 requirement_id=req_id,

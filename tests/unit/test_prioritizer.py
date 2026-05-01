@@ -1,15 +1,17 @@
-import pytest
 from unittest.mock import MagicMock, patch
-from domain.enums import RequirementType, NFRCategory, MoSCoWPriority
+
+import pytest
+
+from agents.prioritizer import PrioritizationAgent
+from domain.enums import MoSCoWPriority, RequirementType
 from domain.models import (
-    Requirement,
-    ClassifiedRequirement,
     ClassificationOutput,
+    ClassifiedRequirement,
+    PipelineState,
     PrioritizationOutput,
     PrioritizedRequirement,
-    PipelineState,
+    Requirement,
 )
-from agents.prioritizer import PrioritizationAgent
 
 
 @pytest.fixture
@@ -53,27 +55,26 @@ def make_prioritized(req, score: float, priority: MoSCoWPriority = MoSCoWPriorit
 
 
 class TestPrioritizationAgentUnit:
-
     # ── _parse_response ───────────────────────────────────────────────────────
 
     def test_parse_must_have(self, agent):
-        content = '{"priority": "M", "priority_score": 0.95, "priority_rank": 1, "justification": "Crítico."}'
+        content = '{"priority": "M", "priority_score": 0.95, "priority_rank": 1, "justification": "Crítico."}'  # noqa: E501
         output = agent._parse_response(content, "req-01")
         assert output.priority == MoSCoWPriority.MUST_HAVE
         assert output.priority_score == 0.95
 
     def test_parse_should_have(self, agent):
-        content = '{"priority": "S", "priority_score": 0.75, "priority_rank": 2, "justification": "Importante."}'
+        content = '{"priority": "S", "priority_score": 0.75, "priority_rank": 2, "justification": "Importante."}'  # noqa: E501
         output = agent._parse_response(content, "req-02")
         assert output.priority == MoSCoWPriority.SHOULD_HAVE
 
     def test_parse_could_have(self, agent):
-        content = '{"priority": "C", "priority_score": 0.5, "priority_rank": 3, "justification": "Desejável."}'
+        content = '{"priority": "C", "priority_score": 0.5, "priority_rank": 3, "justification": "Desejável."}'  # noqa: E501
         output = agent._parse_response(content, "req-03")
         assert output.priority == MoSCoWPriority.COULD_HAVE
 
     def test_parse_wont_have(self, agent):
-        content = '{"priority": "W", "priority_score": 0.1, "priority_rank": 4, "justification": "Futuro."}'
+        content = '{"priority": "W", "priority_score": 0.1, "priority_rank": 4, "justification": "Futuro."}'  # noqa: E501
         output = agent._parse_response(content, "req-04")
         assert output.priority == MoSCoWPriority.WONT_HAVE
 
@@ -83,12 +84,18 @@ class TestPrioritizationAgentUnit:
         assert output.priority_score == 0.5
 
     def test_parse_com_markdown(self, agent):
-        content = '```json\n{"priority": "M", "priority_score": 0.9, "priority_rank": 1, "justification": "ok"}\n```'
+        content = (
+            '```json\n{"priority": "M", "priority_score": 0.9,'
+            ' "priority_rank": 1, "justification": "ok"}\n```'
+        )
         output = agent._parse_response(content, "req-06")
         assert output.priority == MoSCoWPriority.MUST_HAVE
 
     def test_parse_justification_preenchida(self, agent):
-        content = '{"priority": "S", "priority_score": 0.8, "priority_rank": 1, "justification": "Muito relevante."}'
+        content = (
+            '{"priority": "S", "priority_score": 0.8, "priority_rank": 1,'
+            ' "justification": "Muito relevante."}'
+        )
         output = agent._parse_response(content, "req-07")
         assert output.justification == "Muito relevante."
 
@@ -101,7 +108,7 @@ class TestPrioritizationAgentUnit:
             classified_requirements=classified_requirements,
         )
         with patch.object(agent, "prioritize_batch", return_value=[]) as mock:
-            result = agent.run(state)
+            agent.run(state)
             mock.assert_called_once_with(classified_requirements, max_workers=3)
 
     def test_run_retorna_priorizados(self, agent, classified_requirements):
@@ -119,6 +126,7 @@ class TestPrioritizationAgentUnit:
 
     def test_ranking_global_ordenado(self, agent, classified_requirements):
         scores = [0.5, 0.9, 0.7]
+
         def process_side_effect(req):
             idx = ["req-01", "req-02", "req-03"].index(req.id)
             return make_prioritized(req, score=scores[idx])
@@ -151,7 +159,9 @@ class TestPrioritizationAgentUnit:
     def test_process_single_chama_llm(self, agent, classified_requirements):
         req = classified_requirements[0]
         mock_response = MagicMock()
-        mock_response.content = '{"priority": "M", "priority_score": 0.95, "priority_rank": 1, "justification": "ok"}'
+        mock_response.content = (
+            '{"priority": "M", "priority_score": 0.95, "priority_rank": 1, "justification": "ok"}'
+        )
         agent._llm.invoke = MagicMock(return_value=mock_response)
 
         result = agent._process_single(req)

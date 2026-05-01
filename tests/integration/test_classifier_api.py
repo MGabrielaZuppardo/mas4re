@@ -2,12 +2,12 @@
 Testes de integração do ClassificationAgent contra PROMISE NFR+.
 Requer Ollama rodando localmente com qwen2.5:7b.
 """
+
 import pytest
-from sklearn.metrics import f1_score, accuracy_score, classification_report
+from sklearn.metrics import accuracy_score, classification_report, f1_score
 
 from agents.classifier import ClassificationAgent
 from config.settings import settings
-from domain.enums import RequirementType
 
 
 @pytest.fixture(scope="module")
@@ -21,7 +21,6 @@ def classified_sample(agent, promise_sample):
 
 
 class TestClassificadorPromise:
-
     def test_todos_classificados(self, classified_sample, promise_sample):
         assert len(classified_sample) == len(promise_sample)
 
@@ -51,7 +50,6 @@ class TestClassificadorPromise:
 
 
 class TestClassificadorIdioma:
-
     def test_divergencia_en_vs_pt(self, agent, promise_sample):
         """Mede impacto do idioma na classificação."""
         with_en = [r for r in promise_sample if r.text_en]
@@ -59,6 +57,7 @@ class TestClassificadorIdioma:
             pytest.skip("Poucos requisitos com texto EN.")
 
         from domain.models import Requirement
+
         reqs_en = [
             Requirement(id=r.id, text=r.text_en, source="PROMISE_EN", metadata=r.metadata)
             for r in with_en
@@ -68,7 +67,8 @@ class TestClassificadorIdioma:
         classified_en = agent.classify_batch(reqs_en)
 
         divergencias = [
-            (pt, en) for pt, en in zip(classified_pt, classified_en)
+            (pt, en)
+            for pt, en in zip(classified_pt, classified_en)
             if pt.requirement_type != en.requirement_type
         ]
 

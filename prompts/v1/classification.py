@@ -1,8 +1,7 @@
 from domain.enums import NFRCategory
 
 _CATEGORIES_LIST = "\n".join(
-    f"  - {c.value}: {c.name.replace('_', ' ').title()}"
-    for c in NFRCategory
+    f"  - {c.value}: {c.name.replace('_', ' ').title()}" for c in NFRCategory
 )
 
 CLASSIFICATION_SYSTEM_PROMPT = f"""\
@@ -44,8 +43,6 @@ def build_classification_messages(requirement_text: str) -> list[dict[str, str]]
         {"role": "system", "content": CLASSIFICATION_SYSTEM_PROMPT},
         {
             "role": "user",
-            "content": CLASSIFICATION_USER_PROMPT.format(
-                requirement_text=requirement_text
-            ),
+            "content": CLASSIFICATION_USER_PROMPT.format(requirement_text=requirement_text),
         },
     ]

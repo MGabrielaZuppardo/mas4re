@@ -3,7 +3,6 @@ from typing import Any
 
 
 class BaseAgent(ABC):
-
     def __init__(self, model: str, temperature: float = 0.0) -> None:
         self.model = model
         self.temperature = temperature

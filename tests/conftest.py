@@ -1,7 +1,7 @@
 import pytest
-from pathlib import Path
-from datasets.promise import PromiseAdapter
+
 from config.settings import settings
+from datasets.promise import PromiseAdapter
 
 SAMPLE_N = 15
 

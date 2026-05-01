@@ -46,25 +46,24 @@ def compute_prioritization_metrics(
         return {}
 
     pred_ranks = np.array([pred_map[i].priority_rank or 0 for i in common_ids], dtype=float)
-    gt_ranks   = np.array([gt_map[i].priority_rank or 0 for i in common_ids], dtype=float)
+    gt_ranks = np.array([gt_map[i].priority_rank or 0 for i in common_ids], dtype=float)
     pred_scores = np.array([pred_map[i].priority_score or 0.0 for i in common_ids])
-    gt_scores   = np.array([gt_map[i].priority_score or 0.0 for i in common_ids])
+    gt_scores = np.array([gt_map[i].priority_score or 0.0 for i in common_ids])
 
     tau, _ = kendalltau(pred_ranks, gt_ranks)
     rho, _ = spearmanr(pred_scores, gt_scores)
-    mae    = float(np.mean(np.abs(pred_scores - gt_scores)))
+    mae = float(np.mean(np.abs(pred_scores - gt_scores)))
 
-    moscow_acc = sum(
-        pred_map[i].priority == gt_map[i].priority
-        for i in common_ids
-    ) / len(common_ids)
+    moscow_acc = sum(pred_map[i].priority == gt_map[i].priority for i in common_ids) / len(
+        common_ids
+    )
 
     metrics = {
-        "kendall_tau":      round(float(tau), 4),
-        "spearman_r":       round(float(rho), 4),
-        "mae_score":        round(mae, 4),
-        "moscow_accuracy":  round(moscow_acc, 4),
-        "n_evaluated":      len(common_ids),
+        "kendall_tau": round(float(tau), 4),
+        "spearman_r": round(float(rho), 4),
+        "mae_score": round(mae, 4),
+        "moscow_accuracy": round(moscow_acc, 4),
+        "n_evaluated": len(common_ids),
     }
     logger.info("Métricas de priorização: %s", metrics)
     return metrics
@@ -83,10 +82,5 @@ def compute_moscow_distribution(
     if total == 0:
         return {}
 
-    counts = Counter(
-        r.priority.value for r in requirements if r.priority is not None
-    )
-    return {
-        cat.value: round(counts.get(cat.value, 0) / total, 4)
-        for cat in MoSCoWPriority
-    }
+    counts = Counter(r.priority.value for r in requirements if r.priority is not None)
+    return {cat.value: round(counts.get(cat.value, 0) / total, 4) for cat in MoSCoWPriority}

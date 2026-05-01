@@ -64,7 +64,6 @@ class ClassificationAgent(BaseAgent):
         )
         return state
 
-
     def classify_batch(
         self,
         requirements: list[Requirement],
@@ -74,23 +73,15 @@ class ClassificationAgent(BaseAgent):
         results: dict[str, ClassifiedRequirement] = {}
 
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = {
-                executor.submit(self._process_single, req): req
-                for req in requirements
-            }
+            futures = {executor.submit(self._process_single, req): req for req in requirements}
             for future in as_completed(futures):
                 req = futures[future]
                 try:
                     results[req.id] = future.result()
                 except Exception as e:
-                    logger.error(
-                        "Falha ao classificar | id=%s | erro=%s", req.id, e
-                    )
+                    logger.error("Falha ao classificar | id=%s | erro=%s", req.id, e)
 
-        
         return [results[r.id] for r in requirements if r.id in results]
-
-   
 
     @retry(
         retry=retry_if_exception_type(Exception),
@@ -108,7 +99,7 @@ class ClassificationAgent(BaseAgent):
     def _parse_response(self, content: str, req_id: str) -> ClassificationOutput:
         """Parse do JSON retornado pelo LLM com fallback seguro."""
         try:
-            match = re.search(r'\{[\s\S]*\}', content)
+            match = re.search(r"\{[\s\S]*\}", content)
             if not match:
                 raise ValueError("Nenhum JSON encontrado na resposta")
 
@@ -127,7 +118,9 @@ class ClassificationAgent(BaseAgent):
         except Exception as e:
             logger.error(
                 "Parse falhou | req_id=%s | erro=%s | conteúdo=%r",
-                req_id, e, content[:200],
+                req_id,
+                e,
+                content[:200],
             )
             return ClassificationOutput(
                 requirement_id=req_id,
