@@ -1,44 +1,41 @@
 # =============================================================================
 # MAS4RE — Multi-Agent System for Requirements Engineering
-# Imagem para reprodutibilidade dos experimentos
 # =============================================================================
+# syntax=docker/dockerfile:1
+FROM python:3.11-slim
 
-# ── Stage 1: dependências ────────────────────────────────────────────────────
-FROM python:3.11-slim AS deps
-
-WORKDIR /app
-
-# Dependências de sistema para scipy/numpy
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends gcc g++ && \
-    rm -rf /var/lib/apt/lists/*
-
-COPY pyproject.toml ./
-
-# Instala dependências de produção + dev (pytest necessário para experimentos)
-RUN pip install --no-cache-dir . ".[dev]"
-
-# ── Stage 2: aplicação ──────────────────────────────────────────────────────
-FROM python:3.11-slim AS app
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 WORKDIR /app
 
-# Copia pacotes instalados do stage anterior
-COPY --from=deps /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
-COPY --from=deps /usr/local/bin /usr/local/bin
-
-# Copia código-fonte (respeitando .dockerignore)
-COPY . .
-
-# Variáveis de ambiente padrão
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONPATH=/app
 
-# Healthcheck — valida que o pacote importa corretamente
+# Instala dependências usando cache mount — não cria layer gigante
+COPY pyproject.toml ./
+RUN touch README.md
+
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --system \
+    numpy>=1.26.0 pandas>=2.0.0 scikit-learn>=1.3.0 scipy>=1.11.0
+
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --system \
+    anthropic>=0.40.0 langchain>=0.3.0 langchain-anthropic>=0.3.0 \
+    langchain-groq>=0.2.0 langchain-ollama>=0.2.0 langgraph>=0.2.0
+
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --system \
+    tenacity>=8.0.0 pydantic>=2.0.0 pydantic-settings>=2.6.0 \
+    python-dotenv>=1.0.0 typer>=0.12.0 rich>=13.0.0 \
+    pytest>=8.0.0 pytest-cov>=5.0.0 ruff>=0.4.0 mypy>=1.10.0
+
+# Copia código-fonte
+COPY . .
+
 HEALTHCHECK --interval=30s --timeout=5s --retries=2 \
     CMD python -c "from agents.classifier import ClassificationAgent" || exit 1
 
-# Entrypoint padrão: shell interativo (sobrescrito pelo compose/make)
 ENTRYPOINT ["python", "-m"]
 CMD ["pytest", "tests/unit", "-v"]
