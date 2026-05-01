@@ -1,0 +1,72 @@
+# =============================================================================
+# MAS4RE — .dockerignore
+# Exclui tudo que não é necessário dentro da imagem Docker
+# =============================================================================
+
+# Controle de versão
+.git/
+.gitignore
+.github/
+
+# Ambientes virtuais
+.venv/
+venv/
+env/
+
+# Claude Code
+.claude/
+
+# IDEs
+.vscode/
+.idea/
+*.code-workspace
+
+# Cache Python
+__pycache__/
+*.py[cod]
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# Cobertura
+.coverage
+htmlcov/
+coverage.xml
+
+# Docker (evita recursão)
+Dockerfile
+docker-compose*.yml
+.docker/
+.dockerignore
+
+# Dados — montados como volume, não copiados na imagem
+datasets/data/
+experiments/results/
+experiments/logs/
+
+# Modelos pesados
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+models/
+checkpoints/
+
+# Notebooks (não necessários no container de execução)
+notebooks/
+*.ipynb
+
+# Documentação
+docs/
+*.md
+
+# Secrets
+.env
+.env.*
+*.pem
+*.key
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
