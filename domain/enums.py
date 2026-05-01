@@ -26,7 +26,6 @@ class NFRCategory(str, Enum):
 
 
 class MoSCoWPriority(str, Enum):
-    """Método MoSCoW — Clegg & Barker (1994)."""
     MUST_HAVE   = "M"
     SHOULD_HAVE = "S"
     COULD_HAVE  = "C"
@@ -35,3 +34,12 @@ class MoSCoWPriority(str, Enum):
     @property
     def score(self) -> float:
         return {"M": 1.0, "S": 0.75, "C": 0.5, "W": 0.25}[self.value]
+
+    @property
+    def label_pt(self) -> str:
+        return {
+            "M": "Deve ter",
+            "S": "Deveria ter",
+            "C": "Poderia ter",
+            "W": "Não terá",
+        }[self.value]

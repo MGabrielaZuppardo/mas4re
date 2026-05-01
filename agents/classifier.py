@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from tenacity import (
@@ -63,7 +64,6 @@ class ClassificationAgent(BaseAgent):
         )
         return state
 
-    # ── Batch ─────────────────────────────────────────────────────────────────
 
     def classify_batch(
         self,
@@ -87,10 +87,10 @@ class ClassificationAgent(BaseAgent):
                         "Falha ao classificar | id=%s | erro=%s", req.id, e
                     )
 
-        # Preserva ordem original
+        
         return [results[r.id] for r in requirements if r.id in results]
 
-    # ── Individual ────────────────────────────────────────────────────────────
+   
 
     @retry(
         retry=retry_if_exception_type(Exception),
@@ -108,9 +108,11 @@ class ClassificationAgent(BaseAgent):
     def _parse_response(self, content: str, req_id: str) -> ClassificationOutput:
         """Parse do JSON retornado pelo LLM com fallback seguro."""
         try:
-            clean = content.strip().strip("```json").strip("```").strip()
-            data = json.loads(clean)
+            match = re.search(r'\{[\s\S]*\}', content)
+            if not match:
+                raise ValueError("Nenhum JSON encontrado na resposta")
 
+            data = json.loads(match.group())
             req_type = RequirementType(data["requirement_type"])
             category_raw = data.get("nfr_category")
             category = NFRCategory(category_raw) if category_raw else None
