@@ -31,6 +31,11 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     python-dotenv>=1.0.0 typer>=0.12.0 rich>=13.0.0 \
     pytest>=8.0.0 pytest-cov>=5.0.0 ruff>=0.4.0 mypy>=1.10.0
 
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --system \
+    jupyter>=1.0.0 ipykernel>=6.0.0 ipywidgets>=8.0.0 \
+    matplotlib>=3.7.0 seaborn>=0.13.0 tqdm>=4.66.0
+
 # Copia código-fonte
 COPY . .
 

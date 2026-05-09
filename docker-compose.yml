@@ -2,9 +2,11 @@
 # MAS4RE — Docker Compose
 #
 # Uso:
-#   docker compose up app                  → só testes unitários
-#   docker compose --profile local up      → app + ollama local
-#   docker compose run app pytest tests/   → rodar testes específicos
+#   docker compose up app                       → só testes unitários
+#   docker compose --profile local up           → app + ollama local
+#   docker compose --profile notebook up        → jupyter notebook
+#   docker compose --profile local,notebook up  → jupyter + ollama
+#   docker compose run app pytest tests/        → rodar testes específicos
 # =============================================================================
 
 services:
@@ -23,6 +25,39 @@ services:
       # Resultados dos experimentos persistidos no host
       - ./experiments/results:/app/experiments/results
       - ./experiments/logs:/app/experiments/logs
+    depends_on:
+      ollama:
+        condition: service_healthy
+        required: false
+    networks:
+      - mas4re-net
+
+  notebook:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mas4re-notebook
+    profiles: ["notebook"]
+    env_file: .env
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - JUPYTER_ENABLE_LAB=yes
+    volumes:
+      - ./notebooks:/app/notebooks
+      - ./datasets/data:/app/datasets/data:ro
+      - ./experiments/results:/app/experiments/results
+      - ./experiments/logs:/app/experiments/logs
+      - .:/app
+    ports:
+      - "8888:8888"
+    command: >
+      jupyter lab
+      --ip=0.0.0.0
+      --port=8888
+      --no-browser
+      --allow-root
+      --NotebookApp.token=''
+      --NotebookApp.password=''
     depends_on:
       ollama:
         condition: service_healthy
