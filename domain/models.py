@@ -9,9 +9,8 @@ from pydantic import BaseModel, Field, field_validator
 
 from domain.enums import MoSCoWPriority, NFRCategory, RequirementType
 
-
 class Requirement(BaseModel):
-    """Requisito de software bruto — entrada do dataset ou do Elicitor."""
+    """ Requisito de software bruto- entrada do dataset ou do Elicitor"""
 
     id: str = Field(default_factory=lambda: str(uuid.uuid4())[:8])
     text: str = Field(..., min_length=5)
@@ -25,7 +24,6 @@ class Requirement(BaseModel):
         if not v.strip():
             raise ValueError("O texto do requisito não pode estar vazio.")
         return v.strip()
-
 
 class ClassificationOutput(BaseModel):
     """Output estruturado do agente classificador."""
@@ -77,6 +75,27 @@ class PrioritizationOutput(BaseModel):
     justification: str = Field(default="")
 
 
+class BaselineOutput(BaseModel):
+    """Output estruturado do agente baseline (classificação + priorização em uma chamada).
+
+    nfr_category é str — agnóstico de taxonomia, ao contrário de
+    ClassificationOutput que usa o enum NFRCategory (PROMISE-específico).
+    """
+
+    requirement_id: str
+    # Classificação
+    requirement_type: RequirementType
+    nfr_category: str | None = None
+    confidence: float = Field(..., ge=0.0, le=1.0)
+    classification_justification: str = Field(default="")
+    # Priorização
+    priority: MoSCoWPriority
+    priority_score: float = Field(..., ge=0.0, le=1.0)
+    priority_rank: int = Field(..., ge=1)
+    priority_justification: str = Field(default="")
+
+
+
 class PrioritizedRequirement(ClassifiedRequirement):
     """Requisito após priorização pelo agente."""
 
@@ -98,6 +117,38 @@ class PrioritizedRequirement(ClassifiedRequirement):
             priority_rank=output.priority_rank,
             justification_priority=output.justification,
         )
+
+
+    @classmethod
+    def from_baseline(
+        cls,
+        req: Requirement,
+        output: BaselineOutput,
+    ) -> PrioritizedRequirement:
+        """Constrói a partir do output do BaselineAgent.
+
+        Tenta coercir nfr_category (str livre) para NFRCategory enum.
+        Se a categoria não pertencer à taxonomia conhecida, usa None —
+        isso permite rodar em datasets sem taxonomia estruturada.
+        """
+        try:
+            nfr_cat = NFRCategory(output.nfr_category) if output.nfr_category else None
+        except ValueError:
+            nfr_cat = None
+
+        return cls(
+            **req.model_dump(),
+            requirement_type=output.requirement_type,
+            nfr_category=nfr_cat,
+            confidence=output.confidence,
+            justification=output.classification_justification,
+            priority=output.priority,
+            priority_score=output.priority_score,
+            priority_rank=output.priority_rank,
+            justification_priority=output.priority_justification,
+        )
+
+  
 
 
 class PipelineState(BaseModel):
