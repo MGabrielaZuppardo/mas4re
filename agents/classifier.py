@@ -13,7 +13,7 @@ from tenacity import (
 )
 
 from agents.base import BaseAgent
-from domain.enums import NFRCategory, RequirementType
+from domain.enums import RequirementType
 from domain.models import (
     ClassificationOutput,
     ClassifiedRequirement,
@@ -31,18 +31,34 @@ class ClassificationAgent(BaseAgent):
     Agente de classificação FR/NFR baseado em LLM.
 
     Classifica requisitos em Funcional ou Não-Funcional,
-    atribuindo categoria NFR conforme taxonomia PROMISE NFR+.
+    atribuindo categoria NFR de forma dataset-agnóstica via
+    nfr_categories injetável.
 
     Features:
+    - Dataset-agnóstico via nfr_categories injetável
+    - Suporte a prompts PT/EN
     - Retry com backoff exponencial (até 3 tentativas)
     - Execução paralela via ThreadPoolExecutor
     - Saída estruturada validada com Pydantic
     """
 
-    def __init__(self, model: str, temperature: float = 0.0) -> None:
+    def __init__(
+        self,
+        model: str,
+        temperature: float = 0.0,
+        nfr_categories: list[tuple[str, str]] | None = None,
+        lang: str = "pt",
+    ) -> None:
         super().__init__(model=model, temperature=temperature)
         self._llm = build_llm(model, temperature)
-        logger.info("ClassificationAgent inicializado | model=%s", model)
+        self._nfr_categories = nfr_categories
+        self._lang = lang
+        logger.info(
+            "ClassificationAgent inicializado | model=%s | lang=%s | nfr_categories=%s",
+            model,
+            lang,
+            len(nfr_categories) if nfr_categories else "None",
+        )
 
     def run(self, state: PipelineState) -> PipelineState:
         """Classifica todos os requisitos do estado."""
@@ -91,7 +107,11 @@ class ClassificationAgent(BaseAgent):
     )
     def _process_single(self, requirement: Requirement) -> ClassifiedRequirement:
         """Classifica um requisito com retry/backoff."""
-        messages = build_classification_messages(requirement.text)
+        messages = build_classification_messages(
+            requirement_text=requirement.text,
+            lang=self._lang,
+            nfr_categories=self._nfr_categories,
+        )
         response = self._llm.invoke(messages)
         output = self._parse_response(str(response.content), requirement.id)
         return ClassifiedRequirement.from_requirement(requirement, output)
@@ -105,13 +125,11 @@ class ClassificationAgent(BaseAgent):
 
             data = json.loads(match.group())
             req_type = RequirementType(data["requirement_type"])
-            category_raw = data.get("nfr_category")
-            category = NFRCategory(category_raw) if category_raw else None
 
             return ClassificationOutput(
                 requirement_id=req_id,
                 requirement_type=req_type,
-                nfr_category=category,
+                nfr_category=data.get("nfr_category"),  # str | None — agnóstico
                 confidence=float(data.get("confidence", 0.5)),
                 justification=data.get("justification", ""),
             )
