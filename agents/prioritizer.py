@@ -100,7 +100,7 @@ class PrioritizationAgent(BaseAgent):
         messages = build_prioritization_messages(
             requirement_text=requirement.text,
             requirement_type=requirement.requirement_type.value,
-            nfr_category=requirement.nfr_category.value if requirement.nfr_category else None,
+            nfr_category=requirement.nfr_category,  # já é str | None
         )
         response = self._llm.invoke(messages)
         output = self._parse_response(str(response.content), requirement.id)

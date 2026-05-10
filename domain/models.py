@@ -26,27 +26,25 @@ class Requirement(BaseModel):
         return v.strip()
 
 class ClassificationOutput(BaseModel):
-    """Output estruturado do agente classificador."""
+    """Output estruturado do agente classificador.
+
+    nfr_category é str — agnóstico de taxonomia.
+    Para PROMISE, receberá "SE", "PE", etc.
+    Para datasets genéricos, receberá string livre ou None.
+    """
 
     requirement_id: str
     requirement_type: RequirementType
-    nfr_category: NFRCategory | None = None
+    nfr_category: str | None = None
     confidence: float = Field(..., ge=0.0, le=1.0)
     justification: str = Field(default="")
-
-    @field_validator("nfr_category")
-    @classmethod
-    def categoria_obrigatoria_se_nfr(cls, v: NFRCategory | None, info: Any) -> NFRCategory | None:
-        if info.data.get("requirement_type") == RequirementType.NON_FUNCTIONAL and v is None:
-            raise ValueError("nfr_category é obrigatório quando requirement_type = NF.")
-        return v
 
 
 class ClassifiedRequirement(Requirement):
     """Requisito após classificação pelo agente."""
 
     requirement_type: RequirementType
-    nfr_category: NFRCategory | None = None
+    nfr_category: str | None = None
     confidence: float = Field(default=0.0, ge=0.0, le=1.0)
     justification: str = Field(default="")
 
@@ -131,15 +129,10 @@ class PrioritizedRequirement(ClassifiedRequirement):
         Se a categoria não pertencer à taxonomia conhecida, usa None —
         isso permite rodar em datasets sem taxonomia estruturada.
         """
-        try:
-            nfr_cat = NFRCategory(output.nfr_category) if output.nfr_category else None
-        except ValueError:
-            nfr_cat = None
-
         return cls(
             **req.model_dump(),
             requirement_type=output.requirement_type,
-            nfr_category=nfr_cat,
+            nfr_category=output.nfr_category,
             confidence=output.confidence,
             justification=output.classification_justification,
             priority=output.priority,
