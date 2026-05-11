@@ -102,6 +102,7 @@ ipython_config.py
 # -----------------------------------------------------------------------------
 .claude/
 CLAUDE.md
+refactor-plan.md
 
 # -----------------------------------------------------------------------------
 # Experimentos — arquivos gerados automaticamente
