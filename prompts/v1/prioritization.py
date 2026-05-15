@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from domain.enums import Lang
+
 PRIORITIZATION_SYSTEM_PROMPT_PT = """\
 Você é um especialista em Engenharia de Requisitos com profundo conhecimento \
 no método de priorização MoSCoW (Clegg & Barker, 1994).
@@ -78,7 +80,7 @@ def build_prioritization_messages(
     requirement_text: str,
     requirement_type: str,
     nfr_category: str | None = None,
-    lang: str = "pt",
+    lang: Lang = Lang.PT,
 ) -> list[dict[str, str]]:
     """
     Constrói mensagens para a chamada LLM.
@@ -87,9 +89,12 @@ def build_prioritization_messages(
         requirement_text: Texto do requisito.
         requirement_type: 'F' ou 'NF'.
         nfr_category: Sigla da categoria NFR (ex: 'SE', 'PE') ou None.
-        lang: 'pt' para prompt em português, 'en' para inglês.
+        lang: Lang.PT (português) ou Lang.EN (inglês).
     """
-    system = PRIORITIZATION_SYSTEM_PROMPT_PT if lang == "pt" else PRIORITIZATION_SYSTEM_PROMPT_EN
+    system = (
+        PRIORITIZATION_SYSTEM_PROMPT_PT if lang is Lang.PT
+        else PRIORITIZATION_SYSTEM_PROMPT_EN
+    )
     nfr_line = f"\nCategoria NFR: {nfr_category}" if nfr_category else ""
     user = PRIORITIZATION_USER_PROMPT.format(
         requirement_text=requirement_text,

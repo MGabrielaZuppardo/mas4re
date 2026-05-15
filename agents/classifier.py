@@ -13,7 +13,7 @@ from tenacity import (
 )
 
 from agents.base import BaseAgent
-from domain.enums import RequirementType
+from domain.enums import Lang, RequirementType
 from domain.models import (
     ClassificationOutput,
     ClassifiedRequirement,
@@ -26,51 +26,33 @@ from prompts.v1.classification import build_classification_messages
 logger = logging.getLogger(__name__)
 
 
-class ClassificationAgent(BaseAgent):
-    """
-    Agente de classificação FR/NFR baseado em LLM.
-
-    Classifica requisitos em Funcional ou Não-Funcional,
-    atribuindo categoria NFR de forma dataset-agnóstica via
-    nfr_categories injetável.
-
-    Features:
-    - Dataset-agnóstico via nfr_categories injetável
-    - Suporte a prompts PT/EN
-    - Retry com backoff exponencial (até 3 tentativas)
-    - Execução paralela via ThreadPoolExecutor
-    - Saída estruturada validada com Pydantic
-    """
+class ClassificationAgent(BaseAgent[Requirement, ClassifiedRequirement]):
+    """Agente de classificação FR/NFR baseado em LLM."""
 
     def __init__(
         self,
         model: str,
         temperature: float = 0.0,
         nfr_categories: list[tuple[str, str]] | None = None,
-        lang: str = "pt",
+        lang: Lang = Lang.PT,
     ) -> None:
         super().__init__(model=model, temperature=temperature)
         self._llm = build_llm(model, temperature)
         self._nfr_categories = nfr_categories
-        self._lang = lang
+        self._lang: Lang = lang
         logger.info(
             "ClassificationAgent inicializado | model=%s | lang=%s | nfr_categories=%s",
-            model,
-            lang,
+            model, lang.value,
             len(nfr_categories) if nfr_categories else "None",
         )
 
     def run(self, state: PipelineState) -> PipelineState:
-        """Classifica todos os requisitos do estado."""
         logger.info(
             "Iniciando classificação | run_id=%s | n=%d",
             state.run_id,
             state.n_requirements,
         )
-        classified = self.classify_batch(
-            state.raw_requirements,
-            max_workers=3,
-        )
+        classified = self.classify_batch(state.raw_requirements, max_workers=3)
         state.classified_requirements = classified
         state.model_used = self.model
         logger.info(
@@ -85,9 +67,7 @@ class ClassificationAgent(BaseAgent):
         requirements: list[Requirement],
         max_workers: int = 3,
     ) -> list[ClassifiedRequirement]:
-        """Classifica requisitos em paralelo."""
         results: dict[str, ClassifiedRequirement] = {}
-
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = {executor.submit(self._process_single, req): req for req in requirements}
             for future in as_completed(futures):
@@ -96,7 +76,6 @@ class ClassificationAgent(BaseAgent):
                     results[req.id] = future.result()
                 except Exception as e:
                     logger.error("Falha ao classificar | id=%s | erro=%s", req.id, e)
-
         return [results[r.id] for r in requirements if r.id in results]
 
     @retry(
@@ -106,7 +85,6 @@ class ClassificationAgent(BaseAgent):
         reraise=True,
     )
     def _process_single(self, requirement: Requirement) -> ClassifiedRequirement:
-        """Classifica um requisito com retry/backoff."""
         messages = build_classification_messages(
             requirement_text=requirement.text,
             lang=self._lang,
@@ -117,28 +95,23 @@ class ClassificationAgent(BaseAgent):
         return ClassifiedRequirement.from_requirement(requirement, output)
 
     def _parse_response(self, content: str, req_id: str) -> ClassificationOutput:
-        """Parse do JSON retornado pelo LLM com fallback seguro."""
         try:
             match = re.search(r"\{[\s\S]*\}", content)
             if not match:
                 raise ValueError("Nenhum JSON encontrado na resposta")
-
             data = json.loads(match.group())
             req_type = RequirementType(data["requirement_type"])
-
             return ClassificationOutput(
                 requirement_id=req_id,
                 requirement_type=req_type,
-                nfr_category=data.get("nfr_category"),  # str | None — agnóstico
+                nfr_category=data.get("nfr_category"),
                 confidence=float(data.get("confidence", 0.5)),
                 justification=data.get("justification", ""),
             )
         except Exception as e:
             logger.error(
                 "Parse falhou | req_id=%s | erro=%s | conteúdo=%r",
-                req_id,
-                e,
-                content[:200],
+                req_id, e, content[:200],
             )
             return ClassificationOutput(
                 requirement_id=req_id,

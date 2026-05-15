@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-# ── Categorias NFR 
+from domain.enums import Lang
+
+# ── Categorias NFR ─────────────────────────────────────────────────────────────
 
 _NFR_BLOCK_PT = """\
 Se NF, atribua uma das categorias abaixo:
@@ -18,7 +20,7 @@ _NFR_BLOCK_GENERIC_EN = """\
 If NF, describe the category with a concise keyword \
 (e.g., "performance", "security", "usability")."""
 
-# ── System prompts 
+# ── System prompts ─────────────────────────────────────────────────────────────
 
 BASELINE_SYSTEM_PROMPT_PT = """\
 Você é um especialista em Engenharia de Requisitos com profundo conhecimento \
@@ -122,7 +124,7 @@ Criteria by type:
 }}
 """
 
-# ── User prompts 
+# ── User prompts ───────────────────────────────────────────────────────────────
 
 BASELINE_USER_PROMPT_PT = """\
 Classifique e priorize o seguinte requisito de software:
@@ -136,45 +138,45 @@ Classify and prioritize the following software requirement:
 \"\"\"{requirement_text}\"\"\"
 """
 
-# ── Builders 
+# ── Builders ───────────────────────────────────────────────────────────────────
 
 def _build_nfr_block(
     nfr_categories: list[tuple[str, str]] | None,
-    lang: str,
+    lang: Lang,
 ) -> str:
     """Renderiza o bloco de categorias NFR no prompt de forma condicional."""
     if nfr_categories is None:
-        return _NFR_BLOCK_GENERIC_PT if lang == "pt" else _NFR_BLOCK_GENERIC_EN
+        return _NFR_BLOCK_GENERIC_PT if lang is Lang.PT else _NFR_BLOCK_GENERIC_EN
 
     categories_str = "\n".join(
         f"  - {code}: {desc}" for code, desc in nfr_categories
     )
-    template = _NFR_BLOCK_PT if lang == "pt" else _NFR_BLOCK_EN
+    template = _NFR_BLOCK_PT if lang is Lang.PT else _NFR_BLOCK_EN
     return template.format(categories=categories_str)
 
 
 def build_baseline_messages(
     requirement_text: str,
-    lang: str = "pt",
+    lang: Lang = Lang.PT,
     nfr_categories: list[tuple[str, str]] | None = None,
 ) -> list[dict[str, str]]:
     """Constrói mensagens para a chamada LLM do agente baseline.
 
     Args:
         requirement_text: Texto do requisito a ser processado.
-        lang: 'pt' para prompt em português, 'en' para inglês.
+        lang: Lang.PT (português) ou Lang.EN (inglês).
         nfr_categories: Lista de (código, descrição) das categorias NFR do dataset.
                         None = sem taxonomia estruturada (prompt genérico).
     """
     nfr_block = _build_nfr_block(nfr_categories, lang)
 
     system_template = (
-        BASELINE_SYSTEM_PROMPT_PT if lang == "pt" else BASELINE_SYSTEM_PROMPT_EN
+        BASELINE_SYSTEM_PROMPT_PT if lang is Lang.PT else BASELINE_SYSTEM_PROMPT_EN
     )
     system = system_template.format(nfr_block=nfr_block)
 
     user_template = (
-        BASELINE_USER_PROMPT_PT if lang == "pt" else BASELINE_USER_PROMPT_EN
+        BASELINE_USER_PROMPT_PT if lang is Lang.PT else BASELINE_USER_PROMPT_EN
     )
     user = user_template.format(requirement_text=requirement_text)
 
