@@ -78,6 +78,14 @@ select = ["E", "F", "I", "UP"]
 plugins = ["pydantic.mypy"]
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = ["domain.*", "agents.*"]
+disallow_untyped_defs = true
+check_untyped_defs = true
+disallow_any_generics = true
+warn_return_any = true
+warn_unused_ignores = true
+
 [tool.pydantic-mypy]
 init_forbid_extra = false
 init_typed = true
