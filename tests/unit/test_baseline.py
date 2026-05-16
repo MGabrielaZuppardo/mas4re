@@ -1,9 +1,10 @@
-import pytest
 from unittest.mock import MagicMock, patch
 
-from domain.enums import MoSCoWPriority, RequirementType
-from domain.models import PipelineState, Requirement
+import pytest
+
 from agents.baseline import BaselineAgent
+from domain.enums import Lang, MoSCoWPriority, RequirementType
+from domain.models import PipelineState, Requirement
 
 
 @pytest.fixture
@@ -146,9 +147,9 @@ class TestBaselineAgentConfig:
     def test_lang_padrao_pt(self):
         with patch("agents.baseline.build_llm"):
             agent = BaselineAgent(model="ollama/qwen2.5:7b")
-        assert agent._lang == "pt"
+        assert agent._lang is Lang.PT
 
     def test_lang_en(self):
         with patch("agents.baseline.build_llm"):
-            agent = BaselineAgent(model="ollama/qwen2.5:7b", lang="en")
-        assert agent._lang == "en"
+            agent = BaselineAgent(model="ollama/qwen2.5:7b", lang=Lang.EN)
+        assert agent._lang is Lang.EN

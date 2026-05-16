@@ -1,16 +1,17 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from pathlib import Path
 
 from domain.models import Requirement
 
+
 class DatasetAdapter(ABC):
     """Interface mínima que todo adapter de dataset deve implementar.
-    
-    Garante que qualquer dataset possa ser consumido pelos agentes sem que eles precisem conhecer o schema interno da fonte de dados. 
 
-    Uso: 
+    Garante que qualquer dataset possa ser consumido pelos agentes sem
+    que eles precisem conhecer o schema interno da fonte de dados.
+
+    Uso:
     adapter = PromiseAdapter()
     requirements = adapter.load()
     agent=BaselineAgent(model=...,nfr_categories=adapter.nfr_categories)
