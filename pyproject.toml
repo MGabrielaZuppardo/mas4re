@@ -74,6 +74,14 @@ exclude = ["notebooks/"]
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP"]
 
+[tool.ruff.lint.per-file-ignores]
+# Standalone scripts manipulate sys.path before importing project modules,
+# so E402 (module import not at top) is expected and acceptable here.
+"scripts/*.py" = ["E402", "E501"]
+# Test fixtures embed long single-line JSON payloads that are clearer
+# kept intact than artificially wrapped.
+"tests/unit/test_baseline.py" = ["E501"]
+
 [tool.mypy]
 plugins = ["pydantic.mypy"]
 ignore_missing_imports = true
