@@ -7,7 +7,8 @@ from typing import Annotated, Any
 from langgraph.graph.message import add_messages
 from pydantic import BaseModel, Field, field_validator
 
-from domain.enums import MoSCoWPriority, NFRCategory, RequirementType
+from domain.enums import MoSCoWPriority, RequirementType
+
 
 class Requirement(BaseModel):
     """ Requisito de software bruto- entrada do dataset ou do Elicitor"""
@@ -26,12 +27,7 @@ class Requirement(BaseModel):
         return v.strip()
 
 class ClassificationOutput(BaseModel):
-    """Output estruturado do agente classificador.
-
-    nfr_category é str — agnóstico de taxonomia.
-    Para PROMISE, receberá "SE", "PE", etc.
-    Para datasets genéricos, receberá string livre ou None.
-    """
+    """Output estruturado do agente classificador."""
 
     requirement_id: str
     requirement_type: RequirementType
@@ -74,24 +70,17 @@ class PrioritizationOutput(BaseModel):
 
 
 class BaselineOutput(BaseModel):
-    """Output estruturado do agente baseline (classificação + priorização em uma chamada).
-
-    nfr_category é str — agnóstico de taxonomia, ao contrário de
-    ClassificationOutput que usa o enum NFRCategory (PROMISE-específico).
-    """
+    """Output estruturado do agente baseline."""
 
     requirement_id: str
-    # Classificação
     requirement_type: RequirementType
     nfr_category: str | None = None
     confidence: float = Field(..., ge=0.0, le=1.0)
     classification_justification: str = Field(default="")
-    # Priorização
     priority: MoSCoWPriority
     priority_score: float = Field(..., ge=0.0, le=1.0)
     priority_rank: int = Field(..., ge=1)
     priority_justification: str = Field(default="")
-
 
 
 class PrioritizedRequirement(ClassifiedRequirement):
@@ -100,7 +89,7 @@ class PrioritizedRequirement(ClassifiedRequirement):
     priority: MoSCoWPriority | None = None
     priority_score: float | None = None
     priority_rank: int | None = None
-    justification_priority: str = Field(default="")
+    priority_justification: str = Field(default="")   # ← renomeado
 
     @classmethod
     def from_classified(
@@ -113,9 +102,8 @@ class PrioritizedRequirement(ClassifiedRequirement):
             priority=output.priority,
             priority_score=output.priority_score,
             priority_rank=output.priority_rank,
-            justification_priority=output.justification,
+            priority_justification=output.justification,   # ← renomeado
         )
-
 
     @classmethod
     def from_baseline(
@@ -123,12 +111,7 @@ class PrioritizedRequirement(ClassifiedRequirement):
         req: Requirement,
         output: BaselineOutput,
     ) -> PrioritizedRequirement:
-        """Constrói a partir do output do BaselineAgent.
-
-        Tenta coercir nfr_category (str livre) para NFRCategory enum.
-        Se a categoria não pertencer à taxonomia conhecida, usa None —
-        isso permite rodar em datasets sem taxonomia estruturada.
-        """
+        """Constrói a partir do output do BaselineAgent."""
         return cls(
             **req.model_dump(),
             requirement_type=output.requirement_type,
@@ -138,10 +121,8 @@ class PrioritizedRequirement(ClassifiedRequirement):
             priority=output.priority,
             priority_score=output.priority_score,
             priority_rank=output.priority_rank,
-            justification_priority=output.priority_justification,
+            priority_justification=output.priority_justification,   # ← renomeado
         )
-
-  
 
 
 class PipelineState(BaseModel):

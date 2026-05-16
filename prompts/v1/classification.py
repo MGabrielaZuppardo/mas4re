@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from domain.enums import Lang
+
 # ── Blocos de categorias NFR ───────────────────────────────────────────────────
 
 _NFR_BLOCK_PT = """\
@@ -83,44 +85,45 @@ Classify the following software requirement:
 \"\"\"{requirement_text}\"\"\"
 """
 
+
 def _build_nfr_block(
     nfr_categories: list[tuple[str, str]] | None,
-    lang: str,
+    lang: Lang,
 ) -> str:
     """Renderiza o bloco de categorias NFR no prompt de forma condicional."""
     if nfr_categories is None:
-        return _NFR_BLOCK_GENERIC_PT if lang == "pt" else _NFR_BLOCK_GENERIC_EN
+        return _NFR_BLOCK_GENERIC_PT if lang is Lang.PT else _NFR_BLOCK_GENERIC_EN
 
     categories_str = "\n".join(
         f"  - {code}: {desc}" for code, desc in nfr_categories
     )
-    template = _NFR_BLOCK_PT if lang == "pt" else _NFR_BLOCK_EN
+    template = _NFR_BLOCK_PT if lang is Lang.PT else _NFR_BLOCK_EN
     return template.format(categories=categories_str)
 
 
 def build_classification_messages(
     requirement_text: str,
-    lang: str = "pt",
+    lang: Lang = Lang.PT,
     nfr_categories: list[tuple[str, str]] | None = None,
 ) -> list[dict[str, str]]:
     """Constrói mensagens para a chamada LLM do classificador.
 
     Args:
         requirement_text: Texto do requisito a ser classificado.
-        lang: 'pt' para prompt em português, 'en' para inglês.
+        lang: Lang.PT (português) ou Lang.EN (inglês).
         nfr_categories: Lista de (código, descrição) das categorias NFR do dataset.
                         None = sem taxonomia estruturada (prompt genérico).
     """
     nfr_block = _build_nfr_block(nfr_categories, lang)
 
     system_template = (
-        CLASSIFICATION_SYSTEM_PROMPT_PT if lang == "pt"
+        CLASSIFICATION_SYSTEM_PROMPT_PT if lang is Lang.PT
         else CLASSIFICATION_SYSTEM_PROMPT_EN
     )
     system = system_template.format(nfr_block=nfr_block)
 
     user_template = (
-        CLASSIFICATION_USER_PROMPT_PT if lang == "pt"
+        CLASSIFICATION_USER_PROMPT_PT if lang is Lang.PT
         else CLASSIFICATION_USER_PROMPT_EN
     )
     user = user_template.format(requirement_text=requirement_text)

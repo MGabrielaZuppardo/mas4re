@@ -1,6 +1,13 @@
 from enum import StrEnum
 
 
+class Lang(StrEnum):
+    """Idiomas suportados pelos prompts e datasets."""
+
+    PT = "pt"
+    EN = "en"
+
+
 class RequirementType(StrEnum):
     FUNCTIONAL = "F"
     NON_FUNCTIONAL = "NF"

@@ -25,7 +25,7 @@ from prompts.v1.prioritization import build_prioritization_messages
 logger = logging.getLogger(__name__)
 
 
-class PrioritizationAgent(BaseAgent):
+class PrioritizationAgent(BaseAgent[ClassifiedRequirement, PrioritizedRequirement]):
     """
     Agente de priorização MoSCoW baseado em LLM.
 
