@@ -11,7 +11,7 @@ from domain.enums import MoSCoWPriority, RequirementType
 
 
 class Requirement(BaseModel):
-    """ Requisito de software bruto- entrada do dataset ou do Elicitor"""
+    """Requisito de software bruto- entrada do dataset ou do Elicitor"""
 
     id: str = Field(default_factory=lambda: str(uuid.uuid4())[:8])
     text: str = Field(..., min_length=5)
@@ -25,6 +25,7 @@ class Requirement(BaseModel):
         if not v.strip():
             raise ValueError("O texto do requisito não pode estar vazio.")
         return v.strip()
+
 
 class ClassificationOutput(BaseModel):
     """Output estruturado do agente classificador."""
@@ -89,7 +90,7 @@ class PrioritizedRequirement(ClassifiedRequirement):
     priority: MoSCoWPriority | None = None
     priority_score: float | None = None
     priority_rank: int | None = None
-    priority_justification: str = Field(default="")   # ← renomeado
+    priority_justification: str = Field(default="")  # ← renomeado
 
     @classmethod
     def from_classified(
@@ -102,7 +103,7 @@ class PrioritizedRequirement(ClassifiedRequirement):
             priority=output.priority,
             priority_score=output.priority_score,
             priority_rank=output.priority_rank,
-            priority_justification=output.justification,   # ← renomeado
+            priority_justification=output.justification,  # ← renomeado
         )
 
     @classmethod
@@ -121,7 +122,7 @@ class PrioritizedRequirement(ClassifiedRequirement):
             priority=output.priority,
             priority_score=output.priority_score,
             priority_rank=output.priority_rank,
-            priority_justification=output.priority_justification,   # ← renomeado
+            priority_justification=output.priority_justification,  # ← renomeado
         )
 
 

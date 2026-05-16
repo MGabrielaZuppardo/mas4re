@@ -70,7 +70,7 @@ def print_summary(result: ClassifierRunResult) -> None:
     sub = result.subcategory_metrics
     if sub:
         print(f"\n  {'Categoria':<12} {'F1':>6} {'Precision':>10} {'Recall':>8} {'Support':>8}")
-        print(f"  {'-'*50}")
+        print(f"  {'-' * 50}")
         for cat, vals in sub.items():
             if cat == "macro_avg":
                 continue
@@ -83,7 +83,7 @@ def print_summary(result: ClassifierRunResult) -> None:
             )
         macro = sub.get("macro_avg", {})
         if macro:
-            print(f"  {'-'*50}")
+            print(f"  {'-' * 50}")
             print(
                 f"  {'macro_avg':<12} "
                 f"{macro.get('f1', 0):>6.4f} "
@@ -104,7 +104,7 @@ def compare_models(results: list[ClassifierRunResult]) -> None:
         f"  {'Modelo':<30} {'Accuracy':>9} {'F1 Macro':>9} "
         f"{'F1 Weighted':>12} {'MCC':>7} {'Tempo':>8}"
     )
-    print(f"  {'-'*76}")
+    print(f"  {'-' * 76}")
 
     for r in sorted(results, key=lambda x: x.metrics.get("f1_macro", 0), reverse=True):
         m = r.metrics

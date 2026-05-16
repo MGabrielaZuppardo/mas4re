@@ -94,9 +94,7 @@ def _build_nfr_block(
     if nfr_categories is None:
         return _NFR_BLOCK_GENERIC_PT if lang is Lang.PT else _NFR_BLOCK_GENERIC_EN
 
-    categories_str = "\n".join(
-        f"  - {code}: {desc}" for code, desc in nfr_categories
-    )
+    categories_str = "\n".join(f"  - {code}: {desc}" for code, desc in nfr_categories)
     template = _NFR_BLOCK_PT if lang is Lang.PT else _NFR_BLOCK_EN
     return template.format(categories=categories_str)
 
@@ -117,14 +115,12 @@ def build_classification_messages(
     nfr_block = _build_nfr_block(nfr_categories, lang)
 
     system_template = (
-        CLASSIFICATION_SYSTEM_PROMPT_PT if lang is Lang.PT
-        else CLASSIFICATION_SYSTEM_PROMPT_EN
+        CLASSIFICATION_SYSTEM_PROMPT_PT if lang is Lang.PT else CLASSIFICATION_SYSTEM_PROMPT_EN
     )
     system = system_template.format(nfr_block=nfr_block)
 
     user_template = (
-        CLASSIFICATION_USER_PROMPT_PT if lang is Lang.PT
-        else CLASSIFICATION_USER_PROMPT_EN
+        CLASSIFICATION_USER_PROMPT_PT if lang is Lang.PT else CLASSIFICATION_USER_PROMPT_EN
     )
     user = user_template.format(requirement_text=requirement_text)
 
