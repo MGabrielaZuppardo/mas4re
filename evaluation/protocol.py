@@ -9,11 +9,11 @@ from __future__ import annotations
 
 # ── Reprodutibilidade ─────────────────────────────────────────────────────────
 RANDOM_SEED = 42
-TEMPERATURE = 0.0          # LLM determinístico
+TEMPERATURE = 0.0  # LLM determinístico
 
 # ── Amostragem ────────────────────────────────────────────────────────────────
-SAMPLE_SIZES = [50, 100, None]   # None = dataset completo
-DEFAULT_SAMPLE = 50              # Usado em testes rápidos
+SAMPLE_SIZES = [50, 100, None]  # None = dataset completo
+DEFAULT_SAMPLE = 50  # Usado em testes rápidos
 
 # ── Modelos avaliados ─────────────────────────────────────────────────────────
 CLASSIFIER_MODELS = [

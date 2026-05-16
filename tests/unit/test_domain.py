@@ -15,6 +15,7 @@ from domain.models import (
 
 # ── Lang enum ───────────────────────────────────────────────────────────────
 
+
 class TestLangEnum:
     def test_values(self) -> None:
         assert Lang.PT.value == "pt"
@@ -47,6 +48,7 @@ class TestLangEnum:
 
 
 # ── PrioritizedRequirement renamed field ────────────────────────────────────
+
 
 class TestPrioritizedRequirementRenamedField:
     """Garante que justification_priority -> priority_justification foi aplicado."""

@@ -42,7 +42,8 @@ class ClassificationAgent(BaseAgent[Requirement, ClassifiedRequirement]):
         self._lang: Lang = lang
         logger.info(
             "ClassificationAgent inicializado | model=%s | lang=%s | nfr_categories=%s",
-            model, lang.value,
+            model,
+            lang.value,
             len(nfr_categories) if nfr_categories else "None",
         )
 
@@ -111,7 +112,9 @@ class ClassificationAgent(BaseAgent[Requirement, ClassifiedRequirement]):
         except Exception as e:
             logger.error(
                 "Parse falhou | req_id=%s | erro=%s | conteúdo=%r",
-                req_id, e, content[:200],
+                req_id,
+                e,
+                content[:200],
             )
             return ClassificationOutput(
                 requirement_id=req_id,
