@@ -31,8 +31,9 @@ def _mock_response(content: str) -> MagicMock:
     mock = MagicMock()
     mock.content = content
     return mock
-class TestBaselineAgentParsing:
 
+
+class TestBaselineAgentParsing:
     def test_parse_funcional(self, agent):
         content = (
             '{"requirement_type": "F", "nfr_category": null, "confidence": 0.92,'
@@ -90,15 +91,15 @@ class TestBaselineAgentParsing:
         assert output.priority == MoSCoWPriority.COULD_HAVE
 
 
-
 class TestBaselineAgentRun:
-
     def test_run_preenche_prioritized_requirements(self, agent, sample_requirement):
-        agent._llm.invoke = MagicMock(return_value=_mock_response(
-            '{"requirement_type": "F", "nfr_category": null, "confidence": 0.9,'
-            ' "classification_justification": "ok", "priority": "M",'
-            ' "priority_score": 1.0, "priority_rank": 1, "priority_justification": "crítico"}'
-        ))
+        agent._llm.invoke = MagicMock(
+            return_value=_mock_response(
+                '{"requirement_type": "F", "nfr_category": null, "confidence": 0.9,'
+                ' "classification_justification": "ok", "priority": "M",'
+                ' "priority_score": 1.0, "priority_rank": 1, "priority_justification": "crítico"}'
+            )
+        )
         state = PipelineState(raw_requirements=[sample_requirement])
         result = agent.run(state)
 
@@ -131,8 +132,8 @@ class TestBaselineAgentRun:
         ranks = sorted(r.priority_rank for r in result.prioritized_requirements)
         assert ranks == list(range(1, len(reqs) + 1))
 
-class TestBaselineAgentConfig:
 
+class TestBaselineAgentConfig:
     def test_sem_categorias_nfr(self):
         with patch("agents.baseline.build_llm"):
             agent = BaselineAgent(model="ollama/qwen2.5:7b", nfr_categories=None)

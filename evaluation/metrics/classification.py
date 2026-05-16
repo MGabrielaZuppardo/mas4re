@@ -85,7 +85,7 @@ def compute_subcategory_metrics(
         return {}
 
     y_true = [gt_map[r.id].metadata["label_category"] for r in nfr_preds]
-    y_pred = [r.nfr_category.value if r.nfr_category else "F" for r in nfr_preds]
+    y_pred = [r.nfr_category if r.nfr_category else "F" for r in nfr_preds]
 
     report = classification_report(
         y_true,
