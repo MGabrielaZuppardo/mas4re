@@ -18,32 +18,24 @@ class DatasetAdapter(ABC):
     """
 
     @abstractmethod
-    def load(self)->list[Requirement]:
+    def load(self) -> list[Requirement]:
         "Carrega os requisitos do dataset como objetos Requirements"
 
     @property
-    def nfr_categories(self)->list[tuple[str,str]]|None:
+    def nfr_categories(self) -> list[tuple[str, str]] | None:
         """
         Retorna as categorias NFR como lista de (código, descrição)
 
         Retorna None se o dataset não tiver categorias NFR de maneira estruturada.
         Os agentes usam essa lista para montar o bloco de categorias no seu prompt.
         """
-        return None 
-    
+        return None
+
     @property
-    def name(self)->str:
+    def name(self) -> str:
         """Nome do dataset para loggin e relatórios de experimento"""
         return self.__class__.__name__
-    
-    def __repr__(self)->str:
-        n_cats=len(self.nfr_categories) if self.nfr_categories else 0
+
+    def __repr__(self) -> str:
+        n_cats = len(self.nfr_categories) if self.nfr_categories else 0
         return f"{self.name}(nfr_categories={n_cats})"
-
-
-
-        
-
-
-
-
