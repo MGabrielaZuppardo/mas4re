@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import TYPE_CHECKING
 
 from tenacity import (
     retry,
@@ -13,6 +14,9 @@ from tenacity import (
 
 from agents.base import BaseAgent
 from domain.enums import Lang, MoSCoWPriority, RequirementType
+
+if TYPE_CHECKING:
+    from evaluation.trace_writer import TraceWriter
 from domain.models import (
     BaselineOutput,
     PipelineState,
@@ -34,8 +38,9 @@ class BaselineAgent(BaseAgent[Requirement, PrioritizedRequirement]):
         temperature: float = 0.0,
         nfr_categories: list[tuple[str, str]] | None = None,
         lang: Lang = Lang.PT,
+        trace_writer: TraceWriter | None = None,
     ) -> None:
-        super().__init__(model=model, temperature=temperature)
+        super().__init__(model=model, temperature=temperature, trace_writer=trace_writer)
         self._llm = build_llm(model, temperature)
         self._nfr_categories = nfr_categories
         self._lang: Lang = lang
@@ -65,7 +70,9 @@ class BaselineAgent(BaseAgent[Requirement, PrioritizedRequirement]):
     ) -> list[PrioritizedRequirement]:
         results: dict[str, PrioritizedRequirement] = {}
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = {executor.submit(self._process_single, req): req for req in requirements}
+            futures = {
+                executor.submit(self._call_and_trace, "baseline", req): req for req in requirements
+            }
             for future in as_completed(futures):
                 req = futures[future]
                 try:

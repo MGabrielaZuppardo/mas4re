@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import TYPE_CHECKING
 
 from tenacity import (
     retry,
@@ -13,6 +14,9 @@ from tenacity import (
 
 from agents.base import BaseAgent
 from domain.enums import MoSCoWPriority
+
+if TYPE_CHECKING:
+    from evaluation.trace_writer import TraceWriter
 from domain.models import (
     ClassifiedRequirement,
     PipelineState,
@@ -38,8 +42,13 @@ class PrioritizationAgent(BaseAgent[ClassifiedRequirement, PrioritizedRequiremen
     - Saída estruturada validada com Pydantic
     """
 
-    def __init__(self, model: str, temperature: float = 0.0) -> None:
-        super().__init__(model=model, temperature=temperature)
+    def __init__(
+        self,
+        model: str,
+        temperature: float = 0.0,
+        trace_writer: TraceWriter | None = None,
+    ) -> None:
+        super().__init__(model=model, temperature=temperature, trace_writer=trace_writer)
         self._llm = build_llm(model, temperature)
         logger.info("PrioritizationAgent inicializado | model=%s", model)
 
@@ -71,7 +80,10 @@ class PrioritizationAgent(BaseAgent[ClassifiedRequirement, PrioritizedRequiremen
         results: dict[str, PrioritizedRequirement] = {}
 
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = {executor.submit(self._process_single, req): req for req in requirements}
+            futures = {
+                executor.submit(self._call_and_trace, "prioritize", req): req
+                for req in requirements
+            }
             for future in as_completed(futures):
                 req = futures[future]
                 try:
