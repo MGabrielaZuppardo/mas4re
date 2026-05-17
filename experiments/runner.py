@@ -8,10 +8,15 @@ import time
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from datasets.promise import PromiseAdapter
-from domain.models import PipelineState
+from domain.models import ClassifiedRequirement, PipelineState
+from evaluation.metrics.classification import (
+    compute_classification_metrics,
+    compute_subcategory_metrics,
+)
+from evaluation.metrics.prioritization import compute_moscow_distribution
 from experiments.strategy import OrchestrationStrategy
 
 logger = logging.getLogger(__name__)
@@ -64,6 +69,7 @@ class RunResult:
     state: PipelineState
     elapsed_seconds: float
     manifest: dict[str, Any] = field(default_factory=dict)
+    metrics: dict[str, Any] = field(default_factory=dict)
 
 
 class ExperimentRunner:
@@ -92,6 +98,35 @@ class ExperimentRunner:
             "elapsed_seconds": round(elapsed, 3),
         }
 
+    def _compute_metrics(self, state: PipelineState) -> dict[str, Any]:
+        """Compute quality metrics from the processed state.
+
+        Classification metrics use PROMISE gold labels (raw_requirements
+        metadata). Prioritization has no gold labels in PROMISE, so we
+        report the MoSCoW distribution only. Predictions come from
+        prioritized_requirements when available (covers both pipeline
+        and baseline, since PrioritizedRequirement extends
+        ClassifiedRequirement), falling back to classified_requirements.
+        """
+        ground_truth = state.raw_requirements
+        # PrioritizedRequirement extends ClassifiedRequirement; the metrics
+        # functions only read fields present on the base class. list is
+        # invariant for mypy, so an explicit cast is required here.
+        classified = cast(
+            "list[ClassifiedRequirement]",
+            state.prioritized_requirements or state.classified_requirements,
+        )
+
+        metrics: dict[str, Any] = {}
+        if classified:
+            metrics["classification"] = compute_classification_metrics(classified, ground_truth)
+            metrics["subcategory"] = compute_subcategory_metrics(classified, ground_truth)
+        if state.prioritized_requirements:
+            metrics["moscow_distribution"] = compute_moscow_distribution(
+                state.prioritized_requirements
+            )
+        return metrics
+
     def execute(self, strategy: OrchestrationStrategy, config: RunConfig) -> RunResult:
         adapter = PromiseAdapter(path=config.dataset_path)
         requirements = (
@@ -119,15 +154,34 @@ class ExperimentRunner:
         run_path.mkdir(parents=True, exist_ok=True)
         (run_path / "manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False))
 
+        metrics = self._compute_metrics(state)
+        predictions = [r.model_dump(mode="json") for r in state.prioritized_requirements] or [
+            r.model_dump(mode="json") for r in state.classified_requirements
+        ]
+        results = {
+            "config": {
+                "strategy": config.strategy_name,
+                "model": config.model,
+                "seed": config.seed,
+                "n": len(requirements),
+            },
+            "metrics": metrics,
+            "n_predictions": len(predictions),
+            "predictions": predictions,
+        }
+        (run_path / "results.json").write_text(json.dumps(results, indent=2, ensure_ascii=False))
+
         logger.info(
-            "Run done | strategy=%s | elapsed=%.2fs | manifest=%s",
+            "Run done | strategy=%s | elapsed=%.2fs | metrics=%s | dir=%s",
             strategy.name,
             elapsed,
-            run_path / "manifest.json",
+            metrics.get("classification", {}),
+            run_path,
         )
         return RunResult(
             config=config,
             state=state,
             elapsed_seconds=elapsed,
             manifest=manifest,
+            metrics=metrics,
         )

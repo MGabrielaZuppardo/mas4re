@@ -37,6 +37,11 @@ sob `RunConfig` congelado e grava `manifest.json` com `git_commit`,
   `ExperimentRunner.execute(strategy, config)` + manifesto.
 - `tests/unit/test_experiment_runner.py`: runner, manifesto,
   determinismo via `FakeStrategy`.
+- O runner também computa métricas (classificação via gold labels
+  do PROMISE; subcategoria; distribuição MoSCoW) e grava
+  `results.json` (predições + métricas) ao lado de `manifest.json`.
+  Priorização não tem gold label no PROMISE → apenas distribuição
+  (ameaça discutida em §7 do artigo).
 
 ## Consequências
 
