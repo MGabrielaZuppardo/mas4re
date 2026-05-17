@@ -1,56 +1,72 @@
-# ADR-004: Strategy Pattern + ExperimentRunner para validade de SQ2
+# ADR-004: Strategy Pattern + ExperimentRunner para validade da SQ2
 
 - **Status:** Accepted
-- **Data:** 2026-05-10
+- **Data:** 2026-05-16
 - **Autor:** Gabriela Zuppardo
 - **SQ relacionada:** SQ2
 
 ## Contexto
 
-`scripts/run_baseline.py` (224 ll.) e `scripts/run_mas_pipeline.py`
-(229 ll.) são quase irmãos copy-paste, com IO, métrica e ordering
-duplicados. Em SQ2 isso é grave: qualquer divergência entre os dois
-scripts vira variável de confusão na comparação.
+A SQ2 compara empiricamente duas arquiteturas (multi-agente vs.
+agente único). A comparação só é válida se ambas forem executadas
+sob condições idênticas — mesmo dataset, mesma seed, mesmo runner —
+variando apenas a arquitetura. A orquestração vivia em scripts
+imperativos distintos (`run_baseline.py`, `run_mas_pipeline.py`),
+com caminhos de código divergentes e sem manifesto reprodutível.
 
 ## Decisão
 
-Aplicar Strategy Pattern:
-- `OrchestrationStrategy` (ABC) — única coisa que diferencia baseline e
-  pipeline (`execute(dataset, run_config) -> PipelineState`).
-- `BaselineStrategy` e `PipelineStrategy`.
-- `ExperimentRunner` único: carrega dataset → fixa seed → invoca strategy
-  → coleta métricas → persiste `manifest.json` + `metrics.json` +
-  `trace.jsonl` + `failures.jsonl`.
+Introduzir o **Strategy Pattern**:
+- `OrchestrationStrategy` (ABC): contrato
+  `execute(requirements) -> PipelineState`.
+- `BaselineStrategy`: agente único (1 chamada LLM).
+- `PipelineStrategy`: grafo LangGraph (classifier → prioritizer,
+  ADR-005).
 
-`manifest.json` registra `dataset_hash`, `seed`, `model`, `prompt_version`,
-`detector_chain_version`, `git_commit`, `strategy` — chave para
-comparabilidade.
+E o **`ExperimentRunner`**: carrega dataset, executa a estratégia
+sob `RunConfig` congelado e grava `manifest.json` com `git_commit`,
+`seed`, `dataset_md5`, `model`, `strategy`, `langgraph_version` e
+`timestamp`.
+
+## Implementação
+
+- `experiments/strategy.py`: ABC + `BaselineStrategy` +
+  `PipelineStrategy` + `_coerce_state` (normaliza retorno do
+  LangGraph dict→PipelineState).
+- `experiments/runner.py`: `RunConfig`, `RunResult`,
+  `ExperimentRunner.execute(strategy, config)` + manifesto.
+- `tests/unit/test_experiment_runner.py`: runner, manifesto,
+  determinismo via `FakeStrategy`.
 
 ## Consequências
 
 **Positivas:**
-- Validade da comparação SQ2 garantida por construção: mesmo caminho de
-  IO, métrica e serialização.
-- Comparar runs = `diff manifest_baseline.json manifest_pipeline.json`.
-- Nova estratégia (ex.: hierarchical) entra como subclasse.
+- Variável arquitetural isolada → comparação SQ2 controlada.
+- `manifest.json` torna cada run reprodutível e citável
+  (critério Verificabilidade/Transparência do SBCARS).
+- Scripts imperativos serão substituídos pelo CLI (PR seguinte).
 
 **Negativas:**
-- Strategy ABC adiciona uma camada de indireção.
+- Indireção extra (Strategy) para quem lê o código pela 1ª vez.
 
 **Neutras:**
-- Scripts antigos removidos; CLI Typer toma seu lugar.
+- `RunConfig` centraliza os parâmetros do experimento.
 
 ## Alternativas consideradas
 
-- **Manter scripts irmãos:** descartada — duplicação invalida SQ2.
-- **Template Method em vez de Strategy:** descartada — o que varia é a
-  orquestração inteira, não passos individuais.
+- **Dois scripts independentes:** estado anterior; descartado —
+  caminhos divergentes invalidam a comparação.
+- **Flag condicional dentro de um script:** descartada — mistura
+  responsabilidades e dificulta teste isolado.
 
 ## Impacto na pesquisa
 
-Comparação SQ2 deixa de depender de disciplina manual ("lembrei de
-atualizar os dois scripts?") e passa a ser garantida pela arquitetura.
+Habilita a execução do grid da SQ2 (3 modelos × 2 idiomas × 2
+arquiteturas) sob protocolo único, com manifesto por run para
+auditoria e replicação independentes.
 
 ## Referências
-- `experiments/runner.py`, `experiments/strategies/*.py` (a criar)
-- ADRs relacionados: ADR-005, ADR-003
+- `experiments/{strategy,runner}.py`,
+  `tests/unit/test_experiment_runner.py`
+- ADRs relacionados: ADR-005 (LangGraph), ADR-002 (DI), ADR-003
+  (taxonomia de falhas — instrumentação futura no runner)
