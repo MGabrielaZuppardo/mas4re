@@ -38,8 +38,7 @@ class FakeStrategy(OrchestrationStrategy):
 @pytest.fixture
 def fake_requirements() -> list[Requirement]:
     return [
-        Requirement(id=f"r{i}", text=f"Requisito de teste número {i} do sistema.")
-        for i in range(5)
+        Requirement(id=f"r{i}", text=f"Requisito de teste número {i} do sistema.") for i in range(5)
     ]
 
 
