@@ -102,3 +102,38 @@ def test_manifest_deterministic_fields(tmp_path: Path, fake_requirements) -> Non
 
     for key in ("strategy", "model", "seed", "temperature", "prompt_version"):
         assert r1.manifest[key] == r2.manifest[key]
+
+
+def test_runner_persists_results_json(tmp_path: Path, fake_requirements) -> None:
+    with _patch_adapter(fake_requirements):
+        runner = ExperimentRunner(out_dir=str(tmp_path))
+        config = RunConfig(
+            strategy_name="fake",
+            model="fake/model",
+            dataset_path="datasets/data/promise_nfr/promise_nfr_pt.csv",
+            n_samples=5,
+        )
+        result = runner.execute(FakeStrategy(), config)
+
+    results_files = list(tmp_path.glob("**/results.json"))
+    assert len(results_files) == 1
+    data = json.loads(results_files[0].read_text())
+    assert data["n_predictions"] == 5
+    assert data["config"]["strategy"] == "fake"
+    assert "metrics" in data
+    assert "moscow_distribution" in result.metrics
+
+
+def test_runner_metrics_moscow_distribution_sums_to_one(tmp_path: Path, fake_requirements) -> None:
+    with _patch_adapter(fake_requirements):
+        runner = ExperimentRunner(out_dir=str(tmp_path))
+        config = RunConfig(
+            strategy_name="fake",
+            model="fake/model",
+            dataset_path="datasets/data/promise_nfr/promise_nfr_pt.csv",
+            n_samples=5,
+        )
+        result = runner.execute(FakeStrategy(), config)
+
+    dist = result.metrics["moscow_distribution"]
+    assert abs(sum(dist.values()) - 1.0) < 1e-6
