@@ -24,6 +24,7 @@ from domain.models import (
     PrioritizedRequirement,
 )
 from llm.factory import build_llm
+from llm.json_parser import extract_first_json
 from prompts.v1.prioritization import build_prioritization_messages
 
 logger = logging.getLogger(__name__)
@@ -121,8 +122,7 @@ class PrioritizationAgent(BaseAgent[ClassifiedRequirement, PrioritizedRequiremen
     def _parse_response(self, content: str, req_id: str) -> PrioritizationOutput:
         """Parse do JSON retornado pelo LLM com fallback seguro."""
         try:
-            clean = content.strip().strip("```json").strip("```").strip()
-            data = json.loads(clean)
+            data = json.loads(extract_first_json(content))
 
             priority = MoSCoWPriority(data["priority"])
 

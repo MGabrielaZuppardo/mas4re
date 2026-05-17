@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import logging
-import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import TYPE_CHECKING
 
@@ -25,6 +24,7 @@ from domain.models import (
     Requirement,
 )
 from llm.factory import build_llm
+from llm.json_parser import extract_first_json
 from prompts.v1.classification import build_classification_messages
 
 logger = logging.getLogger(__name__)
@@ -104,10 +104,7 @@ class ClassificationAgent(BaseAgent[Requirement, ClassifiedRequirement]):
 
     def _parse_response(self, content: str, req_id: str) -> ClassificationOutput:
         try:
-            match = re.search(r"\{[\s\S]*\}", content)
-            if not match:
-                raise ValueError("Nenhum JSON encontrado na resposta")
-            data = json.loads(match.group())
+            data = json.loads(extract_first_json(content))
             req_type = RequirementType(data["requirement_type"])
             return ClassificationOutput(
                 requirement_id=req_id,
