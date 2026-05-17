@@ -24,6 +24,7 @@ from domain.models import (
     Requirement,
 )
 from llm.factory import build_llm
+from llm.json_parser import extract_first_json
 from prompts.v1.baseline import build_baseline_messages
 
 logger = logging.getLogger(__name__)
@@ -104,8 +105,7 @@ class BaselineAgent(BaseAgent[Requirement, PrioritizedRequirement]):
 
     def _parse_response(self, content: str, req_id: str) -> BaselineOutput:
         try:
-            clean = content.strip().strip("```json").strip("```").strip()
-            data = json.loads(clean)
+            data = json.loads(extract_first_json(content))
             req_type = RequirementType(data["requirement_type"])
             priority = MoSCoWPriority(data["priority"])
             return BaselineOutput(
