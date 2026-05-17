@@ -114,10 +114,7 @@ class ExperimentRunner:
         manifest = self._build_manifest(config, len(requirements), elapsed)
 
         model_slug = config.model.replace("/", "-")
-        run_id = (
-            f"{strategy.name}_{model_slug}"
-            f"_n{len(requirements)}_{int(time.time())}"
-        )
+        run_id = f"{strategy.name}_{model_slug}_n{len(requirements)}_{int(time.time())}"
         run_path = self._out / run_id
         run_path.mkdir(parents=True, exist_ok=True)
         (run_path / "manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False))
