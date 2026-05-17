@@ -6,7 +6,7 @@ import logging
 import subprocess
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -20,9 +20,7 @@ logger = logging.getLogger(__name__)
 def _git_commit() -> str:
     try:
         return (
-            subprocess.check_output(
-                ["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL
-            )
+            subprocess.check_output(["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL)
             .decode()
             .strip()
         )
@@ -78,12 +76,10 @@ class ExperimentRunner:
         self._out = Path(out_dir)
         self._out.mkdir(parents=True, exist_ok=True)
 
-    def _build_manifest(
-        self, config: RunConfig, n_loaded: int, elapsed: float
-    ) -> dict[str, Any]:
+    def _build_manifest(self, config: RunConfig, n_loaded: int, elapsed: float) -> dict[str, Any]:
         return {
             "git_commit": _git_commit(),
-            "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+            "timestamp_utc": datetime.now(UTC).isoformat(),
             "strategy": config.strategy_name,
             "model": config.model,
             "seed": config.seed,
@@ -96,9 +92,7 @@ class ExperimentRunner:
             "elapsed_seconds": round(elapsed, 3),
         }
 
-    def execute(
-        self, strategy: OrchestrationStrategy, config: RunConfig
-    ) -> RunResult:
+    def execute(self, strategy: OrchestrationStrategy, config: RunConfig) -> RunResult:
         adapter = PromiseAdapter(path=config.dataset_path)
         requirements = (
             adapter.load_sample(config.n_samples, seed=config.seed)
@@ -119,12 +113,14 @@ class ExperimentRunner:
 
         manifest = self._build_manifest(config, len(requirements), elapsed)
 
-        run_id = f"{strategy.name}_{config.model.replace('/', '-')}_n{len(requirements)}_{int(time.time())}"
+        model_slug = config.model.replace("/", "-")
+        run_id = (
+            f"{strategy.name}_{model_slug}"
+            f"_n{len(requirements)}_{int(time.time())}"
+        )
         run_path = self._out / run_id
         run_path.mkdir(parents=True, exist_ok=True)
-        (run_path / "manifest.json").write_text(
-            json.dumps(manifest, indent=2, ensure_ascii=False)
-        )
+        (run_path / "manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False))
 
         logger.info(
             "Run done | strategy=%s | elapsed=%.2fs | manifest=%s",
