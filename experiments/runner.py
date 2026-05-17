@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import re
 import subprocess
 import time
 from dataclasses import dataclass, field
@@ -148,7 +149,9 @@ class ExperimentRunner:
 
         manifest = self._build_manifest(config, len(requirements), elapsed)
 
-        model_slug = config.model.replace("/", "-")
+        # Filesystem-safe slug: model ids carry "/", ":" and "+"
+        # (e.g. "ollama/qwen2.5:7b") which are invalid in Windows paths.
+        model_slug = re.sub(r"[^A-Za-z0-9._-]", "-", config.model)
         run_id = f"{strategy.name}_{model_slug}_n{len(requirements)}_{int(time.time())}"
         run_path = self._out / run_id
         run_path.mkdir(parents=True, exist_ok=True)

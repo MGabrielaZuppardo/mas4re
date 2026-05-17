@@ -28,6 +28,9 @@ dependencies = [
     "rich>=13.0.0",
 ]
 
+[project.scripts]
+mas4re = "cli.main:app"
+
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0.0",
