@@ -24,7 +24,7 @@ from domain.models import (
     PrioritizedRequirement,
 )
 from llm.factory import build_llm
-from llm.json_parser import extract_first_json
+from llm.json_parser import coerce_str, extract_first_json
 from prompts.v1.prioritization import build_prioritization_messages
 
 logger = logging.getLogger(__name__)
@@ -131,7 +131,7 @@ class PrioritizationAgent(BaseAgent[ClassifiedRequirement, PrioritizedRequiremen
                 priority=priority,
                 priority_score=float(data.get("priority_score", priority.score)),
                 priority_rank=int(data.get("priority_rank", 1)),
-                justification=data.get("justification", ""),
+                justification=coerce_str(data.get("justification", "")),
             )
         except Exception as e:
             logger.error(

@@ -41,7 +41,7 @@ from experiments.strategy import BaselineStrategy, PipelineStrategy
 MODELS = [
     "ollama/qwen2.5:7b",
     "ollama/llama3.1:8b",
-    "ollama/phi3.5:3.8b",
+    "ollama/mistral:7b",
 ]
 
 LANGUAGES = ["pt", "en"]
@@ -89,7 +89,7 @@ def _build_strategy(cond: GridCondition) -> BaselineStrategy | PipelineStrategy:
     )
 
 
-def _build_config(cond: GridCondition, n: int | None) -> RunConfig:
+def _build_config(cond: GridCondition, n: int | None, seed: int = 42) -> RunConfig:
     model_label = cond.model if cond.strategy == "baseline" else f"{cond.model}+{cond.model}"
     return RunConfig(
         strategy_name=cond.strategy,
@@ -97,7 +97,7 @@ def _build_config(cond: GridCondition, n: int | None) -> RunConfig:
         dataset_path=settings.promise_dataset_path,
         lang=cond.lang,
         n_samples=n,
-        seed=42,
+        seed=seed,
     )
 
 
@@ -111,12 +111,19 @@ def _append_summary(row: dict) -> None:
         writer.writerow(row)
 
 
-def run_grid(n: int | None = None, dry_run: bool = False) -> None:
+def run_grid(n: int | None = None, dry_run: bool = False, seed: int | None = None) -> None:
+    import random as _random
+
+    effective_seed = seed if seed is not None else _random.randint(0, 2**31 - 1)
+
     conditions = _build_conditions()
     runner = ExperimentRunner()
     total = len(conditions)
 
-    print(f"\nMAS4RE Grid — {total} condições | n={'full' if n is None else n} | seed=42\n")
+    print(
+        f"\nMAS4RE Grid — {total} condições | n={'full' if n is None else n}"
+        f" | seed={effective_seed}\n"
+    )
 
     for i, cond in enumerate(conditions, start=1):
         label = f"[{i:02d}/{total}] {cond.strategy:<10} {cond.model:<25} lang={cond.lang}"
@@ -127,7 +134,7 @@ def run_grid(n: int | None = None, dry_run: bool = False) -> None:
             continue
 
         strategy = _build_strategy(cond)
-        config = _build_config(cond, n)
+        config = _build_config(cond, n, seed=effective_seed)
         t0 = time.monotonic()
 
         try:
@@ -190,5 +197,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="MAS4RE Grid Runner")
     parser.add_argument("--n", type=int, default=None, help="Sample size (None = full dataset)")
     parser.add_argument("--dry-run", action="store_true", help="Print conditions without running")
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="Sampling seed (omit for random seed, use 42 for reproducibility)",
+    )
     args = parser.parse_args()
-    run_grid(n=args.n, dry_run=args.dry_run)
+    run_grid(n=args.n, dry_run=args.dry_run, seed=args.seed)

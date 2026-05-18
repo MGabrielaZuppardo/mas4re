@@ -168,7 +168,9 @@ class ExperimentRunner:
         elapsed = time.perf_counter() - start
 
         manifest = self._build_manifest(config, run_id, len(requirements), elapsed, trace_path)
-        (run_path / "manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False))
+        (run_path / "manifest.json").write_text(
+            json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
 
         metrics = self._compute_metrics(state)
         predictions = [r.model_dump(mode="json") for r in state.prioritized_requirements] or [
@@ -187,7 +189,9 @@ class ExperimentRunner:
             "n_predictions": len(predictions),
             "predictions": predictions,
         }
-        (run_path / "results.json").write_text(json.dumps(results, indent=2, ensure_ascii=False))
+        (run_path / "results.json").write_text(
+            json.dumps(results, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
 
         logger.info(
             "Run done | run_id=%s | elapsed=%.2fs | classification=%s",
