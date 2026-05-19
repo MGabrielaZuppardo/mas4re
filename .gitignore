@@ -169,3 +169,5 @@ $RECYCLE.BIN/
 # Docker (manter Dockerfile, ignorar volumes locais)
 # -----------------------------------------------------------------------------
 .docker/
+
+experiments/traces/

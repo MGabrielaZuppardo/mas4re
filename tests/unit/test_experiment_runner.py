@@ -19,7 +19,7 @@ class FakeStrategy(OrchestrationStrategy):
     def name(self) -> str:
         return "fake"
 
-    def execute(self, requirements: list[Requirement]) -> PipelineState:
+    def execute(self, requirements: list[Requirement], trace_writer=None) -> PipelineState:
         state = PipelineState(raw_requirements=requirements)
         state.prioritized_requirements = [
             PrioritizedRequirement(
