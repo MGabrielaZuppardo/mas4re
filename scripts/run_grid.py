@@ -41,12 +41,12 @@ from experiments.strategy import BaselineStrategy, PipelineStrategy
 MODELS = [
     "ollama/qwen2.5:7b",
     "ollama/llama3.1:8b",
-    "ollama/phi3.5:3.8b",
+    "ollama/mistral:7b",
 ]
 
 LANGUAGES = ["pt", "en"]
 
-SUMMARY_PATH = Path("experiments/results/grid_summary.csv")
+SUMMARY_PATH = Path("experiments/results/grid_summary.csv")  # default, overridden by --output
 SUMMARY_FIELDS = [
     "run_id",
     "strategy",
@@ -111,7 +111,10 @@ def _append_summary(row: dict) -> None:
         writer.writerow(row)
 
 
-def run_grid(n: int | None = None, dry_run: bool = False) -> None:
+def run_grid(n: int | None = None, dry_run: bool = False, output: Path | None = None) -> None:
+    global SUMMARY_PATH
+    if output is not None:
+        SUMMARY_PATH = output
     conditions = _build_conditions()
     runner = ExperimentRunner()
     total = len(conditions)
@@ -190,5 +193,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="MAS4RE Grid Runner")
     parser.add_argument("--n", type=int, default=None, help="Sample size (None = full dataset)")
     parser.add_argument("--dry-run", action="store_true", help="Print conditions without running")
+    parser.add_argument("--output", type=Path, default=None, help="Output CSV path for summary")
     args = parser.parse_args()
-    run_grid(n=args.n, dry_run=args.dry_run)
+    run_grid(n=args.n, dry_run=args.dry_run, output=args.output)
