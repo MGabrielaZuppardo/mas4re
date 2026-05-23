@@ -24,7 +24,7 @@ from domain.models import (
     Requirement,
 )
 from llm.factory import build_llm
-from llm.json_parser import extract_first_json
+from llm.json_parser import coerce_str, extract_first_json
 from prompts.v1.baseline import build_baseline_messages
 
 logger = logging.getLogger(__name__)
@@ -113,11 +113,13 @@ class BaselineAgent(BaseAgent[Requirement, PrioritizedRequirement]):
                 requirement_type=req_type,
                 nfr_category=data.get("nfr_category"),
                 confidence=float(data.get("confidence", 0.5)),
-                classification_justification=data.get("classification_justification", ""),
+                classification_justification=coerce_str(
+                    data.get("classification_justification", "")
+                ),
                 priority=priority,
                 priority_score=float(data.get("priority_score", priority.score)),
                 priority_rank=int(data.get("priority_rank", 1)),
-                priority_justification=data.get("priority_justification", ""),
+                priority_justification=coerce_str(data.get("priority_justification", "")),
             )
         except Exception as e:
             logger.error(
