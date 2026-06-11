@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import logging
-import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import TYPE_CHECKING
 
@@ -12,10 +11,9 @@ from tenacity import (
     stop_after_attempt,
     wait_exponential,
 )
-from tqdm import tqdm
 
 from agents.base import BaseAgent
-from domain.enums import Lang, MoSCoWPriority
+from domain.enums import MoSCoWPriority
 
 if TYPE_CHECKING:
     from evaluation.trace_writer import TraceWriter
@@ -26,6 +24,7 @@ from domain.models import (
     PrioritizedRequirement,
 )
 from llm.factory import build_llm
+from llm.json_parser import coerce_str, extract_first_json
 from prompts.v1.prioritization import build_prioritization_messages
 
 logger = logging.getLogger(__name__)
@@ -48,13 +47,11 @@ class PrioritizationAgent(BaseAgent[ClassifiedRequirement, PrioritizedRequiremen
         self,
         model: str,
         temperature: float = 0.0,
-        lang: Lang = Lang.PT,
         trace_writer: TraceWriter | None = None,
     ) -> None:
         super().__init__(model=model, temperature=temperature, trace_writer=trace_writer)
         self._llm = build_llm(model, temperature)
-        self._lang = lang
-        logger.info("PrioritizationAgent inicializado | model=%s | lang=%s", model, lang.value)
+        logger.info("PrioritizationAgent inicializado | model=%s", model)
 
     def run(self, state: PipelineState) -> PipelineState:
         """Prioriza todos os requisitos classificados do estado."""
@@ -82,33 +79,18 @@ class PrioritizationAgent(BaseAgent[ClassifiedRequirement, PrioritizedRequiremen
     ) -> list[PrioritizedRequirement]:
         """Prioriza requisitos em paralelo e aplica ranking global."""
         results: dict[str, PrioritizedRequirement] = {}
-        n = len(requirements)
 
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = {
                 executor.submit(self._call_and_trace, "prioritize", req): req
                 for req in requirements
             }
-            with tqdm(
-                as_completed(futures),
-                total=n,
-                desc="  [prioritize]",
-                unit="req",
-                ncols=110,
-                dynamic_ncols=False,
-            ) as pbar:
-                for future in pbar:
-                    req = futures[future]
-                    try:
-                        result = future.result()
-                        results[req.id] = result
-                        pbar.set_postfix(
-                            priority=result.priority.value,
-                            score=f"{result.priority_score:.2f}",
-                        )
-                    except Exception as e:
-                        logger.error("Falha ao priorizar | id=%s | erro=%s", req.id, e)
-                        pbar.set_postfix(status="ERRO")
+            for future in as_completed(futures):
+                req = futures[future]
+                try:
+                    results[req.id] = future.result()
+                except Exception as e:
+                    logger.error("Falha ao priorizar | id=%s | erro=%s", req.id, e)
 
         # Preserva ordem original
         ordered = [results[r.id] for r in requirements if r.id in results]
@@ -128,18 +110,10 @@ class PrioritizationAgent(BaseAgent[ClassifiedRequirement, PrioritizedRequiremen
     )
     def _process_single(self, requirement: ClassifiedRequirement) -> PrioritizedRequirement:
         """Prioriza um requisito com retry/backoff."""
-        # C2-fix: use original English text for EN conditions.
-        req_text = (
-            requirement.text_en
-            if self._lang is Lang.EN and requirement.text_en
-            else requirement.text
-        )
         messages = build_prioritization_messages(
-            requirement_text=req_text,
+            requirement_text=requirement.text,
             requirement_type=requirement.requirement_type.value,
-            nfr_category=requirement.nfr_category,
-            confidence=requirement.confidence,
-            lang=self._lang,
+            nfr_category=requirement.nfr_category,  # já é str | None
         )
         response = self._llm.invoke(messages)
         output = self._parse_response(str(response.content), requirement.id)
@@ -148,12 +122,7 @@ class PrioritizationAgent(BaseAgent[ClassifiedRequirement, PrioritizedRequiremen
     def _parse_response(self, content: str, req_id: str) -> PrioritizationOutput:
         """Parse do JSON retornado pelo LLM com fallback seguro."""
         try:
-            # Parser-robustness fix: regex extraction, consistent with
-            # ClassificationAgent, tolerates preamble/trailing text.
-            match = re.search(r"\{[\s\S]*\}", content)
-            if not match:
-                raise ValueError("Nenhum JSON encontrado na resposta")
-            data = json.loads(match.group())
+            data = json.loads(extract_first_json(content))
 
             priority = MoSCoWPriority(data["priority"])
 
@@ -162,7 +131,7 @@ class PrioritizationAgent(BaseAgent[ClassifiedRequirement, PrioritizedRequiremen
                 priority=priority,
                 priority_score=float(data.get("priority_score", priority.score)),
                 priority_rank=int(data.get("priority_rank", 1)),
-                justification=data.get("justification", ""),
+                justification=coerce_str(data.get("justification", "")),
             )
         except Exception as e:
             logger.error(

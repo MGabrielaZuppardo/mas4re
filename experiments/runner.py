@@ -18,9 +18,12 @@ from evaluation.metrics.classification import (
     compute_subcategory_metrics,
 )
 from evaluation.metrics.prioritization import compute_moscow_distribution
+from evaluation.trace_writer import TraceWriter
 from experiments.strategy import OrchestrationStrategy
 
 logger = logging.getLogger(__name__)
+
+_TRACE_DIR = Path("experiments") / "traces"
 
 
 def _git_commit() -> str:
@@ -58,7 +61,7 @@ class RunConfig:
     strategy_name: str
     model: str
     dataset_path: str
-    lang: str = ""  # M1-fix: included in run_id and manifest for traceability
+    lang: str = "pt"
     n_samples: int | None = None
     seed: int = 42
     temperature: float = 0.0
@@ -70,7 +73,7 @@ class RunResult:
     config: RunConfig
     state: PipelineState
     elapsed_seconds: float
-    run_id: str = field(default_factory=str)  # M1-fix: actual filesystem directory name
+    run_id: str = ""
     manifest: dict[str, Any] = field(default_factory=dict)
     metrics: dict[str, Any] = field(default_factory=dict)
 
@@ -79,19 +82,32 @@ class ExperimentRunner:
     """Runs a strategy under a frozen config and writes a reproducible
     manifest. Same runner for every architecture so SQ2 comparisons are
     controlled.
+
+    Each run produces three artifacts in experiments/results/{run_id}/:
+        manifest.json  — frozen parameters + git commit + dataset hash
+        results.json   — quality metrics + full predictions
+        trace.jsonl    — per-requirement latency + parse outcome (TraceWriter)
     """
 
     def __init__(self, out_dir: str = "experiments/results") -> None:
         self._out = Path(out_dir)
         self._out.mkdir(parents=True, exist_ok=True)
 
-    def _build_manifest(self, config: RunConfig, n_loaded: int, elapsed: float) -> dict[str, Any]:
+    def _build_manifest(
+        self,
+        config: RunConfig,
+        run_id: str,
+        n_loaded: int,
+        elapsed: float,
+        trace_path: Path,
+    ) -> dict[str, Any]:
         return {
+            "run_id": run_id,
             "git_commit": _git_commit(),
             "timestamp_utc": datetime.now(UTC).isoformat(),
             "strategy": config.strategy_name,
             "model": config.model,
-            "lang": config.lang,  # M1-fix: explicit lang field
+            "lang": config.lang,
             "seed": config.seed,
             "temperature": config.temperature,
             "prompt_version": config.prompt_version,
@@ -100,22 +116,11 @@ class ExperimentRunner:
             "dataset_md5": _file_md5(Path(config.dataset_path)),
             "langgraph_version": _langgraph_version(),
             "elapsed_seconds": round(elapsed, 3),
+            "trace_path": str(trace_path),
         }
 
     def _compute_metrics(self, state: PipelineState) -> dict[str, Any]:
-        """Compute quality metrics from the processed state.
-
-        Classification metrics use PROMISE gold labels (raw_requirements
-        metadata). Prioritization has no gold labels in PROMISE, so we
-        report the MoSCoW distribution only. Predictions come from
-        prioritized_requirements when available (covers both pipeline
-        and baseline, since PrioritizedRequirement extends
-        ClassifiedRequirement), falling back to classified_requirements.
-        """
         ground_truth = state.raw_requirements
-        # PrioritizedRequirement extends ClassifiedRequirement; the metrics
-        # functions only read fields present on the base class. list is
-        # invariant for mypy, so an explicit cast is required here.
         classified = cast(
             "list[ClassifiedRequirement]",
             state.prioritized_requirements or state.classified_requirements,
@@ -138,28 +143,31 @@ class ExperimentRunner:
             if config.n_samples
             else adapter.load()
         )
+
+        # Build run_id early so TraceWriter and manifest share the same key.
+        model_slug = re.sub(r"[^A-Za-z0-9._-]", "-", config.model)
+        run_id = (
+            f"{strategy.name}_{model_slug}_{config.lang}_n{len(requirements)}_{int(time.time())}"
+        )
+        run_path = self._out / run_id
+        run_path.mkdir(parents=True, exist_ok=True)
+        trace_path = _TRACE_DIR / f"{run_id}.jsonl"
+
         logger.info(
-            "Run start | strategy=%s | model=%s | n=%d | seed=%d",
+            "Run start | run_id=%s | strategy=%s | model=%s | lang=%s | n=%d",
+            run_id,
             strategy.name,
             config.model,
+            config.lang,
             len(requirements),
-            config.seed,
         )
 
         start = time.perf_counter()
-        state = strategy.execute(requirements)
+        with TraceWriter(output_dir=_TRACE_DIR, run_id=run_id) as tw:
+            state = strategy.execute(requirements, trace_writer=tw)
         elapsed = time.perf_counter() - start
 
-        manifest = self._build_manifest(config, len(requirements), elapsed)
-
-        # Filesystem-safe slug: model ids carry "/", ":" and "+"
-        # (e.g. "ollama/qwen2.5:7b") which are invalid in Windows paths.
-        # M1-fix: include lang so PT and EN runs are distinguishable on disk.
-        model_slug = re.sub(r"[^A-Za-z0-9._-]", "-", config.model)
-        lang_tag = f"_{config.lang}" if config.lang else ""
-        run_id = f"{strategy.name}_{model_slug}{lang_tag}_n{len(requirements)}_{int(time.time())}"
-        run_path = self._out / run_id
-        run_path.mkdir(parents=True, exist_ok=True)
+        manifest = self._build_manifest(config, run_id, len(requirements), elapsed, trace_path)
         (run_path / "manifest.json").write_text(
             json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8"
         )
@@ -169,9 +177,11 @@ class ExperimentRunner:
             r.model_dump(mode="json") for r in state.classified_requirements
         ]
         results = {
+            "run_id": run_id,
             "config": {
                 "strategy": config.strategy_name,
                 "model": config.model,
+                "lang": config.lang,
                 "seed": config.seed,
                 "n": len(requirements),
             },
@@ -184,17 +194,16 @@ class ExperimentRunner:
         )
 
         logger.info(
-            "Run done | strategy=%s | elapsed=%.2fs | metrics=%s | dir=%s",
-            strategy.name,
+            "Run done | run_id=%s | elapsed=%.2fs | classification=%s",
+            run_id,
             elapsed,
             metrics.get("classification", {}),
-            run_path,
         )
         return RunResult(
             config=config,
             state=state,
             elapsed_seconds=elapsed,
-            run_id=run_id,  # M1-fix: expose actual directory name
+            run_id=run_id,
             manifest=manifest,
             metrics=metrics,
         )

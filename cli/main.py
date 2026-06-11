@@ -54,6 +54,7 @@ def run(
         strategy_name=strategy,
         model=run_model,
         dataset_path=dataset,
+        lang=lang,
         n_samples=n,
         seed=seed,
         temperature=temperature,
