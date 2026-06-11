@@ -2,9 +2,8 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Annotated, Any
+from typing import Any
 
-from langgraph.graph.message import add_messages
 from pydantic import BaseModel, Field, field_validator
 
 from domain.enums import MoSCoWPriority, RequirementType
@@ -137,7 +136,7 @@ class PipelineState(BaseModel):
     classified_requirements: list[ClassifiedRequirement] = Field(default_factory=list)
     prioritized_requirements: list[PrioritizedRequirement] = Field(default_factory=list)
 
-    errors: Annotated[list[str], add_messages] = Field(default_factory=list)
+    errors: list[str] = Field(default_factory=list)
     metrics: dict[str, Any] = Field(default_factory=dict)
 
     @property

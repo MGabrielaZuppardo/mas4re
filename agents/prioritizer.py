@@ -13,7 +13,7 @@ from tenacity import (
 )
 
 from agents.base import BaseAgent
-from domain.enums import MoSCoWPriority
+from domain.enums import Lang, MoSCoWPriority
 
 if TYPE_CHECKING:
     from evaluation.trace_writer import TraceWriter
@@ -47,11 +47,13 @@ class PrioritizationAgent(BaseAgent[ClassifiedRequirement, PrioritizedRequiremen
         self,
         model: str,
         temperature: float = 0.0,
+        lang: Lang = Lang.PT,
         trace_writer: TraceWriter | None = None,
     ) -> None:
         super().__init__(model=model, temperature=temperature, trace_writer=trace_writer)
         self._llm = build_llm(model, temperature)
-        logger.info("PrioritizationAgent inicializado | model=%s", model)
+        self._lang = lang
+        logger.info("PrioritizationAgent inicializado | model=%s | lang=%s", model, lang.value)
 
     def run(self, state: PipelineState) -> PipelineState:
         """Prioriza todos os requisitos classificados do estado."""
@@ -110,10 +112,16 @@ class PrioritizationAgent(BaseAgent[ClassifiedRequirement, PrioritizedRequiremen
     )
     def _process_single(self, requirement: ClassifiedRequirement) -> PrioritizedRequirement:
         """Prioriza um requisito com retry/backoff."""
+        req_text = (
+            requirement.text_en
+            if self._lang is Lang.EN and requirement.text_en
+            else requirement.text
+        )
         messages = build_prioritization_messages(
-            requirement_text=requirement.text,
+            requirement_text=req_text,
             requirement_type=requirement.requirement_type.value,
-            nfr_category=requirement.nfr_category,  # já é str | None
+            nfr_category=requirement.nfr_category,
+            lang=self._lang,
         )
         response = self._llm.invoke(messages)
         output = self._parse_response(str(response.content), requirement.id)

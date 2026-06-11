@@ -25,6 +25,8 @@ Regras obrigatórias:
   Referência: M=1.0, S=0.75, C=0.5, W=0.25 (variações dentro da faixa são encorajadas).
 - "priority_rank" deve ser 1 (será recalculado globalmente pelo sistema).
 - "justification" deve ser concisa (máx. 2 frases), em português.
+- Se "classification_confidence" for inferior a 0.70, a classificação do tipo é incerta.
+  Nesse caso, seja conservador: evite M para requisitos borderline e prefira S ou C.
 
 Formato de resposta:
 {
@@ -58,6 +60,8 @@ Mandatory rules:
   Reference: M=1.0, S=0.75, C=0.5, W=0.25 (variations within range are encouraged).
 - "priority_rank" must be 1 (will be recalculated globally by the system).
 - "justification" must be concise (max 2 sentences), in English.
+- If "classification_confidence" is below 0.70, the requirement type is uncertain.
+  In that case, be conservative: avoid M for borderline requirements and prefer S or C.
 
 Response format:
 {
@@ -68,35 +72,62 @@ Response format:
 }
 """
 
-PRIORITIZATION_USER_PROMPT = """\
+PRIORITIZATION_USER_PROMPT_PT = """\
 Priorize o seguinte requisito de software:
 
 Texto: \"\"\"{requirement_text}\"\"\"
 Tipo: {requirement_type}{nfr_category_line}
+classification_confidence: {confidence:.2f}{uncertainty_flag}
 """
+
+PRIORITIZATION_USER_PROMPT_EN = """\
+Prioritize the following software requirement:
+
+Text: \"\"\"{requirement_text}\"\"\"
+Type: {requirement_type}{nfr_category_line}
+classification_confidence: {confidence:.2f}{uncertainty_flag}
+"""
+
+_UNCERTAINTY_FLAG_PT = " (INCERTA — a classificação pode estar incorreta)"
+_UNCERTAINTY_FLAG_EN = " (UNCERTAIN — classification may be incorrect)"
 
 
 def build_prioritization_messages(
     requirement_text: str,
     requirement_type: str,
     nfr_category: str | None = None,
+    confidence: float = 1.0,
     lang: Lang = Lang.PT,
 ) -> list[dict[str, str]]:
-    """
-    Constrói mensagens para a chamada LLM.
+    """Constrói mensagens para a chamada LLM do agente de priorização.
 
     Args:
         requirement_text: Texto do requisito.
         requirement_type: 'F' ou 'NF'.
         nfr_category: Sigla da categoria NFR (ex: 'SE', 'PE') ou None.
+        confidence: Confiança do ClassificationAgent (0.0–1.0). Abaixo de
+            0.70 sinaliza classificação incerta ao modelo prioritizador.
         lang: Lang.PT (português) ou Lang.EN (inglês).
     """
-    system = PRIORITIZATION_SYSTEM_PROMPT_PT if lang is Lang.PT else PRIORITIZATION_SYSTEM_PROMPT_EN
-    nfr_line = f"\nCategoria NFR: {nfr_category}" if nfr_category else ""
-    user = PRIORITIZATION_USER_PROMPT.format(
+    is_pt = lang is Lang.PT
+    system = PRIORITIZATION_SYSTEM_PROMPT_PT if is_pt else PRIORITIZATION_SYSTEM_PROMPT_EN
+    template = PRIORITIZATION_USER_PROMPT_PT if is_pt else PRIORITIZATION_USER_PROMPT_EN
+
+    nfr_line = (
+        (f"\nCategoria NFR: {nfr_category}" if is_pt else f"\nNFR Category: {nfr_category}")
+        if nfr_category
+        else ""
+    )
+    uncertainty_flag = (
+        (_UNCERTAINTY_FLAG_PT if is_pt else _UNCERTAINTY_FLAG_EN) if confidence < 0.70 else ""
+    )
+
+    user = template.format(
         requirement_text=requirement_text,
         requirement_type=requirement_type,
         nfr_category_line=nfr_line,
+        confidence=confidence,
+        uncertainty_flag=uncertainty_flag,
     )
     return [
         {"role": "system", "content": system},
