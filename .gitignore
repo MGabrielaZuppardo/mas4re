@@ -109,9 +109,11 @@ sbcars_artigo.md
 # -----------------------------------------------------------------------------
 # Experimentos — arquivos gerados automaticamente
 # -----------------------------------------------------------------------------
-experiments/results
+experiments/results/*
 experiments/logs/*
 !experiments/results/.gitkeep
+!experiments/results/statistical_results.json
+!experiments/results/moscow_kappa_comparison.csv
 !experiments/logs/.gitkeep
 experiments/traces
 # -----------------------------------------------------------------------------
