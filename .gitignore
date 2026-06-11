@@ -109,11 +109,11 @@ sbcars_artigo.md
 # -----------------------------------------------------------------------------
 # Experimentos — arquivos gerados automaticamente
 # -----------------------------------------------------------------------------
-experiments/results/*
+experiments/results
 experiments/logs/*
 !experiments/results/.gitkeep
 !experiments/logs/.gitkeep
-
+experiments/traces
 # -----------------------------------------------------------------------------
 # Datasets — arquivos grandes (baixar separadamente)
 # -----------------------------------------------------------------------------

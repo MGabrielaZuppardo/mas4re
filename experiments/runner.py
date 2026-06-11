@@ -58,6 +58,7 @@ class RunConfig:
     strategy_name: str
     model: str
     dataset_path: str
+    lang: str = ""  # M1-fix: included in run_id and manifest for traceability
     n_samples: int | None = None
     seed: int = 42
     temperature: float = 0.0
@@ -69,6 +70,7 @@ class RunResult:
     config: RunConfig
     state: PipelineState
     elapsed_seconds: float
+    run_id: str = field(default_factory=str)  # M1-fix: actual filesystem directory name
     manifest: dict[str, Any] = field(default_factory=dict)
     metrics: dict[str, Any] = field(default_factory=dict)
 
@@ -89,6 +91,7 @@ class ExperimentRunner:
             "timestamp_utc": datetime.now(UTC).isoformat(),
             "strategy": config.strategy_name,
             "model": config.model,
+            "lang": config.lang,  # M1-fix: explicit lang field
             "seed": config.seed,
             "temperature": config.temperature,
             "prompt_version": config.prompt_version,
@@ -151,11 +154,15 @@ class ExperimentRunner:
 
         # Filesystem-safe slug: model ids carry "/", ":" and "+"
         # (e.g. "ollama/qwen2.5:7b") which are invalid in Windows paths.
+        # M1-fix: include lang so PT and EN runs are distinguishable on disk.
         model_slug = re.sub(r"[^A-Za-z0-9._-]", "-", config.model)
-        run_id = f"{strategy.name}_{model_slug}_n{len(requirements)}_{int(time.time())}"
+        lang_tag = f"_{config.lang}" if config.lang else ""
+        run_id = f"{strategy.name}_{model_slug}{lang_tag}_n{len(requirements)}_{int(time.time())}"
         run_path = self._out / run_id
         run_path.mkdir(parents=True, exist_ok=True)
-        (run_path / "manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False))
+        (run_path / "manifest.json").write_text(
+            json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
 
         metrics = self._compute_metrics(state)
         predictions = [r.model_dump(mode="json") for r in state.prioritized_requirements] or [
@@ -172,7 +179,9 @@ class ExperimentRunner:
             "n_predictions": len(predictions),
             "predictions": predictions,
         }
-        (run_path / "results.json").write_text(json.dumps(results, indent=2, ensure_ascii=False))
+        (run_path / "results.json").write_text(
+            json.dumps(results, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
 
         logger.info(
             "Run done | strategy=%s | elapsed=%.2fs | metrics=%s | dir=%s",
@@ -185,6 +194,7 @@ class ExperimentRunner:
             config=config,
             state=state,
             elapsed_seconds=elapsed,
+            run_id=run_id,  # M1-fix: expose actual directory name
             manifest=manifest,
             metrics=metrics,
         )

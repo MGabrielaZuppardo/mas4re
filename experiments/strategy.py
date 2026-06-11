@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from agents.baseline import BaselineAgent
 from agents.classifier import ClassificationAgent
 from agents.prioritizer import PrioritizationAgent
+from agents.two_call_baseline import TwoCallBaselineAgent
 from domain.enums import Lang
 from domain.models import PipelineState, Requirement
 from pipeline.graph import build_pipeline_graph
@@ -81,6 +82,7 @@ class PipelineStrategy(OrchestrationStrategy):
         prioritizer = PrioritizationAgent(
             model=prioritizer_model,
             temperature=temperature,
+            lang=lang,
         )
         self._graph = build_pipeline_graph(classifier, prioritizer)
 
@@ -91,3 +93,36 @@ class PipelineStrategy(OrchestrationStrategy):
     def execute(self, requirements: list[Requirement]) -> PipelineState:
         state = PipelineState(raw_requirements=requirements)
         return _coerce_state(self._graph.invoke(state))
+
+
+class TwoCallBaselineStrategy(OrchestrationStrategy):
+    """Ablation: two sequential LLM calls with specialised prompts,
+    no typed inter-agent state, no confidence-based routing.
+
+    Uses the same prompt templates as the pipeline (ClassificationAgent
+    + PrioritizationAgent) but passes intermediate results via a plain
+    Python dataclass instead of a validated PipelineState.  This isolates
+    the contribution of the typed state contract from the prompt design.
+    """
+
+    def __init__(
+        self,
+        model: str,
+        temperature: float = 0.0,
+        nfr_categories: list[tuple[str, str]] | None = None,
+        lang: Lang = Lang.PT,
+    ) -> None:
+        self._agent = TwoCallBaselineAgent(
+            model=model,
+            temperature=temperature,
+            nfr_categories=nfr_categories,
+            lang=lang,
+        )
+
+    @property
+    def name(self) -> str:
+        return "two_call_baseline"
+
+    def execute(self, requirements: list[Requirement]) -> PipelineState:
+        state = PipelineState(raw_requirements=requirements)
+        return self._agent.run(state)
