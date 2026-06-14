@@ -1,0 +1,13 @@
+run_id,strategy,model,lang,n,elapsed_seconds,accuracy,f1_macro,mcc,status,error
+baseline_ollama-qwen2.5-7b_pt_n100_1779538114,baseline,ollama/qwen2.5:7b,pt,100,572.76,0.84,0.839,0.7027,ok,
+pipeline_ollama-qwen2.5-7b-ollama-qwen2.5-7b_pt_n100_1779538688,pipeline,ollama/qwen2.5:7b,pt,100,572.26,0.81,0.8095,0.6565,ok,
+baseline_ollama-qwen2.5-7b_en_n100_1779539260,baseline,ollama/qwen2.5:7b,en,100,501.3,0.76,0.7599,0.5972,ok,
+pipeline_ollama-qwen2.5-7b-ollama-qwen2.5-7b_en_n100_1779539762,pipeline,ollama/qwen2.5:7b,en,100,533.45,0.81,0.8098,0.6679,ok,
+baseline_ollama-llama3.1-8b_pt_n100_1779540296,baseline,ollama/llama3.1:8b,pt,100,666.29,0.7,0.697,0.5345,ok,
+pipeline_ollama-llama3.1-8b-ollama-llama3.1-8b_pt_n100_1779540963,pipeline,ollama/llama3.1:8b,pt,100,673.27,0.71,0.7076,0.5473,ok,
+baseline_ollama-llama3.1-8b_en_n100_1779541636,baseline,ollama/llama3.1:8b,en,100,595.24,0.66,0.6532,0.484,ok,
+pipeline_ollama-llama3.1-8b-ollama-llama3.1-8b_en_n100_1779542232,pipeline,ollama/llama3.1:8b,en,100,653.25,0.68,0.6753,0.5092,ok,
+baseline_ollama-mistral-7b_pt_n100_1779542886,baseline,ollama/mistral:7b,pt,100,634.67,0.6,0.5866,0.3844,ok,
+pipeline_ollama-mistral-7b-ollama-mistral-7b_pt_n100_1779543521,pipeline,ollama/mistral:7b,pt,100,613.82,0.51,0.4715,0.2549,ok,
+baseline_ollama-mistral-7b_en_n100_1779544135,baseline,ollama/mistral:7b,en,100,515.3,0.59,0.5746,0.3709,ok,
+pipeline_ollama-mistral-7b-ollama-mistral-7b_en_n100_1779544651,pipeline,ollama/mistral:7b,en,100,588.89,0.5,0.4575,0.2387,ok,

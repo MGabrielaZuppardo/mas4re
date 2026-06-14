@@ -1,0 +1,7 @@
+run_id,strategy,model,lang,n,elapsed_seconds,accuracy,f1_macro,mcc,status,error
+two_call_baseline_ollama-qwen2.5-7b_pt_n625_1780370753,two_call_baseline,ollama/qwen2.5:7b,pt,625,3365.96,0.8096,0.8082,0.6321,ok,
+two_call_baseline_ollama-qwen2.5-7b_en_n625_1780373717,two_call_baseline,ollama/qwen2.5:7b,en,625,2963.47,0.8048,0.8042,0.6353,ok,
+two_call_baseline_ollama-llama3.1-8b_pt_n625_1780377904,two_call_baseline,ollama/llama3.1:8b,pt,625,4186.88,0.6864,0.6823,0.5005,ok,
+two_call_baseline_ollama-llama3.1-8b_en_n625_1780381897,two_call_baseline,ollama/llama3.1:8b,en,625,3992.59,0.7312,0.73,0.5579,ok,
+two_call_baseline_ollama-mistral-7b_pt_n625_1780385747,two_call_baseline,ollama/mistral:7b,pt,625,3849.24,0.5824,0.5629,0.3536,ok,
+two_call_baseline_ollama-mistral-7b_en_n625_1780389227,two_call_baseline,ollama/mistral:7b,en,625,3480.16,0.6272,0.6153,0.4254,ok,
