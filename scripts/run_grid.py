@@ -4,8 +4,9 @@ Condições: 3 modelos × 2 idiomas × 2 arquiteturas = 12 runs.
 
 Uso:
     python scripts/run_grid.py              # grid completo
-    python scripts/run_grid.py --n 20       # amostra de 20 requisitos (dry-run)
+    python scripts/run_grid.py --n 20       # amostra de 20 requisitos
     python scripts/run_grid.py --dry-run    # imprime condições sem executar
+    python scripts/run_grid.py --resume     # pula condições já concluídas (status=ok no CSV)
 
 Artefatos gerados por run:
     experiments/results/{run_id}/manifest.json
@@ -101,6 +102,18 @@ def _build_config(cond: GridCondition, n: int | None, seed: int = 42) -> RunConf
     )
 
 
+def _load_completed(summary_path: Path) -> set[tuple[str, str, str]]:
+    """Return set of (strategy, model, lang) already completed with status=ok."""
+    if not summary_path.exists():
+        return set()
+    completed: set[tuple[str, str, str]] = set()
+    with summary_path.open(encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            if row.get("status") == "ok":
+                completed.add((row["strategy"], row["model"], row["lang"]))
+    return completed
+
+
 def _append_summary(row: dict) -> None:
     SUMMARY_PATH.parent.mkdir(parents=True, exist_ok=True)
     write_header = not SUMMARY_PATH.exists()
@@ -116,6 +129,7 @@ def run_grid(
     dry_run: bool = False,
     output: Path | None = None,
     seed: int | None = None,
+    resume: bool = False,
 ) -> None:
     import random as _random
 
@@ -126,12 +140,15 @@ def run_grid(
     effective_seed = seed if seed is not None else _random.randint(0, 2**31 - 1)
 
     conditions = _build_conditions()
+    completed = _load_completed(SUMMARY_PATH) if resume else set()
     runner = ExperimentRunner()
     total = len(conditions)
 
     print(
         f"\nMAS4RE Grid — {total} condições | n={'full' if n is None else n}"
-        f" | seed={effective_seed}\n"
+        f" | seed={effective_seed}"
+        + (f" | resume=on ({len(completed)} já concluídas)" if resume else "")
+        + "\n"
     )
 
     for i, cond in enumerate(conditions, start=1):
@@ -140,6 +157,10 @@ def run_grid(
 
         if dry_run:
             print("(dry-run)")
+            continue
+
+        if resume and (cond.strategy, cond.model, cond.lang) in completed:
+            print("(skipped — já concluída)")
             continue
 
         strategy = _build_strategy(cond)
@@ -213,5 +234,10 @@ if __name__ == "__main__":
         default=None,
         help="Sampling seed (omit for random seed, use 42 for reproducibility)",
     )
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="Skip conditions already completed with status=ok in the summary CSV",
+    )
     args = parser.parse_args()
-    run_grid(n=args.n, dry_run=args.dry_run, output=args.output, seed=args.seed)
+    run_grid(n=args.n, dry_run=args.dry_run, output=args.output, seed=args.seed, resume=args.resume)
