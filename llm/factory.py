@@ -12,11 +12,12 @@ logger = logging.getLogger(__name__)
 
 def build_llm(model: str, temperature: float = 0.0) -> BaseChatModel:
     """
-    Factory de LLMs com suporte a Ollama (local), Anthropic e Groq.
+    Factory de LLMs com suporte a Ollama (local), Anthropic, Groq e Azure OpenAI.
 
     Prefixos:
-        ollama/<nome>  → Ollama local (sem custo)
-        claude-*       → Anthropic (produção)
+        ollama/<nome>      → Ollama local (sem custo)
+        azure/<deployment> → Azure OpenAI (deployment name no Foundry)
+        claude-*           → Anthropic (produção)
         llama-* | qwen-* | mixtral-* → Groq (produção)
     """
 
@@ -26,6 +27,19 @@ def build_llm(model: str, temperature: float = 0.0) -> BaseChatModel:
         return ChatOllama(
             model=model_name,
             base_url=settings.ollama_base_url,
+            temperature=temperature,
+        )
+
+    elif model.startswith("azure/"):
+        from langchain_openai import AzureChatOpenAI
+
+        deployment = model.removeprefix("azure/")
+        logger.info("LLM → Azure OpenAI | deployment=%s", deployment)
+        return AzureChatOpenAI(
+            azure_deployment=deployment,
+            azure_endpoint=settings.azure_openai_endpoint,
+            api_key=settings.azure_openai_api_key,
+            api_version=settings.azure_openai_api_version,
             temperature=temperature,
         )
 
@@ -46,5 +60,6 @@ def build_llm(model: str, temperature: float = 0.0) -> BaseChatModel:
         )
 
     raise ValueError(
-        f"Modelo não reconhecido: {model!r}\nUse prefixo 'ollama/' para modelos locais."
+        f"Modelo não reconhecido: {model!r}\n"
+        "Prefixos válidos: ollama/, azure/, claude-, llama-, qwen-, mixtral-, gemma-"
     )
