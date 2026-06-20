@@ -1,0 +1,112 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mas4re"
+version = "0.1.0"
+description = "Multi-Agent System for Requirements Engineering — UFPE MSc Dissertation"
+readme = "README.md"
+requires-python = ">=3.11"
+
+dependencies = [
+    "anthropic>=0.40.0",
+    "langchain>=0.3.0",
+    "langchain-anthropic>=0.3.0",
+    "langchain-groq>=0.2.0",
+    "langchain-ollama>=0.2.0",
+    "langgraph>=0.2.0",
+    "tenacity>=8.0.0",
+    "pandas>=2.0.0",
+    "scikit-learn>=1.3.0",
+    "scipy>=1.11.0",
+    "numpy>=1.26.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.6.0",
+    "python-dotenv>=1.0.0",
+    "typer>=0.12.0",
+    "rich>=13.0.0",
+    "tqdm>=4.66.0",
+]
+
+[project.scripts]
+mas4re = "cli.main:app"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=5.0.0",
+    "ruff==0.15.12",
+    "mypy>=1.10.0",
+]
+
+notebook = [
+    "jupyter>=1.0.0",
+    "ipykernel>=6.0.0",
+    "ipywidgets>=8.0.0",
+    "matplotlib>=3.7.0",
+    "seaborn>=0.13.0",
+]
+
+translation = [
+    "bert-score>=0.3.13",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = [
+    "agents",
+    "cli",
+    "config",
+    "datasets",
+    "domain",
+    "evaluation",
+    "experiments",
+    "llm",
+    "pipeline",
+    "prompts",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+log_cli = true
+log_cli_level = "INFO"
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+exclude = ["notebooks/"]
+
+[tool.ruff.format]
+line-ending = "lf"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+# Standalone scripts manipulate sys.path before importing project modules,
+# so E402 (module import not at top) is expected and acceptable here.
+"scripts/*.py" = ["E402", "E501"]
+# Test fixtures embed long single-line JSON payloads that are clearer
+# kept intact than artificially wrapped.
+"tests/unit/test_baseline.py" = ["E501"]
+
+[tool.mypy]
+plugins = ["pydantic.mypy"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["domain.*", "agents.*"]
+disallow_untyped_defs = true
+check_untyped_defs = true
+disallow_any_generics = true
+warn_return_any = true
+warn_unused_ignores = true
+
+[tool.pydantic-mypy]
+init_forbid_extra = false
+init_typed = true
+warn_required_dynamic_aliases = false

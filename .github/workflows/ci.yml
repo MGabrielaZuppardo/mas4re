@@ -1,0 +1,62 @@
+# =============================================================================
+# MAS4RE — CI Pipeline
+# Roda lint + typecheck + testes unitários em cada push/PR
+# =============================================================================
+
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  quality:
+    name: Lint & Typecheck
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependências
+        run: pip install ".[dev]"
+
+      - name: Ruff — lint
+        run: ruff check .
+
+      - name: Ruff — format
+        run: ruff format --check .
+
+      - name: Mypy — typecheck
+        run: mypy agents config domain evaluation llm prompts --ignore-missing-imports
+
+  unit-tests:
+    name: Testes Unitários
+    runs-on: ubuntu-latest
+    needs: quality
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependências
+        run: pip install ".[dev]"
+
+      - name: Pytest — testes unitários
+        run: pytest tests/unit -v --tb=short --cov=agents --cov=domain --cov=evaluation --cov-report=term-missing
+
+      - name: Upload cobertura
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+          retention-days: 7

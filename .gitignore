@@ -1,4 +1,4 @@
-.env 
+.env
 # =============================================================================
 # MAS4RE — .gitignore
 # =============================================================================
@@ -21,6 +21,7 @@ __pycache__/
 *.pyw
 .Python
 py.typed
+.mypy_cache
 
 # Instalação e build
 *.egg
@@ -100,14 +101,16 @@ ipython_config.py
 # Claude Code
 # -----------------------------------------------------------------------------
 .claude/
+CLAUDE.md
+refactor-plan.md
+sbcars_cronograma.md
+sbcars_artigo.md
 
 # -----------------------------------------------------------------------------
 # Experimentos — arquivos gerados automaticamente
 # -----------------------------------------------------------------------------
-experiments/results/*
-experiments/logs/*
-!experiments/results/.gitkeep
-!experiments/logs/.gitkeep
+# Predições brutas: grandes demais para git (>500 KB) — arquivar no Zenodo
+
 
 # -----------------------------------------------------------------------------
 # Datasets — arquivos grandes (baixar separadamente)
@@ -117,6 +120,7 @@ datasets/data/promise_nfr/*.json
 datasets/data/nfric/*.csv
 datasets/data/nfric/*.json
 datasets/data/nfric/*.arff
+datasets\data\promise_nfr
 *.arff
 
 # -----------------------------------------------------------------------------

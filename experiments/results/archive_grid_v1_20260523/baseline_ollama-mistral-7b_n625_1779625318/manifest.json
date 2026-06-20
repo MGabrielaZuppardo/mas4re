@@ -1,0 +1,14 @@
+{
+  "git_commit": "c78f3a8c3dc8d6c9c6499575998e93a407f971b6",
+  "timestamp_utc": "2026-05-24T12:21:58.917293+00:00",
+  "strategy": "baseline",
+  "model": "ollama/mistral:7b",
+  "seed": 42,
+  "temperature": 0.0,
+  "prompt_version": "v1",
+  "dataset": "datasets/data/promise_nfr/promise_nfr_pt.csv",
+  "dataset_n": 625,
+  "dataset_md5": "ea0ec6f6b7c45225819aebbae40b8cff",
+  "langgraph_version": "1.1.9",
+  "elapsed_seconds": 3450.127
+}
