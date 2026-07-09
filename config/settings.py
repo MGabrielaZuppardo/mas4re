@@ -13,6 +13,10 @@ class Settings(BaseSettings):
     anthropic_api_key: str = Field(default="")
     groq_api_key: str = Field(default="")
 
+    azure_openai_api_key: str = Field(default="")
+    azure_openai_endpoint: str = Field(default="")
+    azure_openai_api_version: str = Field(default="2025-01-01-preview")
+
     ollama_base_url: str = Field(default="http://localhost:11434")
     ollama_classifier_model: str = Field(default="qwen2.5:7b")
     ollama_prioritizer_model: str = Field(default="llama3.1:8b")

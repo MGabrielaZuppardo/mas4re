@@ -23,7 +23,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install --system \
     anthropic>=0.40.0 langchain>=0.3.0 langchain-anthropic>=0.3.0 \
-    langchain-groq>=0.2.0 langchain-ollama>=0.2.0 langgraph>=0.2.0
+    langchain-groq>=0.2.0 langchain-ollama>=0.2.0 langchain-openai>=0.2.0 langgraph>=0.2.0
 
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install --system \

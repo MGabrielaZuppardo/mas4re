@@ -7,6 +7,7 @@ Uso:
     python scripts/run_grid.py --n 20       # amostra de 20 requisitos
     python scripts/run_grid.py --dry-run    # imprime condições sem executar
     python scripts/run_grid.py --resume     # pula condições já concluídas (status=ok no CSV)
+    python scripts/run_grid.py --workers 4  # paraleliza N condições simultaneamente
 
 Artefatos gerados por run:
     experiments/results/{run_id}/manifest.json
@@ -22,8 +23,10 @@ from __future__ import annotations
 import argparse
 import csv
 import sys
+import threading
 import time
 import traceback
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -114,14 +117,68 @@ def _load_completed(summary_path: Path) -> set[tuple[str, str, str]]:
     return completed
 
 
+_summary_lock = threading.Lock()
+
+
 def _append_summary(row: dict) -> None:
-    SUMMARY_PATH.parent.mkdir(parents=True, exist_ok=True)
-    write_header = not SUMMARY_PATH.exists()
-    with SUMMARY_PATH.open("a", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=SUMMARY_FIELDS)
-        if write_header:
-            writer.writeheader()
-        writer.writerow(row)
+    with _summary_lock:
+        SUMMARY_PATH.parent.mkdir(parents=True, exist_ok=True)
+        write_header = not SUMMARY_PATH.exists()
+        with SUMMARY_PATH.open("a", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=SUMMARY_FIELDS)
+            if write_header:
+                writer.writeheader()
+            writer.writerow(row)
+
+
+def _run_condition(
+    cond: GridCondition,
+    index: int,
+    total: int,
+    n: int | None,
+    seed: int,
+) -> dict:
+    label = f"[{index:02d}/{total}] {cond.strategy:<10} {cond.model:<25} lang={cond.lang}"
+    runner = ExperimentRunner()
+    strategy = _build_strategy(cond)
+    config = _build_config(cond, n, seed=seed)
+    t0 = time.monotonic()
+    try:
+        result = runner.execute(strategy, config)
+        elapsed = time.monotonic() - t0
+        cls = result.metrics.get("classification", {})
+        row = {
+            "run_id": result.run_id,
+            "strategy": cond.strategy,
+            "model": cond.model,
+            "lang": cond.lang,
+            "n": result.manifest.get("dataset_n", ""),
+            "elapsed_seconds": round(elapsed, 2),
+            "accuracy": cls.get("accuracy", ""),
+            "f1_macro": cls.get("f1_macro", ""),
+            "mcc": cls.get("mcc", ""),
+            "status": "ok",
+            "error": "",
+        }
+        print(f"{label} ... ok  ({elapsed:.1f}s | acc={cls.get('accuracy', '?'):.3f})", flush=True)
+    except Exception as e:
+        elapsed = time.monotonic() - t0
+        row = {
+            "run_id": "",
+            "strategy": cond.strategy,
+            "model": cond.model,
+            "lang": cond.lang,
+            "n": n or "",
+            "elapsed_seconds": round(elapsed, 2),
+            "accuracy": "",
+            "f1_macro": "",
+            "mcc": "",
+            "status": "error",
+            "error": str(e),
+        }
+        print(f"{label} ... ERRO ({e})", flush=True)
+        traceback.print_exc()
+    return row
 
 
 def run_grid(
@@ -130,6 +187,7 @@ def run_grid(
     output: Path | None = None,
     seed: int | None = None,
     resume: bool = False,
+    workers: int = 1,
 ) -> None:
     import random as _random
 
@@ -141,73 +199,45 @@ def run_grid(
 
     conditions = _build_conditions()
     completed = _load_completed(SUMMARY_PATH) if resume else set()
-    runner = ExperimentRunner()
     total = len(conditions)
 
     print(
         f"\nMAS4RE Grid — {total} condições | n={'full' if n is None else n}"
-        f" | seed={effective_seed}"
+        f" | seed={effective_seed} | workers={workers}"
         + (f" | resume=on ({len(completed)} já concluídas)" if resume else "")
         + "\n"
     )
 
+    pending = []
     for i, cond in enumerate(conditions, start=1):
         label = f"[{i:02d}/{total}] {cond.strategy:<10} {cond.model:<25} lang={cond.lang}"
-        print(label, end=" ... ", flush=True)
-
         if dry_run:
-            print("(dry-run)")
+            print(f"{label} ... (dry-run)")
             continue
-
         if resume and (cond.strategy, cond.model, cond.lang) in completed:
-            print("(skipped — já concluída)")
+            print(f"{label} ... (skipped — já concluída)")
             continue
+        pending.append((i, cond))
 
-        strategy = _build_strategy(cond)
-        config = _build_config(cond, n, seed=effective_seed)
-        t0 = time.monotonic()
+    if dry_run:
+        return
 
-        try:
-            result = runner.execute(strategy, config)
-            elapsed = time.monotonic() - t0
-            cls = result.metrics.get("classification", {})
-            row = {
-                "run_id": result.run_id,
-                "strategy": cond.strategy,
-                "model": cond.model,
-                "lang": cond.lang,
-                "n": result.manifest.get("dataset_n", ""),
-                "elapsed_seconds": round(elapsed, 2),
-                "accuracy": cls.get("accuracy", ""),
-                "f1_macro": cls.get("f1_macro", ""),
-                "mcc": cls.get("mcc", ""),
-                "status": "ok",
-                "error": "",
+    if workers <= 1:
+        for i, cond in pending:
+            row = _run_condition(cond, i, total, n, effective_seed)
+            _append_summary(row)
+    else:
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            futures = {
+                pool.submit(_run_condition, cond, i, total, n, effective_seed): cond
+                for i, cond in pending
             }
-            print(f"ok  ({elapsed:.1f}s | acc={cls.get('accuracy', '?'):.3f})")
-        except Exception as e:
-            elapsed = time.monotonic() - t0
-            row = {
-                "run_id": "",
-                "strategy": cond.strategy,
-                "model": cond.model,
-                "lang": cond.lang,
-                "n": n or "",
-                "elapsed_seconds": round(elapsed, 2),
-                "accuracy": "",
-                "f1_macro": "",
-                "mcc": "",
-                "status": "error",
-                "error": str(e),
-            }
-            print(f"ERRO ({e})")
-            traceback.print_exc()
+            for future in as_completed(futures):
+                row = future.result()
+                _append_summary(row)
 
-        _append_summary(row)
-
-    if not dry_run:
-        print(f"\nSumário salvo em: {SUMMARY_PATH}")
-        _print_summary()
+    print(f"\nSumário salvo em: {SUMMARY_PATH}")
+    _print_summary()
 
 
 def _print_summary() -> None:
@@ -239,5 +269,18 @@ if __name__ == "__main__":
         action="store_true",
         help="Skip conditions already completed with status=ok in the summary CSV",
     )
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=1,
+        help="Número de condições paralelas (default=1 = serial). Use 3-4 com API em cloud.",
+    )
     args = parser.parse_args()
-    run_grid(n=args.n, dry_run=args.dry_run, output=args.output, seed=args.seed, resume=args.resume)
+    run_grid(
+        n=args.n,
+        dry_run=args.dry_run,
+        output=args.output,
+        seed=args.seed,
+        resume=args.resume,
+        workers=args.workers,
+    )
