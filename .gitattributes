@@ -1,3 +1,4 @@
 * text=auto eol=lf
 *.py text eol=lf
 experiments/results/**/results.json filter=lfs diff=lfs merge=lfs -text
+results/**/results.json filter=lfs diff=lfs merge=lfs -text

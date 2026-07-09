@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import os
 import sys
 import threading
 import time
@@ -42,11 +43,18 @@ from experiments.strategy import BaselineStrategy, PipelineStrategy
 # Grid definition — 3 models × 2 languages × 2 architectures = 12 conditions
 # ---------------------------------------------------------------------------
 
-MODELS = [
-    "ollama/qwen2.5:7b",
-    "ollama/llama3.1:8b",
-    "ollama/mistral:7b",
-]
+# Permite sobrescrever modelos via GRID_MODELS (separados por vírgula)
+# Exemplo: GRID_MODELS=azure/gpt-5-nano,azure/gpt-5,azure/gpt-5-chat
+_env_models = os.environ.get("GRID_MODELS", "")
+MODELS = (
+    [m.strip() for m in _env_models.split(",") if m.strip()]
+    if _env_models
+    else [
+        "ollama/qwen2.5:7b",
+        "ollama/llama3.1:8b",
+        "ollama/mistral:7b",
+    ]
+)
 
 LANGUAGES = ["pt", "en"]
 

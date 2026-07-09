@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     azure_openai_endpoint: str = Field(default="")
     azure_openai_api_version: str = Field(default="2025-01-01-preview")
 
+    foundry_api_key: str = Field(default="")
+    foundry_endpoint: str = Field(default="")
+
     ollama_base_url: str = Field(default="http://localhost:11434")
     ollama_classifier_model: str = Field(default="qwen2.5:7b")
     ollama_prioritizer_model: str = Field(default="llama3.1:8b")

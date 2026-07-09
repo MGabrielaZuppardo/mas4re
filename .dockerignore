@@ -39,8 +39,7 @@ docker-compose*.yml
 .docker/
 .dockerignore
 
-# Dados — montados como volume, não copiados na imagem
-datasets/data/
+# Resultados e logs — gerados em runtime
 experiments/results/
 experiments/logs/
 

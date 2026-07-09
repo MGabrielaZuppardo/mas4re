@@ -29,6 +29,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install --system \
     tenacity>=8.0.0 pydantic>=2.0.0 pydantic-settings>=2.6.0 \
     python-dotenv>=1.0.0 typer>=0.12.0 rich>=13.0.0 \
+    azure-storage-blob>=12.0.0 \
     pytest>=8.0.0 pytest-cov>=5.0.0 ruff>=0.4.0 mypy>=1.10.0
 
 RUN --mount=type=cache,target=/root/.cache/uv \

@@ -12,11 +12,11 @@ from collections import Counter
 from pathlib import Path
 
 import numpy as np
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, precision_score, recall_score
 
 # ── Configuração ───────────────────────────────────────────────────────────────
 results_dir = Path("D:/mas4re/experiments/results")
-csv_path = "D:/mas4re/experiments/results/grid_summary_nfull_20260523T215318.csv"
+csv_path = "D:/mas4re/experiments/results/grid_summary_nfull_20260524T184454.csv"
 CONF_THRESHOLD = 0.70
 
 MODELS = ["qwen2.5:7b", "llama3.1:8b", "mistral:7b"]
@@ -75,52 +75,76 @@ for strategy in ["baseline", "pipeline"]:
             if not preds:
                 continue
 
-            # Filtrar apenas reqs com ground-truth NF
-            nf_preds = [
-                p for p in preds if p.get("metadata", {}).get("label_type", "").upper() == "NF"
-            ]
+            # y_true[i]/y_pred[i] span all 625 predictions in the condition.
+            # y_true is 1 only for requirements that are ground-truth NF of
+            # this category AND that the pipeline also classified as NF
+            # (subcategory is only meaningful once the binary label is
+            # right); y_pred is 1 whenever the model emitted this
+            # subcategory label, regardless of its binary call. Passed
+            # together to sklearn, this yields precision against every
+            # emission of the label (a spurious subcategory on a
+            # misclassified-as-FR item still counts as a false positive)
+            # while recall/support stay restricted to the correctly-
+            # classified-as-NF subset — matching Table tab:nfr exactly.
+            gt_counts = Counter(
+                p["metadata"].get("label_category", "UNKNOWN")
+                for p in preds
+                if p.get("metadata", {}).get("label_type", "").upper() == "NF"
+                and p.get("requirement_type", "").upper() == "NF"
+            )
+            n_nf_correct = sum(gt_counts.values())
 
-            y_true = [p["metadata"].get("label_category", "UNKNOWN") for p in nf_preds]
-            y_pred = [p.get("nfr_category") or "UNKNOWN" for p in nf_preds]
-
-            # Support por categoria
-            gt_counts = Counter(y_true)
-            pred_counts = Counter(y_pred)
-
-            # F1 macro apenas sobre categorias com suporte > 0
-            valid_cats = [c for c in NFR_CATS if gt_counts.get(c, 0) > 0]
             f1_per_cat = {}
+            p_per_cat = {}
+            r_per_cat = {}
             for cat in NFR_CATS:
-                yt = [1 if t == cat else 0 for t in y_true]
-                yp = [1 if p == cat else 0 for p in y_pred]
-                if sum(yt) == 0:
+                support = gt_counts.get(cat, 0)
+                if support == 0:
                     f1_per_cat[cat] = None
                     continue
-                f1_val = f1_score(yt, yp, zero_division=0)
-                f1_per_cat[cat] = round(f1_val, 4)
+                y_true = [
+                    int(
+                        p.get("metadata", {}).get("label_type", "").upper() == "NF"
+                        and p.get("requirement_type", "").upper() == "NF"
+                        and p["metadata"].get("label_category") == cat
+                    )
+                    for p in preds
+                ]
+                y_pred = [int(p.get("nfr_category") == cat) for p in preds]
+                p_per_cat[cat] = round(precision_score(y_true, y_pred, zero_division=0), 4)
+                r_per_cat[cat] = round(recall_score(y_true, y_pred, zero_division=0), 4)
+                f1_per_cat[cat] = round(f1_score(y_true, y_pred, zero_division=0), 4)
 
-            f1_macro_nfr = f1_score(
-                y_true, y_pred, labels=valid_cats, average="macro", zero_division=0
+            valid_cats = [c for c in NFR_CATS if gt_counts.get(c, 0) > 0]
+            f1_macro_nfr = (
+                float(np.mean([f1_per_cat[c] for c in valid_cats])) if valid_cats else 0.0
             )
 
             subcat_results[key] = {
                 "f1_per_cat": f1_per_cat,
+                "p_per_cat": p_per_cat,
+                "r_per_cat": r_per_cat,
                 "f1_macro_nfr": round(f1_macro_nfr, 4),
-                "n_nf": len(nf_preds),
+                "n_nf_correctly_classified": n_nf_correct,
                 "gt_counts": dict(gt_counts),
-                "pred_counts": dict(pred_counts),
             }
 
             label = f"{strategy:<10} {model:<14} {lang.upper()}"
-            print(f"\n  {label}  |  NFR macro-F1={f1_macro_nfr:.4f}  (n_NF={len(nf_preds)})")
-            print(f"  {'Cat':<5} {'Support':>7}  {'F1':>6}  {'Pred#':>6}")
+            print(
+                f"\n  {label}  |  NFR macro-F1={f1_macro_nfr:.4f}  "
+                f"(n_NF_correctly_classified={n_nf_correct})"
+            )
+            print(f"  {'Cat':<5} {'n':>5}  {'F1':>6}  {'P':>6}  {'R':>6}")
             for cat in NFR_CATS:
                 sup = gt_counts.get(cat, 0)
                 f1v = f1_per_cat.get(cat)
-                pred_n = pred_counts.get(cat, 0)
-                f1_str = f"{f1v:.4f}" if f1v is not None else "  N/A"
-                low = " << baixo suporte" if 0 < sup < 30 else ""
-                print(f"  {cat:<5} {sup:>7}  {f1_str:>6}  {pred_n:>6}{low}")
+                if f1v is None:
+                    continue
+                low = " << baixo suporte" if sup < 30 else ""
+                print(
+                    f"  {cat:<5} {sup:>5}  {f1v:>6.3f}  {p_per_cat[cat]:>6.3f}  "
+                    f"{r_per_cat[cat]:>6.3f}{low}"
+                )
 
 # ══════════════════════════════════════════════════════════════════════════════
 # 2. ERROR PROPAGATION — confidence < 0.70 no pipeline
