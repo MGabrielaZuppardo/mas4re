@@ -1,6 +1,9 @@
-"""Grid runner — executa as 12 condições experimentais do SBCARS 2026.
+"""Grid runner — executa as 18 condições experimentais do MAS4RE.
 
-Condições: 3 modelos × 2 idiomas × 2 arquiteturas = 12 runs.
+Condições: 3 modelos × 2 idiomas × 3 arquiteturas = 18 runs
+(baseline, pipeline, two_call_baseline — esta última isola a
+contribuição do contrato de estado tipado por ablação, ver
+experiments/strategy.py::TwoCallBaselineStrategy).
 
 Uso:
     python scripts/run_grid.py              # grid completo
@@ -37,10 +40,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from config.settings import settings
 from domain.enums import Lang
 from experiments.runner import ExperimentRunner, RunConfig
-from experiments.strategy import BaselineStrategy, PipelineStrategy
+from experiments.strategy import BaselineStrategy, PipelineStrategy, TwoCallBaselineStrategy
 
 # ---------------------------------------------------------------------------
-# Grid definition — 3 models × 2 languages × 2 architectures = 12 conditions
+# Grid definition — 3 models × 2 languages × 3 architectures = 18 conditions
 # ---------------------------------------------------------------------------
 
 # Permite sobrescrever modelos via GRID_MODELS (separados por vírgula)
@@ -78,7 +81,7 @@ SUMMARY_FIELDS = [
 class GridCondition:
     model: str
     lang: str
-    strategy: str  # "baseline" | "pipeline"
+    strategy: str  # "baseline" | "pipeline" | "two_call_baseline"
 
 
 def _build_conditions() -> list[GridCondition]:
@@ -87,13 +90,18 @@ def _build_conditions() -> list[GridCondition]:
         for lang in LANGUAGES:
             conditions.append(GridCondition(model=model, lang=lang, strategy="baseline"))
             conditions.append(GridCondition(model=model, lang=lang, strategy="pipeline"))
+            conditions.append(GridCondition(model=model, lang=lang, strategy="two_call_baseline"))
     return conditions
 
 
-def _build_strategy(cond: GridCondition) -> BaselineStrategy | PipelineStrategy:
+def _build_strategy(
+    cond: GridCondition,
+) -> BaselineStrategy | PipelineStrategy | TwoCallBaselineStrategy:
     lang_enum = Lang(cond.lang)
     if cond.strategy == "baseline":
         return BaselineStrategy(model=cond.model, lang=lang_enum)
+    if cond.strategy == "two_call_baseline":
+        return TwoCallBaselineStrategy(model=cond.model, lang=lang_enum)
     return PipelineStrategy(
         classifier_model=cond.model,
         prioritizer_model=cond.model,
@@ -102,7 +110,9 @@ def _build_strategy(cond: GridCondition) -> BaselineStrategy | PipelineStrategy:
 
 
 def _build_config(cond: GridCondition, n: int | None, seed: int = 42) -> RunConfig:
-    model_label = cond.model if cond.strategy == "baseline" else f"{cond.model}+{cond.model}"
+    # Only "pipeline" runs two distinct agent slots (classifier + prioritizer);
+    # "baseline" and "two_call_baseline" both run a single model end to end.
+    model_label = cond.model if cond.strategy != "pipeline" else f"{cond.model}+{cond.model}"
     return RunConfig(
         strategy_name=cond.strategy,
         model=model_label,
