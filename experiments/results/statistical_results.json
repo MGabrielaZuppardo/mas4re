@@ -214,8 +214,8 @@
       "interpretation": "poor",
       "distributions": {
         "qwen2.5:7b": {
-          "M": 287,
           "S": 330,
+          "M": 287,
           "C": 6
         },
         "llama3.1:8b": {
@@ -239,8 +239,8 @@
       "interpretation": "poor",
       "distributions": {
         "qwen2.5:7b": {
-          "M": 209,
           "S": 404,
+          "M": 209,
           "C": 9,
           "W": 1
         },
@@ -257,6 +257,61 @@
       }
     },
     {
+      "strategy": "two_call_baseline",
+      "lang": "pt",
+      "n_aligned": 623,
+      "n_excluded_invalid_priority": 0,
+      "kappa": 0.135959,
+      "interpretation": "slight",
+      "distributions": {
+        "qwen2.5:7b": {
+          "S": 333,
+          "M": 257,
+          "C": 31,
+          "W": 2
+        },
+        "llama3.1:8b": {
+          "M": 560,
+          "C": 9,
+          "S": 53,
+          "W": 1
+        },
+        "mistral:7b": {
+          "M": 536,
+          "S": 81,
+          "W": 6
+        }
+      }
+    },
+    {
+      "strategy": "two_call_baseline",
+      "lang": "en",
+      "n_aligned": 623,
+      "n_excluded_invalid_priority": 0,
+      "kappa": 0.169465,
+      "interpretation": "slight",
+      "distributions": {
+        "qwen2.5:7b": {
+          "M": 230,
+          "S": 366,
+          "C": 25,
+          "W": 2
+        },
+        "llama3.1:8b": {
+          "M": 540,
+          "S": 75,
+          "C": 7,
+          "W": 1
+        },
+        "mistral:7b": {
+          "M": 501,
+          "S": 118,
+          "C": 3,
+          "W": 1
+        }
+      }
+    },
+    {
       "strategy": "pipeline",
       "lang": "pt",
       "n_aligned": 623,
@@ -265,15 +320,15 @@
       "interpretation": "slight",
       "distributions": {
         "qwen2.5:7b": {
+          "S": 337,
           "M": 260,
           "C": 24,
-          "S": 337,
           "W": 2
         },
         "llama3.1:8b": {
           "M": 544,
-          "S": 72,
           "C": 6,
+          "S": 72,
           "W": 1
         },
         "mistral:7b": {

@@ -345,11 +345,12 @@ def run_rq2_language(all_runs: dict) -> list[dict]:
 def run_moscow_obs(all_runs: dict) -> list[dict]:
     print(f"\n{'=' * 72}")
     print("MoSCoW (observação arquitetural) — Fleiss' κ descritivo, sem GT")
-    print("4 estratos: 2 arquiteturas × 2 línguas, 3 modelos como raters")
+    print("6 estratos: 3 arquiteturas (baseline/two_call_baseline/pipeline) ×")
+    print("2 línguas, 3 modelos como raters")
     print("=" * 72)
 
     results = []
-    for strategy in ["baseline", "pipeline"]:
+    for strategy in ["baseline", "two_call_baseline", "pipeline"]:
         for lang in LANGS:
             runs_by_model = {m: all_runs.get((strategy, m, lang), {}) for m in MODELS}
             common_texts = set(runs_by_model[MODELS[0]])
