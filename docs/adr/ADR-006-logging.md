@@ -51,3 +51,19 @@ lento que baseline?"). Trace correlacionado habilita análise de SQ3.
 ## Referências
 - `config/logging.py` (a criar), `scripts/*.py`, `evaluation/reporter.py`
 - ADRs relacionados: ADR-003
+
+## Nota de Atualização — 2026-07-12
+
+Decisão **não adotada na prática**:
+
+- `config/logging.py` não existe no repositório.
+- `print()` continua presente exatamente onde a ADR apontou:
+  `evaluation/reporter.py:56–119` (múltiplas chamadas), além de
+  `scripts/convert_promisse.py`, `scripts/run_grid.py`,
+  `scripts/validate_translation.py`.
+- Nenhuma propagação de `run_id` via `contextvars` foi encontrada.
+- O único item cumprido: `cli/main.py` usa `rich.console.Console` para
+  output ao usuário, conforme item 4 da decisão.
+
+Recomenda-se reabrir esta ADR como trabalho pendente de infraestrutura
+antes de qualquer análise de SQ3 que dependa de correlação de logs.

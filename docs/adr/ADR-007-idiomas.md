@@ -53,3 +53,17 @@ código e capítulos da dissertação.
 
 ## Referências
 - `domain/enums.py`, `domain/models.py`, `docs/glossary.md`
+
+## Nota de Atualização — 2026-07-12
+
+Núcleo da decisão cumprido: `domain/enums.py` define
+`class Lang(StrEnum): PT = "pt"; EN = "en"` e é usado consistentemente
+nos agentes (`lang: Lang = Lang.PT`).
+
+Drift menor observado: docstrings e mensagens de log ainda aparecem em
+PT em vários módulos (ex.: `agents/baseline.py` — docstring
+`"""Agente baseline single-shot: classifica e prioriza..."""` e logs
+como `"BaselineAgent inicializado | model=%s..."`), contrariando as
+linhas "Docstrings e comentários: EN" e "Mensagens de log: EN" da
+tabela. Não é uma quebra estrutural — recomenda-se aplicar a política
+em revisões de PR futuras, como já previsto na seção "Neutras".
