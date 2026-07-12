@@ -32,16 +32,16 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 import numpy as np
 
 from experiments.compute_stats import (
-    _find_latest_ablation_csv,
     _find_latest_csv,
     fleiss_kappa,
     load_all_runs,
     load_csv,
+    load_two_call_runs,
 )
 
 MODELS = ["qwen2.5:7b", "llama3.1:8b", "mistral:7b"]
 LANGS = ["pt", "en"]
-VALID_PRIORITIES = {"M", "S", "C"}
+VALID_PRIORITIES = {"M", "S", "C", "W"}
 N_BOOT = 10_000
 SEED = 42
 ALPHA = 0.05
@@ -108,16 +108,10 @@ def main() -> None:
     rng = np.random.default_rng(SEED)
 
     run_meta = load_csv(_find_latest_csv())
-    ablation_csv = _find_latest_ablation_csv()
-    if ablation_csv is None:
-        raise FileNotFoundError(
-            "No ablation_summary.csv found under experiments/results/*/ -- "
-            "run the two_call_baseline grid first."
-        )
-    run_meta.update(load_csv(ablation_csv))
 
     print("Carregando predicoes...")
     all_runs = load_all_runs(run_meta)
+    all_runs.update(load_two_call_runs())
 
     print("\n" + "=" * 88)
     print(f"MAS4RE - RQ3 bootstrap 95% CI on delta-kappa (pipeline - two_call), B={N_BOOT}")
