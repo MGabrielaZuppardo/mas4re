@@ -19,7 +19,7 @@ set -euo pipefail
 # Configuração — ajuste apenas aqui se necessário
 # ---------------------------------------------------------------------------
 RESOURCE_GROUP="mas4re-rg"
-LOCATION="brazilsouth"
+LOCATION="eastus"
 REGISTRY_NAME="mas4reregistry"
 ENVIRONMENT_NAME="mas4re-env"
 JOB_NAME="mas4re-grid-job"
@@ -27,7 +27,7 @@ IMAGE_TAG="mas4re:latest"
 
 # Lê credenciais do .env local
 if [[ -f ".env" ]]; then
-  export $(grep -v '^#' .env | grep -E 'AZURE_OPENAI' | xargs)
+  export $(grep -v '^#' .env | grep -E 'AZURE_OPENAI|AZURE_STORAGE_CONNECTION_STRING|BLOB_CONTAINER' | xargs)
 fi
 
 AZURE_OPENAI_API_KEY="${AZURE_OPENAI_API_KEY:-}"
@@ -96,14 +96,15 @@ else
     --output none 2>/dev/null || echo "  (registry já existe)"
 
   # -------------------------------------------------------------------------
-  # 3. Build e push da imagem
+  # 3. Build local e push da imagem
   # -------------------------------------------------------------------------
-  echo "[3/5] Build e push da imagem (az acr build)..."
-  az acr build \
-    --registry "$REGISTRY_NAME" \
-    --image "$IMAGE_TAG" \
-    --file Dockerfile \
-    .
+  echo "[3/5] Build local e push da imagem..."
+  REGISTRY_SERVER="${REGISTRY_NAME}.azurecr.io"
+
+  az acr login --name "$REGISTRY_NAME"
+
+  docker build -t "${REGISTRY_SERVER}/${IMAGE_TAG}" -f Dockerfile .
+  docker push "${REGISTRY_SERVER}/${IMAGE_TAG}"
 
   # -------------------------------------------------------------------------
   # 4. Container Apps Environment
@@ -112,52 +113,103 @@ else
   az containerapp env create \
     --name "$ENVIRONMENT_NAME" \
     --resource-group "$RESOURCE_GROUP" \
-    --location "$LOCATION" \
+    --location brazilsouth \
+    --logs-destination none \
     --output none 2>/dev/null || echo "  (environment já existe)"
+
 
   # -------------------------------------------------------------------------
   # 5. Container Apps Job
   # -------------------------------------------------------------------------
   echo "[5/5] Criando Container Apps Job..."
 
-  # Monta o comando do grid
-  GRID_CMD="python scripts/run_grid.py --workers $GRID_WORKERS --resume"
-  if [[ -n "$GRID_N" ]]; then
-    GRID_CMD="$GRID_CMD --n $GRID_N"
-  fi
+  GRID_RESUME="true"
 
-  REGISTRY_SERVER="${REGISTRY_NAME}.azurecr.io"
   REGISTRY_PASS=$(az acr credential show \
     --name "$REGISTRY_NAME" \
     --query "passwords[0].value" -o tsv)
 
-  az containerapp job create \
+  # Habilita acesso do Container Apps ao ACR via role assignment
+  ACR_ID=$(az acr show --name "$REGISTRY_NAME" --query id -o tsv)
+  ENV_IDENTITY=$(az containerapp env show \
+    --name "$ENVIRONMENT_NAME" \
+    --resource-group "$RESOURCE_GROUP" \
+    --query "identity.principalId" -o tsv 2>/dev/null || echo "")
+
+  JOB_EXISTS=$(az containerapp job show \
     --name "$JOB_NAME" \
     --resource-group "$RESOURCE_GROUP" \
-    --environment "$ENVIRONMENT_NAME" \
-    --trigger-type Manual \
-    --replica-timeout 7200 \
-    --replica-retry-limit 1 \
-    --replica-completion-count 1 \
-    --parallelism 1 \
-    --image "${REGISTRY_SERVER}/${IMAGE_TAG}" \
-    --registry-server "$REGISTRY_SERVER" \
-    --registry-username "$REGISTRY_NAME" \
-    --registry-password "$REGISTRY_PASS" \
-    --cpu 2 \
-    --memory 4Gi \
-    --env-vars \
-      "AZURE_OPENAI_API_KEY=$AZURE_OPENAI_API_KEY" \
-      "AZURE_OPENAI_ENDPOINT=$AZURE_OPENAI_ENDPOINT" \
-      "CLASSIFIER_MODEL=$CLASSIFIER_MODEL" \
-      "PRIORITIZER_MODEL=$PRIORITIZER_MODEL" \
-    --command "bash" "-c" "$GRID_CMD" \
-    --output none 2>/dev/null || \
-  az containerapp job update \
-    --name "$JOB_NAME" \
-    --resource-group "$RESOURCE_GROUP" \
-    --image "${REGISTRY_SERVER}/${IMAGE_TAG}" \
-    --output none
+    --query "name" -o tsv 2>/dev/null || echo "")
+
+  if [[ -z "$JOB_EXISTS" ]]; then
+    az containerapp job create \
+      --name "$JOB_NAME" \
+      --resource-group "$RESOURCE_GROUP" \
+      --environment "$ENVIRONMENT_NAME" \
+      --trigger-type Manual \
+      --replica-timeout 7200 \
+      --replica-retry-limit 1 \
+      --replica-completion-count 1 \
+      --parallelism 1 \
+      --image "${REGISTRY_SERVER}/${IMAGE_TAG}" \
+      --registry-server "$REGISTRY_SERVER" \
+      --registry-username "$REGISTRY_NAME" \
+      --registry-password "$REGISTRY_PASS" \
+      --cpu 2 \
+      --memory 4Gi \
+      --env-vars \
+        "AZURE_OPENAI_API_KEY=$AZURE_OPENAI_API_KEY" \
+        "AZURE_OPENAI_ENDPOINT=$AZURE_OPENAI_ENDPOINT" \
+        "CLASSIFIER_MODEL=$CLASSIFIER_MODEL" \
+        "PRIORITIZER_MODEL=$PRIORITIZER_MODEL" \
+        "GRID_WORKERS=$GRID_WORKERS" \
+        "GRID_RESUME=$GRID_RESUME" \
+        "GRID_N=$GRID_N" \
+        "AZURE_STORAGE_CONNECTION_STRING=${AZURE_STORAGE_CONNECTION_STRING:-}" \
+        "BLOB_CONTAINER=${BLOB_CONTAINER:-experiments}" \
+      --command "bash" \
+      --args "scripts/entrypoint_grid.sh" \
+      2>&1 | tee /tmp/job_create.log
+    # Se falhou por auth, tenta com admin explícito
+    if grep -q "UNAUTHORIZED\|authentication" /tmp/job_create.log 2>/dev/null; then
+      echo "  Tentando com credenciais admin explícitas..."
+      REGISTRY_PASS2=$(az acr credential show --name "$REGISTRY_NAME" --query "passwords[1].value" -o tsv)
+      az containerapp job create \
+        --name "$JOB_NAME" \
+        --resource-group "$RESOURCE_GROUP" \
+        --environment "$ENVIRONMENT_NAME" \
+        --trigger-type Manual \
+        --replica-timeout 7200 \
+        --replica-retry-limit 1 \
+        --replica-completion-count 1 \
+        --parallelism 1 \
+        --image "${REGISTRY_SERVER}/${IMAGE_TAG}" \
+        --registry-server "$REGISTRY_SERVER" \
+        --registry-username "$REGISTRY_NAME" \
+        --registry-password "$REGISTRY_PASS2" \
+        --cpu 2 \
+        --memory 4Gi \
+        --env-vars \
+          "AZURE_OPENAI_API_KEY=$AZURE_OPENAI_API_KEY" \
+          "AZURE_OPENAI_ENDPOINT=$AZURE_OPENAI_ENDPOINT" \
+          "CLASSIFIER_MODEL=$CLASSIFIER_MODEL" \
+          "PRIORITIZER_MODEL=$PRIORITIZER_MODEL" \
+          "GRID_WORKERS=$GRID_WORKERS" \
+          "GRID_RESUME=$GRID_RESUME" \
+          "GRID_N=$GRID_N" \
+          "AZURE_STORAGE_CONNECTION_STRING=${AZURE_STORAGE_CONNECTION_STRING:-}" \
+          "BLOB_CONTAINER=${BLOB_CONTAINER:-experiments}" \
+        --command "bash" \
+        --args "scripts/entrypoint_grid.sh"
+    fi
+  else
+    echo "  (job já existe — atualizando imagem...)"
+    az containerapp job update \
+      --name "$JOB_NAME" \
+      --resource-group "$RESOURCE_GROUP" \
+      --image "${REGISTRY_SERVER}/${IMAGE_TAG}" \
+      --output none
+  fi
 
   echo ""
   echo "Deploy concluído."
@@ -186,6 +238,12 @@ if $RUN_JOB; then
   echo "    --name $JOB_NAME \\"
   echo "    --resource-group $RESOURCE_GROUP \\"
   echo "    --execution $EXECUTION --follow"
+  echo ""
+  echo "Quando o job terminar, baixe os resultados:"
+  echo "  az storage blob download-batch \\"
+  echo "    --account-name mas4re \\"
+  echo "    --source experiments \\"
+  echo "    --destination ."
 fi
 
 echo ""

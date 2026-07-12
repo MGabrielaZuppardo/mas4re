@@ -92,3 +92,24 @@ compilado com LangGraph 1.1.6".
 - ADRs relacionados: ADR-002 (DI por construtor), ADR-003 (taxonomia
   de falhas / cross-check), ADR-004 (Strategy + Runner), ADR-010
   (Elicitor)
+
+## Nota de Atualização — 2026-07-12
+
+Fase 1 permanece exatamente como descrita e é a ADR mais fiel ao código
+atual — `pipeline/graph.py` implementa `StateGraph(PipelineState)` com
+`classifier → prioritizer → END` via `functools.partial`, sem desvios.
+
+Fase 2 avançou parcialmente e em direção diferente da planejada:
+
+- `cross_check_node` (ADR-003) **já está implementado**
+  (`pipeline/nodes/cross_check_node.py`), mas ainda **não está plugado**
+  nas arestas de `pipeline/graph.py` — o grafo compilado continua sendo
+  só o de Fase 1.
+- O `elicitor_node` (ADR-010) **não foi apenas adiado — foi descartado**:
+  `pipeline/nodes/elicitor_node.py` documenta explicitamente que o
+  elicitor "foi escopado para fora do MAS4RE v1 (SBCARS 2026)", virando
+  item de trabalho futuro (§7.3), não uma extensão de Fase 2 pendente.
+- A citação "compilado com LangGraph 1.1.6" reflete a versão instalada
+  (`pip show langgraph` confirma 1.1.6), mas `pyproject.toml` pina
+  apenas `langgraph>=0.2.0` — constraint bem mais solta que a versão
+  citada.

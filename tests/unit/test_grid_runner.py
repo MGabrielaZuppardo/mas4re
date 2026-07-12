@@ -259,11 +259,11 @@ class TestExperimentRunnerTrace:
 
 
 class TestGridScript:
-    def test_dry_run_produces_12_conditions(self, capsys) -> None:
+    def test_dry_run_produces_18_conditions(self, capsys) -> None:
         from scripts.run_grid import _build_conditions
 
         conditions = _build_conditions()
-        assert len(conditions) == 12
+        assert len(conditions) == 18
 
     def test_conditions_cover_all_models_langs_strategies(self) -> None:
         from scripts.run_grid import LANGUAGES, MODELS, _build_conditions
@@ -271,7 +271,7 @@ class TestGridScript:
         conditions = _build_conditions()
         for model in MODELS:
             for lang in LANGUAGES:
-                for strategy in ("baseline", "pipeline"):
+                for strategy in ("baseline", "pipeline", "two_call_baseline"):
                     match = [
                         c
                         for c in conditions
@@ -295,3 +295,22 @@ class TestGridScript:
         cfg = _build_config(cond, n=None)
         assert cfg.model == "ollama/qwen2.5:7b+ollama/qwen2.5:7b"
         assert cfg.lang == "en"
+
+    def test_two_call_baseline_config_model_label(self) -> None:
+        from scripts.run_grid import GridCondition, _build_config
+
+        cond = GridCondition(model="ollama/qwen2.5:7b", lang="en", strategy="two_call_baseline")
+        cfg = _build_config(cond, n=None)
+        # Unlike "pipeline", two_call_baseline is a single agent making two
+        # calls, not two agent slots — model_label must not get a "+model"
+        # suffix (see scripts/run_grid.py::_build_config).
+        assert cfg.model == "ollama/qwen2.5:7b"
+        assert cfg.lang == "en"
+
+    def test_build_strategy_dispatches_two_call_baseline(self) -> None:
+        from experiments.strategy import TwoCallBaselineStrategy
+        from scripts.run_grid import GridCondition, _build_strategy
+
+        cond = GridCondition(model="ollama/qwen2.5:7b", lang="pt", strategy="two_call_baseline")
+        strategy = _build_strategy(cond)
+        assert isinstance(strategy, TwoCallBaselineStrategy)

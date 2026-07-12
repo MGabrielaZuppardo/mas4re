@@ -43,6 +43,19 @@ def build_llm(model: str, temperature: float = 0.0) -> BaseChatModel:
             temperature=temperature,
         )
 
+    elif model.startswith("foundry/"):
+        from langchain_openai import AzureChatOpenAI
+
+        deployment = model.removeprefix("foundry/")
+        logger.info("LLM → Azure AI Foundry | deployment=%s", deployment)
+        return AzureChatOpenAI(
+            azure_deployment=deployment,
+            azure_endpoint=settings.foundry_endpoint,
+            api_key=settings.foundry_api_key,
+            api_version="2025-01-01-preview",
+            temperature=temperature,
+        )
+
     elif model.startswith("claude"):
         logger.info("LLM → Anthropic | model=%s", model)
         return ChatAnthropic(

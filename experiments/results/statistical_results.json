@@ -96,7 +96,7 @@
       "magnitude": "negligible",
       "p_value": 0.03405925501886175,
       "sig": "*",
-      "p_bonferroni": 0.20435553011317048,
+      "p_bonferroni": 0.30653329516975575,
       "sig_bonferroni": "NS(Bonf)"
     },
     {
@@ -109,7 +109,7 @@
       "magnitude": "negligible",
       "p_value": 0.06284575684994705,
       "sig": "ns",
-      "p_bonferroni": 0.3770745410996823,
+      "p_bonferroni": 0.5656118116495235,
       "sig_bonferroni": "NS(Bonf)"
     },
     {
@@ -161,7 +161,46 @@
       "magnitude": "negligible",
       "p_value": 0.031773549761255876,
       "sig": "*",
-      "p_bonferroni": 0.19064129856753526,
+      "p_bonferroni": 0.2859619478513029,
+      "sig_bonferroni": "NS(Bonf)"
+    },
+    {
+      "strategy": "two_call_baseline",
+      "model": "qwen2.5:7b",
+      "pt_acc": 0.810594,
+      "en_acc": 0.805778,
+      "delta_pt_minus_en": 0.004815,
+      "cohens_h": 0.012231,
+      "magnitude": "negligible",
+      "p_value": 0.82925657086753,
+      "sig": "ns",
+      "p_bonferroni": 1.0,
+      "sig_bonferroni": "NS(Bonf)"
+    },
+    {
+      "strategy": "two_call_baseline",
+      "model": "llama3.1:8b",
+      "pt_acc": 0.686998,
+      "en_acc": 0.731942,
+      "delta_pt_minus_en": -0.044944,
+      "cohens_h": -0.09906,
+      "magnitude": "negligible",
+      "p_value": 0.08074589047096078,
+      "sig": "ns",
+      "p_bonferroni": 0.7267130142386471,
+      "sig_bonferroni": "NS(Bonf)"
+    },
+    {
+      "strategy": "two_call_baseline",
+      "model": "mistral:7b",
+      "pt_acc": 0.582665,
+      "en_acc": 0.627608,
+      "delta_pt_minus_en": -0.044944,
+      "cohens_h": -0.09198,
+      "magnitude": "negligible",
+      "p_value": 0.10480435921105258,
+      "sig": "ns",
+      "p_bonferroni": 0.9432392328994732,
       "sig_bonferroni": "NS(Bonf)"
     }
   ],
@@ -175,8 +214,8 @@
       "interpretation": "poor",
       "distributions": {
         "qwen2.5:7b": {
-          "M": 287,
           "S": 330,
+          "M": 287,
           "C": 6
         },
         "llama3.1:8b": {
@@ -194,125 +233,135 @@
     {
       "strategy": "baseline",
       "lang": "en",
-      "n_aligned": 622,
-      "n_excluded_invalid_priority": 1,
-      "kappa": -0.122114,
+      "n_aligned": 623,
+      "n_excluded_invalid_priority": 0,
+      "kappa": -0.122,
       "interpretation": "poor",
       "distributions": {
         "qwen2.5:7b": {
           "S": 404,
           "M": 209,
-          "C": 9
+          "C": 9,
+          "W": 1
         },
         "llama3.1:8b": {
-          "M": 562,
+          "M": 563,
           "C": 38,
           "S": 22
         },
         "mistral:7b": {
-          "M": 590,
+          "M": 591,
           "S": 31,
           "C": 1
         }
       }
     },
     {
-      "strategy": "pipeline",
+      "strategy": "two_call_baseline",
       "lang": "pt",
-      "n_aligned": 616,
-      "n_excluded_invalid_priority": 7,
-      "kappa": 0.175808,
+      "n_aligned": 623,
+      "n_excluded_invalid_priority": 0,
+      "kappa": 0.135959,
       "interpretation": "slight",
       "distributions": {
         "qwen2.5:7b": {
-          "M": 260,
-          "C": 22,
-          "S": 334
+          "S": 333,
+          "M": 257,
+          "C": 31,
+          "W": 2
         },
         "llama3.1:8b": {
-          "M": 538,
-          "S": 72,
-          "C": 6
+          "M": 560,
+          "C": 9,
+          "S": 53,
+          "W": 1
         },
         "mistral:7b": {
-          "M": 529,
-          "S": 87
+          "M": 536,
+          "S": 81,
+          "W": 6
+        }
+      }
+    },
+    {
+      "strategy": "two_call_baseline",
+      "lang": "en",
+      "n_aligned": 623,
+      "n_excluded_invalid_priority": 0,
+      "kappa": 0.169465,
+      "interpretation": "slight",
+      "distributions": {
+        "qwen2.5:7b": {
+          "M": 230,
+          "S": 366,
+          "C": 25,
+          "W": 2
+        },
+        "llama3.1:8b": {
+          "M": 540,
+          "S": 75,
+          "C": 7,
+          "W": 1
+        },
+        "mistral:7b": {
+          "M": 501,
+          "S": 118,
+          "C": 3,
+          "W": 1
+        }
+      }
+    },
+    {
+      "strategy": "pipeline",
+      "lang": "pt",
+      "n_aligned": 623,
+      "n_excluded_invalid_priority": 0,
+      "kappa": 0.176758,
+      "interpretation": "slight",
+      "distributions": {
+        "qwen2.5:7b": {
+          "S": 337,
+          "M": 260,
+          "C": 24,
+          "W": 2
+        },
+        "llama3.1:8b": {
+          "M": 544,
+          "C": 6,
+          "S": 72,
+          "W": 1
+        },
+        "mistral:7b": {
+          "M": 530,
+          "S": 87,
+          "W": 6
         }
       }
     },
     {
       "strategy": "pipeline",
       "lang": "en",
-      "n_aligned": 621,
-      "n_excluded_invalid_priority": 2,
-      "kappa": 0.237727,
+      "n_aligned": 623,
+      "n_excluded_invalid_priority": 0,
+      "kappa": 0.238821,
       "interpretation": "fair",
       "distributions": {
         "qwen2.5:7b": {
           "M": 212,
           "S": 394,
-          "C": 15
+          "C": 16,
+          "W": 1
         },
         "llama3.1:8b": {
-          "M": 464,
+          "M": 465,
           "S": 155,
-          "C": 2
+          "C": 3
         },
         "mistral:7b": {
           "M": 506,
           "S": 113,
-          "C": 2
-        }
-      }
-    }
-  ],
-  "moscow_observation_two_call": [
-    {
-      "strategy": "two_call_baseline",
-      "lang": "pt",
-      "n_aligned": 616,
-      "n_excluded_invalid_priority": 7,
-      "kappa": 0.133738,
-      "interpretation": "slight",
-      "distributions": {
-        "qwen2.5:7b": {
-          "S": 330,
-          "M": 257,
-          "C": 29
-        },
-        "llama3.1:8b": {
-          "M": 554,
-          "S": 53,
-          "C": 9
-        },
-        "mistral:7b": {
-          "M": 535,
-          "S": 81
-        }
-      }
-    },
-    {
-      "strategy": "two_call_baseline",
-      "lang": "en",
-      "n_aligned": 620,
-      "n_excluded_invalid_priority": 3,
-      "kappa": 0.165317,
-      "interpretation": "slight",
-      "distributions": {
-        "qwen2.5:7b": {
-          "S": 365,
-          "M": 230,
-          "C": 25
-        },
-        "llama3.1:8b": {
-          "M": 539,
-          "S": 75,
-          "C": 6
-        },
-        "mistral:7b": {
-          "M": 501,
-          "S": 117,
-          "C": 2
+          "C": 3,
+          "W": 1
         }
       }
     }

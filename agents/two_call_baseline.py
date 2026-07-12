@@ -23,8 +23,9 @@ What is kept identical to the pipeline:
 
 EXPERIMENTAL ROLE
 -----------------
-Comparison grid (added to the original 12-condition study):
-  TwoCallBaseline × 3 models × 2 languages = 6 new conditions
+Comparison grid (this condition's 6 runs are part of the full 18-condition
+grid: 3 models x 2 languages x {baseline, two_call_baseline, pipeline}):
+  TwoCallBaseline x 3 models x 2 languages = 6 conditions
 
 If the pipeline's F1 advantage disappears in this comparison, it is
 attributable to the typed state contract (Pydantic validation + confidence

@@ -51,3 +51,23 @@ escalar para Anthropic/Groq sem mudar código — só `.env`.
 ## Referências
 - `config/settings.py`, `config/validation.py` (a criar), `.env.example`
 - ADRs relacionados: ADR-002
+
+## Nota de Atualização — 2026-07-12
+
+Decisão **não adotada na prática**:
+
+- `config/settings.py` ainda define `anthropic_api_key: str =
+  Field(default="")` e `groq_api_key: str = Field(default="")` como
+  `str` puro, não `SecretStr | None` — o mesmo vale para
+  `azure_openai_api_key` e `foundry_api_key`, campos novos adicionados
+  depois desta ADR (provedores Azure OpenAI / Azure AI Foundry no
+  `llm/factory.py`, não previstos aqui).
+- `config/validation.py` não existe; `require_credentials()` não está
+  implementado em lugar nenhum do repositório.
+- `cli/commands/run.py` não existe — a CLI é hoje um único módulo
+  plano `cli/main.py` com comando `run`, que não faz nenhuma
+  pré-validação de credenciais antes de instanciar
+  `BaselineStrategy`/`PipelineStrategy`.
+
+Recomenda-se reabrir esta ADR ao adicionar o próximo provedor cloud ou
+antes de expor a CLI a usuários externos ao time.

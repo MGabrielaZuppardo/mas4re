@@ -1,0 +1,53 @@
+properties:
+  configuration:
+    triggerType: Manual
+    replicaTimeout: 7200
+    replicaRetryLimit: 1
+    manualTriggerConfig:
+      parallelism: 1
+      replicaCompletionCount: 1
+    registries:
+      - server: mas4reregistry.azurecr.io
+        username: mas4reregistry
+        passwordSecretRef: acr-password
+    secrets:
+      - name: acr-password
+        value: "<ACR_PASSWORD>"
+      - name: openai-key
+        value: "<AZURE_OPENAI_API_KEY>"
+      - name: foundry-key
+        value: "<FOUNDRY_API_KEY>"
+  template:
+    containers:
+      - name: mas4re-grid-job
+        image: mas4reregistry.azurecr.io/mas4re:latest
+        command:
+          - bash
+        args:
+          - scripts/entrypoint_grid.sh
+        resources:
+          cpu: 2.0
+          memory: 4Gi
+        env:
+          - name: AZURE_OPENAI_API_KEY
+            secretRef: openai-key
+          - name: AZURE_OPENAI_ENDPOINT
+            value: https://mas4re-resource.openai.azure.com/
+          - name: AZURE_OPENAI_API_VERSION
+            value: "2025-01-01-preview"
+          - name: FOUNDRY_API_KEY
+            secretRef: foundry-key
+          - name: FOUNDRY_ENDPOINT
+            value: https://mas4re-ai-resource.cognitiveservices.azure.com
+          - name: CLASSIFIER_MODEL
+            value: foundry/gpt-4.1-mini
+          - name: PRIORITIZER_MODEL
+            value: foundry/gpt-4.1-mini
+          - name: GRID_WORKERS
+            value: "1"
+          - name: GRID_RESUME
+            value: "true"
+          - name: GRID_N
+            value: ""
+          - name: GRID_MODELS
+            value: "foundry/gpt-4.1-mini,foundry/gpt-4.1-mini,foundry/gpt-4.1-mini"

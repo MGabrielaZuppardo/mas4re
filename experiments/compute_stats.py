@@ -113,6 +113,29 @@ def load_all_runs(run_meta: dict[str, dict]) -> dict[tuple, dict]:
     return all_runs
 
 
+def load_two_call_runs() -> dict[tuple, dict]:
+    """Indexa predições do two_call_baseline (ablation) por (strategy, model, lang) → {text: pred}.
+
+    Vive em um diretório separado (experiments/results/ablation_<timestamp>/),
+    fora do grid_summary*.csv principal, por isso não é coberto por load_all_runs().
+    """
+    ablation_dir = RESULTS_DIR / "ablation_20260601T232947"
+    out: dict[tuple, dict] = {}
+    for model in MODELS:
+        slug = f"ollama-{model.replace(':', '-')}"
+        for lang in LANGS:
+            candidates = sorted(ablation_dir.glob(f"two_call_baseline_{slug}_{lang}_*"))
+            if not candidates:
+                print(f"  MISSING two_call {model} {lang}")
+                continue
+            results_file = candidates[-1] / "results.json"
+            data = json.loads(results_file.read_text(encoding="utf-8"))
+            key = ("two_call_baseline", model, lang)
+            out[key] = {p["text"]: p for p in data["predictions"]}
+            print(f"  OK  {key}  n={len(out[key])}")
+    return out
+
+
 # ── Funções estatísticas ──────────────────────────────────────────────────────
 
 
@@ -260,7 +283,7 @@ def run_rq1(all_runs: dict) -> list[dict]:
 
 
 def run_rq2_language(all_runs: dict) -> list[dict]:
-    N = 6  # 3 modelos × 2 arquiteturas
+    N = 9  # 3 modelos × 3 arquiteturas (baseline, pipeline, two_call_baseline)
     alpha_bonf = ALPHA / N
     print(f"\n{'=' * 72}")
     print("RQ2 — Idioma EN vs PT  (Mann-Whitney U não-pareado + Cohen h)")
@@ -269,7 +292,7 @@ def run_rq2_language(all_runs: dict) -> list[dict]:
     print("=" * 72)
 
     results = []
-    for strategy in ["baseline", "pipeline"]:
+    for strategy in ["baseline", "pipeline", "two_call_baseline"]:
         for model in MODELS:
             pt_run = all_runs.get((strategy, model, "pt"), {})
             en_run = all_runs.get((strategy, model, "en"), {})
@@ -322,11 +345,12 @@ def run_rq2_language(all_runs: dict) -> list[dict]:
 def run_moscow_obs(all_runs: dict) -> list[dict]:
     print(f"\n{'=' * 72}")
     print("MoSCoW (observação arquitetural) — Fleiss' κ descritivo, sem GT")
-    print("4 estratos: 2 arquiteturas × 2 línguas, 3 modelos como raters")
+    print("6 estratos: 3 arquiteturas (baseline/two_call_baseline/pipeline) ×")
+    print("2 línguas, 3 modelos como raters")
     print("=" * 72)
 
     results = []
-    for strategy in ["baseline", "pipeline"]:
+    for strategy in ["baseline", "two_call_baseline", "pipeline"]:
         for lang in LANGS:
             runs_by_model = {m: all_runs.get((strategy, m, lang), {}) for m in MODELS}
             common_texts = set(runs_by_model[MODELS[0]])
@@ -338,7 +362,7 @@ def run_moscow_obs(all_runs: dict) -> list[dict]:
                 print(f"\n  {strategy.upper():<10} × {lang.upper()}  SKIP (n_aligned={n_aligned})")
                 continue
 
-            VALID_PRIORITIES = {"M", "S", "C"}
+            VALID_PRIORITIES = {"M", "S", "C", "W"}
             valid_texts = {
                 t
                 for t in common_texts
@@ -346,7 +370,10 @@ def run_moscow_obs(all_runs: dict) -> list[dict]:
             }
             n_excluded = n_aligned - len(valid_texts)
             if n_excluded:
-                print(f"  → {n_excluded} req(s) excluído(s) por priority inválido (ex.: 'W')")
+                print(
+                    f"  → {n_excluded} req(s) excluído(s) por priority "
+                    "realmente malformado (fora de M/S/C/W)"
+                )
             matrix = [
                 [runs_by_model[m][t].get("priority", "C") for m in MODELS]
                 for t in sorted(valid_texts)
@@ -397,7 +424,8 @@ def main() -> None:
 
     print("\nCarregando predições...")
     all_runs = load_all_runs(run_meta)
-    print(f"Condições carregadas: {len(all_runs)}/12")
+    all_runs.update(load_two_call_runs())
+    print(f"Condições carregadas: {len(all_runs)}/18")
 
     rq1 = run_rq1(all_runs)
     rq2 = run_rq2_language(all_runs)

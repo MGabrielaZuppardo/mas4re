@@ -1,0 +1,238 @@
+{
+  "run_id": "e62f4bc4-377a-4fc6-ab94-43097e680d78",
+  "clf_model": "llama-3.3-70b-versatile",
+  "pri_model": "llama-3.3-70b-versatile",
+  "dataset": "PROMISE_NFR_PT",
+  "n": 10,
+  "elapsed": {
+    "classification_seconds": 0.15,
+    "prioritization_seconds": 2.6,
+    "total_seconds": 2.76
+  },
+  "metrics": {
+    "classification": {
+      "accuracy": 1.0,
+      "f1_macro": 1.0,
+      "f1_weighted": 1.0,
+      "mcc": 1.0,
+      "n_evaluated": 10
+    },
+    "subcategory": {
+      "A": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 0
+      },
+      "FT": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 0
+      },
+      "LF": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 0
+      },
+      "MN": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 0
+      },
+      "O": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 0
+      },
+      "PE": {
+        "f1": 0.6667,
+        "precision": 0.5,
+        "recall": 1.0,
+        "support": 1
+      },
+      "PO": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 0
+      },
+      "SC": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 0
+      },
+      "SE": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 1
+      },
+      "US": {
+        "f1": 0.6667,
+        "precision": 1.0,
+        "recall": 0.5,
+        "support": 2
+      },
+      "macro_avg": {
+        "f1": 0.2333,
+        "precision": 0.25,
+        "recall": 0.25,
+        "support": 4
+      }
+    },
+    "moscow_distribution": {
+      "M": 0.8,
+      "S": 0.2,
+      "C": 0.0,
+      "W": 0.0
+    },
+    "prioritization_correlation": null
+  },
+  "predictions": [
+    {
+      "id": "eb65e664",
+      "text": "A funcionalidade de lavagem de eletrodos terá uma interface na qual os parâmetros de dados dos eletrodos poderão ser man",
+      "ground_truth_type": "F",
+      "ground_truth_category": "F",
+      "predicted_type": "F",
+      "predicted_category": null,
+      "confidence": 0.9,
+      "classification_justification": "O requisito descreve uma funcionalidade específica do sistema, relacionada à manutenção de parâmetros de dados dos eletrodos, o que é característico de um requisito funcional.",
+      "priority": "M",
+      "priority_score": 1.0,
+      "priority_rank": 1,
+      "priority_justification": "A funcionalidade de lavagem de eletrodos é essencial para o sistema, pois permite a manutenção dos parâmetros de dados dos eletrodos, o que é fundamental para o funcionamento correto do sistema. Sem essa funcionalidade, o sistema não poderá operar de forma eficaz."
+    },
+    {
+      "id": "9cc0615a",
+      "text": "Se a pontuação do lead estiver dentro da média média, ela será definida para verificação manual por um Coordenador de In",
+      "ground_truth_type": "F",
+      "ground_truth_category": "F",
+      "predicted_type": "F",
+      "predicted_category": null,
+      "confidence": 0.9,
+      "classification_justification": "O requisito descreve uma ação específica que o sistema deve realizar com base em uma condição, o que é característico de requisitos funcionais.",
+      "priority": "M",
+      "priority_score": 1.0,
+      "priority_rank": 2,
+      "priority_justification": "O requisito é fundamental para o funcionamento do sistema, pois define o fluxo de verificação manual de leads com pontuação média, garantindo a integridade do processo de inscrição."
+    },
+    {
+      "id": "646cc61a",
+      "text": "Assim que o jogo for iniciado, o produto permitirá que cada jogador posicione seus 5 navios em suas respectivas grades d",
+      "ground_truth_type": "F",
+      "ground_truth_category": "F",
+      "predicted_type": "F",
+      "predicted_category": null,
+      "confidence": 1.0,
+      "classification_justification": "O requisito descreve uma funcionalidade específica do jogo, permitindo que os jogadores posicionem seus navios, o que é uma característica funcional do sistema.",
+      "priority": "M",
+      "priority_score": 1.0,
+      "priority_rank": 3,
+      "priority_justification": "O posicionamento dos navios é fundamental para o início do jogo, pois define a estratégia inicial de cada jogador. Sem essa funcionalidade, o jogo não pode ser iniciado ou jogado de forma significativa."
+    },
+    {
+      "id": "dfba44ba",
+      "text": "Somente usuários com acesso à Atualização devem poder iniciar solicitações de disputa.",
+      "ground_truth_type": "NF",
+      "ground_truth_category": "SE",
+      "predicted_type": "NF",
+      "predicted_category": "SE",
+      "confidence": 0.9,
+      "classification_justification": "O requisito trata de controle de acesso e permissões, o que está relacionado à segurança do sistema. A restrição de acesso à funcionalidade de iniciar solicitações de disputa somente para usuários com acesso à Atualização implica em uma política de segurança.",
+      "priority": "M",
+      "priority_score": 1.0,
+      "priority_rank": 4,
+      "priority_justification": "O requisito é relacionado à segurança e controle de acesso, sendo fundamental para garantir a integridade do sistema e evitar acessos não autorizados. Sua implementação é obrigatória para manter a confiabilidade e a segurança da plataforma."
+    },
+    {
+      "id": "9c4736d3",
+      "text": "Para cada arremesso o produto deverá marcar o arremesso como um acerto ou erro na grade defensiva do jogador defensor.",
+      "ground_truth_type": "F",
+      "ground_truth_category": "F",
+      "predicted_type": "F",
+      "predicted_category": null,
+      "confidence": 1.0,
+      "classification_justification": "O requisito descreve uma ação específica que o sistema deve realizar, relacionada à lógica de negócios do produto, caracterizando um requisito funcional.",
+      "priority": "M",
+      "priority_score": 1.0,
+      "priority_rank": 5,
+      "priority_justification": "O requisito é fundamental para o funcionamento do sistema, pois marca o arremesso como acerto ou erro, o que é essencial para a lógica do jogo. Sem isso, o sistema não pode funcionar corretamente."
+    },
+    {
+      "id": "e0976a5c",
+      "text": "Os Administradores do Programa/Membros da Equipe de Enfermagem terão a capacidade de modificar informações relacionadas ",
+      "ground_truth_type": "F",
+      "ground_truth_category": "F",
+      "predicted_type": "F",
+      "predicted_category": null,
+      "confidence": 0.9,
+      "classification_justification": "O requisito descreve uma capacidade específica dos administradores, relacionada à modificação de informações, o que é um comportamento funcional do sistema.",
+      "priority": "M",
+      "priority_score": 1.0,
+      "priority_rank": 6,
+      "priority_justification": "A capacidade de modificar informações relacionadas a um Centro Clínico é fundamental para garantir a precisão e atualidade dos dados, o que é essencial para o funcionamento eficaz do sistema. Sem essa funcionalidade, o sistema não poderia ser considerado completo ou confiável."
+    },
+    {
+      "id": "f5603133",
+      "text": "O produto aumentará a produtividade dos Estimadores de Colisão. 80% dos Estimadores de Colisão concordarão que sua produ",
+      "ground_truth_type": "NF",
+      "ground_truth_category": "US",
+      "predicted_type": "NF",
+      "predicted_category": "PE",
+      "confidence": 0.9,
+      "classification_justification": "O requisito menciona aumento de produtividade, que está relacionado à eficiência e desempenho do sistema, categorizando-o como um requisito de desempenho.",
+      "priority": "M",
+      "priority_score": 0.95,
+      "priority_rank": 7,
+      "priority_justification": "O requisito é de desempenho, que tende a ser M ou S, e aumenta a produtividade dos Estimadores de Colisão, o que é fundamental para o sucesso do produto."
+    },
+    {
+      "id": "833fe283",
+      "text": "O tempo de resposta das tarefas gerais de gestão de alunos não deve demorar mais de 5 segundos e o tempo de resposta da ",
+      "ground_truth_type": "NF",
+      "ground_truth_category": "PE",
+      "predicted_type": "NF",
+      "predicted_category": "PE",
+      "confidence": 0.9,
+      "classification_justification": "O requisito especifica limites de tempo de resposta para tarefas específicas, o que está relacionado à performance do sistema.",
+      "priority": "M",
+      "priority_score": 0.95,
+      "priority_rank": 8,
+      "priority_justification": "O requisito é crítico para a experiência do usuário e o desempenho do sistema, pois tempos de resposta excessivos podem levar à insatisfação e perda de produtividade. Além disso, a categoria NFR é Desempenho, que tende a ser M ou S."
+    },
+    {
+      "id": "1bde9e78",
+      "text": "visualizando os detalhes de um filme, o site exibirá a descrição do filme, ator e diretor, inserida pelo administrador.",
+      "ground_truth_type": "F",
+      "ground_truth_category": "F",
+      "predicted_type": "F",
+      "predicted_category": null,
+      "confidence": 0.9,
+      "classification_justification": "O requisito descreve uma funcionalidade específica do site, que é exibir informações sobre um filme, o que é uma característica funcional do sistema.",
+      "priority": "S",
+      "priority_score": 0.8,
+      "priority_rank": 9,
+      "priority_justification": "O requisito é importante para a experiência do usuário, pois fornece informações relevantes sobre o filme, mas não é crítico para o funcionamento básico do site."
+    },
+    {
+      "id": "6bcc777f",
+      "text": "O usuário deverá localizar facilmente as instruções durante a utilização do produto.  A ajuda do usuário pode ser encont",
+      "ground_truth_type": "NF",
+      "ground_truth_category": "US",
+      "predicted_type": "NF",
+      "predicted_category": "US",
+      "confidence": 0.9,
+      "classification_justification": "O requisito se refere à facilidade de localização de instruções e ajuda durante a utilização do produto, o que está relacionado à usabilidade.",
+      "priority": "S",
+      "priority_score": 0.8,
+      "priority_rank": 10,
+      "priority_justification": "O requisito é importante para a experiência do usuário, pois facilita a utilização do produto, mas não é crítico para o funcionamento do sistema. A categoria US (Usabilidade) tende a ser S ou C, e considerando a importância da ajuda do usuário para a experiência do usuário, justifica uma prioridade S."
+    }
+  ]
+}
