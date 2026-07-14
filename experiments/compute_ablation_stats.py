@@ -65,15 +65,22 @@ def _load_predictions(run_dir: Path) -> list[dict]:
 
 
 def _load_ground_truth(run_dir: Path) -> dict[str, str]:
-    """Build {req_id: true_type} from predictions (ground_truth_type field)."""
+    """Build {req_text: true_type} from predictions (metadata.ground_truth_type field)."""
     preds = _load_predictions(run_dir)
-    return {p["id"]: p.get("ground_truth_type", "") for p in preds}
+    return {p["text"]: p.get("metadata", {}).get("ground_truth_type", "") for p in preds}
 
 
 def _binary_outcomes(preds: list[dict]) -> dict[str, int]:
-    """Return {req_id: 1 if correct else 0} for binary FR/NFR classification."""
+    """Return {req_text: 1 if correct else 0} for binary FR/NFR classification.
+
+    Keyed by requirement text, not id: Requirement.id is a UUID regenerated on
+    every dataset load, so it cannot be used to join predictions across runs.
+    """
     return {
-        p["id"]: int(p.get("requirement_type", "") == p.get("ground_truth_type", "MISMATCH"))
+        p["text"]: int(
+            p.get("requirement_type", "")
+            == p.get("metadata", {}).get("ground_truth_type", "MISMATCH")
+        )
         for p in preds
     }
 
@@ -157,7 +164,7 @@ def main() -> None:
             abl_run_dir = _find_run_dir(
                 ablation_dir,
                 "two_call_baseline",
-                model.replace(":", "-"),
+                f"ollama-{model.replace(':', '-')}",
                 lang,
             )
             pip_results_dir = ablation_dir.parent  # one level up from ablation dir
@@ -184,7 +191,7 @@ def main() -> None:
                     n_pairs = len(common_ids)
 
                     if not np.all(abl_vec == pip_vec):
-                        w_stat, p_val = stats.wilcoxon(pip_vec, abl_vec, alternative="greater")
+                        w_stat, p_val = stats.wilcoxon(pip_vec, abl_vec, alternative="two-sided")
                     else:
                         p_val = 1.0
 
