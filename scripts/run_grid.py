@@ -1,6 +1,8 @@
-"""Grid runner — executa as 12 condições experimentais do SBCARS 2026.
+"""Grid runner — executa as 18 condições experimentais do MAS4RE.
 
-Condições: 3 modelos × 2 idiomas × 2 arquiteturas = 12 runs.
+Condições: 3 modelos × 2 idiomas × 3 arquiteturas = 18 runs
+(baseline, pipeline, two_call_baseline — esta última isola o contrato de
+estado tipado, ver experiments/strategy.py::TwoCallBaselineStrategy).
 
 Uso:
     python scripts/run_grid.py              # grid completo
@@ -8,6 +10,9 @@ Uso:
     python scripts/run_grid.py --dry-run    # imprime condições sem executar
     python scripts/run_grid.py --resume     # pula condições já concluídas (status=ok no CSV)
     python scripts/run_grid.py --workers 4  # paraleliza N condições simultaneamente
+    python scripts/run_grid.py --repeat 3   # roda cada condição 3x (mesmo seed) para
+                                             # medir variância de não-determinismo do
+                                             # provider em temperature=0.0
 
 Artefatos gerados por run:
     experiments/results/{run_id}/manifest.json
@@ -36,10 +41,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from config.settings import settings
 from domain.enums import Lang
 from experiments.runner import ExperimentRunner, RunConfig
-from experiments.strategy import BaselineStrategy, PipelineStrategy
+from experiments.strategy import BaselineStrategy, PipelineStrategy, TwoCallBaselineStrategy
 
 # ---------------------------------------------------------------------------
-# Grid definition — 3 models × 2 languages × 2 architectures = 12 conditions
+# Grid definition — 3 models × 2 languages × 3 architectures = 18 conditions
 # ---------------------------------------------------------------------------
 
 MODELS = [
@@ -57,6 +62,7 @@ SUMMARY_FIELDS = [
     "model",
     "lang",
     "n",
+    "repeat_idx",
     "elapsed_seconds",
     "accuracy",
     "f1_macro",
@@ -70,7 +76,7 @@ SUMMARY_FIELDS = [
 class GridCondition:
     model: str
     lang: str
-    strategy: str  # "baseline" | "pipeline"
+    strategy: str  # "baseline" | "pipeline" | "two_call_baseline"
 
 
 def _build_conditions() -> list[GridCondition]:
@@ -79,13 +85,18 @@ def _build_conditions() -> list[GridCondition]:
         for lang in LANGUAGES:
             conditions.append(GridCondition(model=model, lang=lang, strategy="baseline"))
             conditions.append(GridCondition(model=model, lang=lang, strategy="pipeline"))
+            conditions.append(GridCondition(model=model, lang=lang, strategy="two_call_baseline"))
     return conditions
 
 
-def _build_strategy(cond: GridCondition) -> BaselineStrategy | PipelineStrategy:
+def _build_strategy(
+    cond: GridCondition,
+) -> BaselineStrategy | PipelineStrategy | TwoCallBaselineStrategy:
     lang_enum = Lang(cond.lang)
     if cond.strategy == "baseline":
         return BaselineStrategy(model=cond.model, lang=lang_enum)
+    if cond.strategy == "two_call_baseline":
+        return TwoCallBaselineStrategy(model=cond.model, lang=lang_enum)
     return PipelineStrategy(
         classifier_model=cond.model,
         prioritizer_model=cond.model,
@@ -94,7 +105,8 @@ def _build_strategy(cond: GridCondition) -> BaselineStrategy | PipelineStrategy:
 
 
 def _build_config(cond: GridCondition, n: int | None, seed: int = 42) -> RunConfig:
-    model_label = cond.model if cond.strategy == "baseline" else f"{cond.model}+{cond.model}"
+    # "baseline" and "two_call_baseline" both run a single model end to end.
+    model_label = cond.model if cond.strategy != "pipeline" else f"{cond.model}+{cond.model}"
     return RunConfig(
         strategy_name=cond.strategy,
         model=model_label,
@@ -105,15 +117,17 @@ def _build_config(cond: GridCondition, n: int | None, seed: int = 42) -> RunConf
     )
 
 
-def _load_completed(summary_path: Path) -> set[tuple[str, str, str]]:
-    """Return set of (strategy, model, lang) already completed with status=ok."""
+def _load_completed(summary_path: Path) -> set[tuple[str, str, str, str]]:
+    """Return set of (strategy, model, lang, repeat_idx) already completed with status=ok."""
     if not summary_path.exists():
         return set()
-    completed: set[tuple[str, str, str]] = set()
+    completed: set[tuple[str, str, str, str]] = set()
     with summary_path.open(encoding="utf-8") as f:
         for row in csv.DictReader(f):
             if row.get("status") == "ok":
-                completed.add((row["strategy"], row["model"], row["lang"]))
+                completed.add(
+                    (row["strategy"], row["model"], row["lang"], row.get("repeat_idx", "0"))
+                )
     return completed
 
 
@@ -137,8 +151,11 @@ def _run_condition(
     total: int,
     n: int | None,
     seed: int,
+    repeat_idx: int = 0,
 ) -> dict:
-    label = f"[{index:02d}/{total}] {cond.strategy:<10} {cond.model:<25} lang={cond.lang}"
+    label = f"[{index:02d}/{total}] {cond.strategy:<10} {cond.model:<25} lang={cond.lang}" + (
+        f" repeat={repeat_idx}" if repeat_idx else ""
+    )
     runner = ExperimentRunner()
     strategy = _build_strategy(cond)
     config = _build_config(cond, n, seed=seed)
@@ -153,6 +170,7 @@ def _run_condition(
             "model": cond.model,
             "lang": cond.lang,
             "n": result.manifest.get("dataset_n", ""),
+            "repeat_idx": repeat_idx,
             "elapsed_seconds": round(elapsed, 2),
             "accuracy": cls.get("accuracy", ""),
             "f1_macro": cls.get("f1_macro", ""),
@@ -169,6 +187,7 @@ def _run_condition(
             "model": cond.model,
             "lang": cond.lang,
             "n": n or "",
+            "repeat_idx": repeat_idx,
             "elapsed_seconds": round(elapsed, 2),
             "accuracy": "",
             "f1_macro": "",
@@ -188,7 +207,17 @@ def run_grid(
     seed: int | None = None,
     resume: bool = False,
     workers: int = 1,
+    repeat: int = 1,
 ) -> None:
+    """Executa o grid experimental.
+
+    Args:
+        repeat: número de repetições por condição, todas com o MESMO seed
+            (propositalmente — o objetivo é medir variância de não-determinismo
+            do provider LLM em temperature=0.0, não variação de amostragem).
+            repeat=1 (default) preserva o comportamento e o layout de CSV
+            anteriores (repeat_idx=0, sem sufixo no label).
+    """
     import random as _random
 
     global SUMMARY_PATH
@@ -199,38 +228,44 @@ def run_grid(
 
     conditions = _build_conditions()
     completed = _load_completed(SUMMARY_PATH) if resume else set()
-    total = len(conditions)
+    total = len(conditions) * repeat
 
     print(
-        f"\nMAS4RE Grid — {total} condições | n={'full' if n is None else n}"
+        f"\nMAS4RE Grid — {total} execuções ({len(conditions)} condições x "
+        f"{repeat} repetição(ões)) | n={'full' if n is None else n}"
         f" | seed={effective_seed} | workers={workers}"
         + (f" | resume=on ({len(completed)} já concluídas)" if resume else "")
         + "\n"
     )
 
     pending = []
-    for i, cond in enumerate(conditions, start=1):
-        label = f"[{i:02d}/{total}] {cond.strategy:<10} {cond.model:<25} lang={cond.lang}"
-        if dry_run:
-            print(f"{label} ... (dry-run)")
-            continue
-        if resume and (cond.strategy, cond.model, cond.lang) in completed:
-            print(f"{label} ... (skipped — já concluída)")
-            continue
-        pending.append((i, cond))
+    idx = 0
+    for cond in conditions:
+        for r in range(1, repeat + 1) if repeat > 1 else (0,):
+            idx += 1
+            label = f"[{idx:02d}/{total}] {cond.strategy:<10} {cond.model:<25} lang={cond.lang}" + (
+                f" repeat={r}" if repeat > 1 else ""
+            )
+            if dry_run:
+                print(f"{label} ... (dry-run)")
+                continue
+            if resume and (cond.strategy, cond.model, cond.lang, str(r)) in completed:
+                print(f"{label} ... (skipped — já concluída)")
+                continue
+            pending.append((idx, cond, r))
 
     if dry_run:
         return
 
     if workers <= 1:
-        for i, cond in pending:
-            row = _run_condition(cond, i, total, n, effective_seed)
+        for i, cond, r in pending:
+            row = _run_condition(cond, i, total, n, effective_seed, repeat_idx=r)
             _append_summary(row)
     else:
         with ThreadPoolExecutor(max_workers=workers) as pool:
             futures = {
-                pool.submit(_run_condition, cond, i, total, n, effective_seed): cond
-                for i, cond in pending
+                pool.submit(_run_condition, cond, i, total, n, effective_seed, r): cond
+                for i, cond, r in pending
             }
             for future in as_completed(futures):
                 row = future.result()
@@ -275,6 +310,14 @@ if __name__ == "__main__":
         default=1,
         help="Número de condições paralelas (default=1 = serial). Use 3-4 com API em cloud.",
     )
+    parser.add_argument(
+        "--repeat",
+        type=int,
+        default=1,
+        help="Repetições por condição com o MESMO seed, para medir variância de "
+        "não-determinismo do provider LLM em temperature=0.0 (default=1, "
+        "comportamento anterior preservado).",
+    )
     args = parser.parse_args()
     run_grid(
         n=args.n,
@@ -283,4 +326,5 @@ if __name__ == "__main__":
         seed=args.seed,
         resume=args.resume,
         workers=args.workers,
+        repeat=args.repeat,
     )

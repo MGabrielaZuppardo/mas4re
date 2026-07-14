@@ -145,6 +145,11 @@ class TwoCallBaselineStrategy(OrchestrationStrategy):
     def name(self) -> str:
         return "two_call_baseline"
 
-    def execute(self, requirements: list[Requirement]) -> PipelineState:
+    def execute(
+        self,
+        requirements: list[Requirement],
+        trace_writer: TraceWriter | None = None,
+    ) -> PipelineState:
+        self._agent._trace = trace_writer
         state = PipelineState(raw_requirements=requirements)
         return self._agent.run(state)
