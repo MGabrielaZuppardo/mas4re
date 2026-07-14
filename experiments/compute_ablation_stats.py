@@ -65,16 +65,30 @@ def _load_predictions(run_dir: Path) -> list[dict]:
 
 
 def _load_ground_truth(run_dir: Path) -> dict[str, str]:
-    """Build {req_id: true_type} from predictions (ground_truth_type field)."""
+    """Build {text: true_type} from predictions (metadata.label_type field)."""
     preds = _load_predictions(run_dir)
-    return {p["id"]: p.get("ground_truth_type", "") for p in preds}
+    return {p["text"]: p.get("metadata", {}).get("label_type", "") for p in preds}
 
 
 def _binary_outcomes(preds: list[dict]) -> dict[str, int]:
-    """Return {req_id: 1 if correct else 0} for binary FR/NFR classification."""
+    """Return {text: 1 if correct else 0} for binary FR/NFR classification.
+
+    Keyed by requirement text, not id: `Requirement.id` is a random UUID
+    generated fresh on every dataset load, so it is never stable across two
+    independently-executed runs (two_call_baseline vs pipeline) even when
+    both processed the exact same PROMISE row. Text is the stable join key
+    (same convention as experiments/compute_stats.py's load_all_runs()).
+    Skips items where parsing failed (parse_failed=True) — matching the
+    exclusion applied in evaluation/metrics/classification.py — so a
+    parse-failure fallback (always FUNCTIONAL) doesn't get silently counted
+    as a real wrong prediction.
+    """
     return {
-        p["id"]: int(p.get("requirement_type", "") == p.get("ground_truth_type", "MISMATCH"))
+        p["text"]: int(
+            p.get("requirement_type", "") == p.get("metadata", {}).get("label_type", "MISMATCH")
+        )
         for p in preds
+        if not p.get("parse_failed", False)
     }
 
 
@@ -121,7 +135,7 @@ def main() -> None:
     ablation_rows = {
         (r["model"].split("/")[-1], r["lang"]): r
         for r in _read_csv(ablation_csv)
-        if r["status"] == "ok"
+        if r["status"] == "ok" and r.get("strategy") == "two_call_baseline"
     }
 
     pipeline_rows: dict[tuple[str, str], dict] = {}
@@ -157,12 +171,20 @@ def main() -> None:
             abl_run_dir = _find_run_dir(
                 ablation_dir,
                 "two_call_baseline",
-                model.replace(":", "-"),
+                f"ollama-{model.replace(':', '-')}",
                 lang,
             )
-            pip_results_dir = ablation_dir.parent  # one level up from ablation dir
+            # Layout antigo: two_call_baseline em experiments/results/ablation_<ts>/,
+            # pipeline um nível acima em experiments/results/. Layout novo (grid
+            # unificado): two_call_baseline e pipeline são irmãos no mesmo diretório.
+            # Tenta o diretório da própria ablação primeiro, cai para o pai se não achar.
             pip_run_dir = _find_run_dir(
-                pip_results_dir,
+                ablation_dir,
+                "pipeline",
+                f"ollama-{model.replace(':', '-')}-ollama-{model.replace(':', '-')}",
+                lang,
+            ) or _find_run_dir(
+                ablation_dir.parent,
                 "pipeline",
                 f"ollama-{model.replace(':', '-')}-ollama-{model.replace(':', '-')}",
                 lang,
