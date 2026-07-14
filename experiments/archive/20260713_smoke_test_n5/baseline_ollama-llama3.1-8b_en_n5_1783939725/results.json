@@ -1,0 +1,252 @@
+{
+  "run_id": "baseline_ollama-llama3.1-8b_en_n5_1783939725",
+  "config": {
+    "strategy": "baseline",
+    "model": "ollama/llama3.1:8b",
+    "lang": "en",
+    "seed": 42,
+    "n": 5
+  },
+  "metrics": {
+    "classification": {
+      "accuracy": 0.8,
+      "f1_macro": 0.7619,
+      "f1_weighted": 0.781,
+      "mcc": 0.6124,
+      "n_evaluated": 5,
+      "n_parse_failed": 0
+    },
+    "subcategory": {
+      "A": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 0
+      },
+      "FT": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 0
+      },
+      "LF": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 0
+      },
+      "MN": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 0
+      },
+      "O": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 0
+      },
+      "PE": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 0
+      },
+      "PO": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 0
+      },
+      "SC": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 0
+      },
+      "SE": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 0
+      },
+      "US": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 1
+      },
+      "macro_avg": {
+        "f1": 0.1,
+        "precision": 0.1,
+        "recall": 0.1,
+        "support": 1
+      }
+    },
+    "moscow_distribution": {
+      "M": 0.6,
+      "S": 0.4,
+      "C": 0.0,
+      "W": 0.0
+    }
+  },
+  "n_predictions": 5,
+  "predictions": [
+    {
+      "id": "7a4c4c65",
+      "text": "visualizando os detalhes de um filme, o site exibirá a descrição do filme, ator e diretor, inserida pelo administrador.",
+      "text_en": "viewing a movie details  the website will display the movies description  actor  and director entered in by the administrator.",
+      "source": "PROMISE_NFR_PT",
+      "metadata": {
+        "label_type": "F",
+        "label_category": "F",
+        "ground_truth_type": "F",
+        "ground_truth_category": "F",
+        "project": "8"
+      },
+      "requirement_type": "F",
+      "nfr_category": null,
+      "confidence": 0.9,
+      "justification": "This requirement describes what the system must do when a user views movie details.",
+      "parse_failed": false,
+      "priority": "M",
+      "priority_score": 1.0,
+      "priority_rank": 1,
+      "priority_justification": "The business impact is high, as users expect to see detailed information about movies. This feature is also frequently used and has dependencies with other features.",
+      "priority_parse_failed": false
+    },
+    {
+      "id": "9a1605e2",
+      "text": "A funcionalidade de lavagem de eletrodos terá uma interface na qual os parâmetros de dados dos eletrodos poderão ser mantidos.",
+      "text_en": "The leads washing functionality will have an interface in which lead data parameters can be maintained.",
+      "source": "PROMISE_NFR_PT",
+      "metadata": {
+        "label_type": "F",
+        "label_category": "F",
+        "ground_truth_type": "F",
+        "ground_truth_category": "F",
+        "project": "9"
+      },
+      "requirement_type": "F",
+      "nfr_category": null,
+      "confidence": 0.9,
+      "justification": "This requirement describes a specific functionality of the system, allowing users to input and store eletrode data.",
+      "parse_failed": false,
+      "priority": "M",
+      "priority_score": 1.0,
+      "priority_rank": 2,
+      "priority_justification": "This feature is critical for the system's operation as it enables users to manage eletrode data, which is essential for the lavagem de eletrodos functionality.",
+      "priority_parse_failed": false
+    },
+    {
+      "id": "8e07750d",
+      "text": "Se a pontuação do lead estiver dentro da média média, ela será definida para verificação manual por um Coordenador de Inscrição por meio do sistema eleads.",
+      "text_en": "If the leads score falls within the medium average then it will be set for manual verification by an Enrollment Coordinator through the eleads system.",
+      "source": "PROMISE_NFR_PT",
+      "metadata": {
+        "label_type": "F",
+        "label_category": "F",
+        "ground_truth_type": "F",
+        "ground_truth_category": "F",
+        "project": "9"
+      },
+      "requirement_type": "F",
+      "nfr_category": null,
+      "confidence": 0.9,
+      "justification": "This requirement describes a specific action the system must perform, which is to define lead scores for manual verification by Coordinators of Registration.",
+      "parse_failed": false,
+      "priority": "M",
+      "priority_score": 1.0,
+      "priority_rank": 3,
+      "priority_justification": "Manual verification of lead scores is critical for ensuring accuracy and fairness in the evaluation process, and this requirement directly supports that goal.",
+      "priority_parse_failed": false
+    },
+    {
+      "id": "f4a67215",
+      "text": "O usuário deverá localizar facilmente as instruções durante a utilização do produto.  A ajuda do usuário pode ser encontrada em 90% do sistema.",
+      "text_en": "The user shall easily locate instructions while using the product.  User help can be found within 90% of the system.",
+      "source": "PROMISE_NFR_PT",
+      "metadata": {
+        "label_type": "NF",
+        "label_category": "US",
+        "ground_truth_type": "NF",
+        "ground_truth_category": "US",
+        "project": "5"
+      },
+      "requirement_type": "NF",
+      "nfr_category": "US",
+      "confidence": 0.9,
+      "justification": "The requirement describes a quality attribute related to the user experience, specifically usability.",
+      "parse_failed": false,
+      "priority": "S",
+      "priority_score": 0.75,
+      "priority_rank": 4,
+      "priority_justification": "Although important for user satisfaction, it is not critical for the system's functionality, and its absence would only have a moderate impact on the overall experience.",
+      "priority_parse_failed": false
+    },
+    {
+      "id": "1e45b4b9",
+      "text": "O produto aumentará a produtividade dos Estimadores de Colisão. 80% dos Estimadores de Colisão concordarão que sua produtividade aumentou dentro de 1 mês após o uso do produto.",
+      "text_en": "The product shall increase productivity of Collision Estimators. 80% of the Collision Estimators shall agree their productivity has increase within 1 month of using the product.",
+      "source": "PROMISE_NFR_PT",
+      "metadata": {
+        "label_type": "NF",
+        "label_category": "US",
+        "ground_truth_type": "NF",
+        "ground_truth_category": "US",
+        "project": "5"
+      },
+      "requirement_type": "F",
+      "nfr_category": null,
+      "confidence": 0.9,
+      "justification": "This requirement describes a specific functionality of the system, which is to increase productivity for Estimators of Collision.",
+      "parse_failed": false,
+      "priority": "S",
+      "priority_score": 0.75,
+      "priority_rank": 5,
+      "priority_justification": "Although increasing productivity is important, it's not critical for the system to function. The requirement has a high confidence level and is expected to be achieved within a month.",
+      "priority_parse_failed": false
+    }
+  ],
+  "errors": [],
+  "n_failure_records": 4,
+  "failure_records": [
+    {
+      "requirement_id": "9a1605e2",
+      "stage": "baseline",
+      "mode": "grounding_missing",
+      "severity": "flagged",
+      "evidence": "no lexical overlap between justification and requirement",
+      "detector_version": "v1",
+      "timestamp": "2026-07-13T10:49:00.409648Z"
+    },
+    {
+      "requirement_id": "f4a67215",
+      "stage": "baseline",
+      "mode": "grounding_missing",
+      "severity": "flagged",
+      "evidence": "no lexical overlap between justification and requirement",
+      "detector_version": "v1",
+      "timestamp": "2026-07-13T10:49:11.310589Z"
+    },
+    {
+      "requirement_id": "7a4c4c65",
+      "stage": "baseline",
+      "mode": "grounding_missing",
+      "severity": "flagged",
+      "evidence": "no lexical overlap between justification and requirement",
+      "detector_version": "v1",
+      "timestamp": "2026-07-13T10:49:22.045157Z"
+    },
+    {
+      "requirement_id": "1e45b4b9",
+      "stage": "baseline",
+      "mode": "grounding_missing",
+      "severity": "flagged",
+      "evidence": "no lexical overlap between justification and requirement",
+      "detector_version": "v1",
+      "timestamp": "2026-07-13T10:49:33.768643Z"
+    }
+  ]
+}

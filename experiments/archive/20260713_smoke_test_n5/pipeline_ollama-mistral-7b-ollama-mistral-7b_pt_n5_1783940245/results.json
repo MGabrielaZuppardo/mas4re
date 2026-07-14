@@ -1,0 +1,216 @@
+{
+  "run_id": "pipeline_ollama-mistral-7b-ollama-mistral-7b_pt_n5_1783940245",
+  "config": {
+    "strategy": "pipeline",
+    "model": "ollama/mistral:7b+ollama/mistral:7b",
+    "lang": "pt",
+    "seed": 42,
+    "n": 5
+  },
+  "metrics": {
+    "inter_agent_conflicts": [],
+    "classification": {
+      "accuracy": 0.8,
+      "f1_macro": 0.7619,
+      "f1_weighted": 0.781,
+      "mcc": 0.6124,
+      "n_evaluated": 5,
+      "n_parse_failed": 0
+    },
+    "subcategory": {
+      "A": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 0
+      },
+      "FT": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 0
+      },
+      "LF": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 0
+      },
+      "MN": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 0
+      },
+      "O": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 0
+      },
+      "PE": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 0
+      },
+      "PO": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 0
+      },
+      "SC": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 0
+      },
+      "SE": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 0
+      },
+      "US": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 1
+      },
+      "macro_avg": {
+        "f1": 0.1,
+        "precision": 0.1,
+        "recall": 0.1,
+        "support": 1
+      }
+    },
+    "moscow_distribution": {
+      "M": 0.8,
+      "S": 0.2,
+      "C": 0.0,
+      "W": 0.0
+    }
+  },
+  "n_predictions": 5,
+  "predictions": [
+    {
+      "id": "1a1c3a96",
+      "text": "visualizando os detalhes de um filme, o site exibirá a descrição do filme, ator e diretor, inserida pelo administrador.",
+      "text_en": "viewing a movie details  the website will display the movies description  actor  and director entered in by the administrator.",
+      "source": "PROMISE_NFR_PT",
+      "metadata": {
+        "label_type": "F",
+        "label_category": "F",
+        "ground_truth_type": "F",
+        "ground_truth_category": "F",
+        "project": "8"
+      },
+      "requirement_type": "F",
+      "nfr_category": null,
+      "confidence": 1.0,
+      "justification": "O requisito descreve uma funcionalidade específica do sistema (exibir detalhes de um filme), portanto não é classificado como NFR.",
+      "parse_failed": false,
+      "priority": "M",
+      "priority_score": 1.0,
+      "priority_rank": 1,
+      "priority_justification": "Essa funcionalidade é obrigatória para a visualização de detalhes do filme, necessária para o usuário ter informações relevantes sobre o mesmo.",
+      "priority_parse_failed": false
+    },
+    {
+      "id": "6ddff2ae",
+      "text": "A funcionalidade de lavagem de eletrodos terá uma interface na qual os parâmetros de dados dos eletrodos poderão ser mantidos.",
+      "text_en": "The leads washing functionality will have an interface in which lead data parameters can be maintained.",
+      "source": "PROMISE_NFR_PT",
+      "metadata": {
+        "label_type": "F",
+        "label_category": "F",
+        "ground_truth_type": "F",
+        "ground_truth_category": "F",
+        "project": "9"
+      },
+      "requirement_type": "F",
+      "nfr_category": null,
+      "confidence": 1.0,
+      "justification": "Este requisito descreve uma funcionalidade específica do sistema e não possui características de requisitos não-funcionais.",
+      "parse_failed": false,
+      "priority": "M",
+      "priority_score": 1.0,
+      "priority_rank": 2,
+      "priority_justification": "Essa funcionalidade é obrigatória para o sistema de lavagem de eletrodos, pois permite a manutenção dos parâmetros de dados necessários.",
+      "priority_parse_failed": false
+    },
+    {
+      "id": "92e736a4",
+      "text": "O produto aumentará a produtividade dos Estimadores de Colisão. 80% dos Estimadores de Colisão concordarão que sua produtividade aumentou dentro de 1 mês após o uso do produto.",
+      "text_en": "The product shall increase productivity of Collision Estimators. 80% of the Collision Estimators shall agree their productivity has increase within 1 month of using the product.",
+      "source": "PROMISE_NFR_PT",
+      "metadata": {
+        "label_type": "NF",
+        "label_category": "US",
+        "ground_truth_type": "NF",
+        "ground_truth_category": "US",
+        "project": "5"
+      },
+      "requirement_type": "F",
+      "nfr_category": null,
+      "confidence": 1.0,
+      "justification": "O requisito descreve uma funcionalidade específica que aumenta a produtividade dos Estimadores de Colisão, não possui características não-funcionais.",
+      "parse_failed": false,
+      "priority": "M",
+      "priority_score": 1.0,
+      "priority_rank": 3,
+      "priority_justification": "Aumenta a produtividade dos Estimadores de Colisão em 80%, com concordância de 80% dos usuários.",
+      "priority_parse_failed": false
+    },
+    {
+      "id": "a301d741",
+      "text": "Se a pontuação do lead estiver dentro da média média, ela será definida para verificação manual por um Coordenador de Inscrição por meio do sistema eleads.",
+      "text_en": "If the leads score falls within the medium average then it will be set for manual verification by an Enrollment Coordinator through the eleads system.",
+      "source": "PROMISE_NFR_PT",
+      "metadata": {
+        "label_type": "F",
+        "label_category": "F",
+        "ground_truth_type": "F",
+        "ground_truth_category": "F",
+        "project": "9"
+      },
+      "requirement_type": "F",
+      "nfr_category": null,
+      "confidence": 1.0,
+      "justification": "O requisito descreve uma ação funcional do sistema (verificação manual por um Coordenador de Inscrição), não possui características de requisitos não-funcionais.",
+      "parse_failed": false,
+      "priority": "M",
+      "priority_score": 1.0,
+      "priority_rank": 4,
+      "priority_justification": "É obrigatório ter verificação manual para pontuação de lead dentro da média média, pois afeta diretamente a qualidade do negócio.",
+      "priority_parse_failed": false
+    },
+    {
+      "id": "2a9cecba",
+      "text": "O usuário deverá localizar facilmente as instruções durante a utilização do produto.  A ajuda do usuário pode ser encontrada em 90% do sistema.",
+      "text_en": "The user shall easily locate instructions while using the product.  User help can be found within 90% of the system.",
+      "source": "PROMISE_NFR_PT",
+      "metadata": {
+        "label_type": "NF",
+        "label_category": "US",
+        "ground_truth_type": "NF",
+        "ground_truth_category": "US",
+        "project": "5"
+      },
+      "requirement_type": "NF",
+      "nfr_category": "US",
+      "confidence": 1.0,
+      "justification": "O requisito se refere à usabilidade do sistema, especificamente a facilidade de localização das instruções pelo usuário.",
+      "parse_failed": false,
+      "priority": "S",
+      "priority_score": 0.75,
+      "priority_rank": 5,
+      "priority_justification": "A facilidade de localização das instruções é importante para o usuário (US). Apenas não sendo obrigatória, pois a ajuda do usuário está disponível em 90% do sistema.",
+      "priority_parse_failed": false
+    }
+  ],
+  "errors": [],
+  "n_failure_records": 0,
+  "failure_records": []
+}

@@ -1,0 +1,328 @@
+[
+  {
+    "run_id": "baseline_ollama-llama3.1-8b_en_n625_1783963652",
+    "strategy": "baseline",
+    "model": "ollama/llama3.1:8b",
+    "lang": "en",
+    "n_dataset": 625,
+    "n_predictions": 608,
+    "n_fatal_items": 17,
+    "n_flagged_items": 546,
+    "failure_rate": 0.0272,
+    "flagged_rate": 0.8736,
+    "n_inter_agent_conflicts": 0,
+    "inter_agent_conflict_rate": null,
+    "by_stage_mode_severity": {
+      "baseline/grounding_missing/flagged": 563,
+      "baseline/low_confidence/flagged": 17,
+      "baseline/schema_invalid/fatal": 17
+    }
+  },
+  {
+    "run_id": "baseline_ollama-llama3.1-8b_pt_n625_1783954315",
+    "strategy": "baseline",
+    "model": "ollama/llama3.1:8b",
+    "lang": "pt",
+    "n_dataset": 625,
+    "n_predictions": 625,
+    "n_fatal_items": 0,
+    "n_flagged_items": 119,
+    "failure_rate": 0.0,
+    "flagged_rate": 0.1904,
+    "n_inter_agent_conflicts": 0,
+    "inter_agent_conflict_rate": null,
+    "by_stage_mode_severity": {
+      "baseline/grounding_missing/flagged": 119
+    }
+  },
+  {
+    "run_id": "baseline_ollama-mistral-7b_en_n625_1783981196",
+    "strategy": "baseline",
+    "model": "ollama/mistral:7b",
+    "lang": "en",
+    "n_dataset": 625,
+    "n_predictions": 625,
+    "n_fatal_items": 0,
+    "n_flagged_items": 537,
+    "failure_rate": 0.0,
+    "flagged_rate": 0.8592,
+    "n_inter_agent_conflicts": 0,
+    "inter_agent_conflict_rate": null,
+    "by_stage_mode_severity": {
+      "baseline/grounding_missing/flagged": 537
+    }
+  },
+  {
+    "run_id": "baseline_ollama-mistral-7b_pt_n625_1783972581",
+    "strategy": "baseline",
+    "model": "ollama/mistral:7b",
+    "lang": "pt",
+    "n_dataset": 625,
+    "n_predictions": 625,
+    "n_fatal_items": 0,
+    "n_flagged_items": 51,
+    "failure_rate": 0.0,
+    "flagged_rate": 0.0816,
+    "n_inter_agent_conflicts": 0,
+    "inter_agent_conflict_rate": null,
+    "by_stage_mode_severity": {
+      "baseline/grounding_missing/flagged": 51
+    }
+  },
+  {
+    "run_id": "baseline_ollama-qwen2.5-7b_en_n625_1783947836",
+    "strategy": "baseline",
+    "model": "ollama/qwen2.5:7b",
+    "lang": "en",
+    "n_dataset": 625,
+    "n_predictions": 625,
+    "n_fatal_items": 0,
+    "n_flagged_items": 525,
+    "failure_rate": 0.0,
+    "flagged_rate": 0.84,
+    "n_inter_agent_conflicts": 0,
+    "inter_agent_conflict_rate": null,
+    "by_stage_mode_severity": {
+      "baseline/grounding_missing/flagged": 525
+    }
+  },
+  {
+    "run_id": "baseline_ollama-qwen2.5-7b_pt_n625_1783940610",
+    "strategy": "baseline",
+    "model": "ollama/qwen2.5:7b",
+    "lang": "pt",
+    "n_dataset": 625,
+    "n_predictions": 624,
+    "n_fatal_items": 1,
+    "n_flagged_items": 76,
+    "failure_rate": 0.0016,
+    "flagged_rate": 0.1216,
+    "n_inter_agent_conflicts": 0,
+    "inter_agent_conflict_rate": null,
+    "by_stage_mode_severity": {
+      "baseline/grounding_missing/flagged": 77,
+      "baseline/low_confidence/flagged": 1,
+      "baseline/schema_invalid/fatal": 1
+    }
+  },
+  {
+    "run_id": "pipeline_ollama-llama3.1-8b-ollama-llama3.1-8b_en_n625_1783966481",
+    "strategy": "pipeline",
+    "model": "ollama/llama3.1:8b+ollama/llama3.1:8b",
+    "lang": "en",
+    "n_dataset": 625,
+    "n_predictions": 625,
+    "n_fatal_items": 0,
+    "n_flagged_items": 582,
+    "failure_rate": 0.0,
+    "flagged_rate": 0.9312,
+    "n_inter_agent_conflicts": 0,
+    "inter_agent_conflict_rate": 0.0,
+    "by_stage_mode_severity": {
+      "classify/grounding_missing/flagged": 498,
+      "prioritize/grounding_missing/flagged": 554
+    }
+  },
+  {
+    "run_id": "pipeline_ollama-llama3.1-8b-ollama-llama3.1-8b_pt_n625_1783957391",
+    "strategy": "pipeline",
+    "model": "ollama/llama3.1:8b+ollama/llama3.1:8b",
+    "lang": "pt",
+    "n_dataset": 625,
+    "n_predictions": 625,
+    "n_fatal_items": 0,
+    "n_flagged_items": 120,
+    "failure_rate": 0.0,
+    "flagged_rate": 0.192,
+    "n_inter_agent_conflicts": 0,
+    "inter_agent_conflict_rate": 0.0,
+    "by_stage_mode_severity": {
+      "classify/grounding_missing/flagged": 74,
+      "prioritize/grounding_missing/flagged": 62
+    }
+  },
+  {
+    "run_id": "pipeline_ollama-mistral-7b-ollama-mistral-7b_en_n625_1783983585",
+    "strategy": "pipeline",
+    "model": "ollama/mistral:7b+ollama/mistral:7b",
+    "lang": "en",
+    "n_dataset": 625,
+    "n_predictions": 622,
+    "n_fatal_items": 3,
+    "n_flagged_items": 566,
+    "failure_rate": 0.0048,
+    "flagged_rate": 0.9056,
+    "n_inter_agent_conflicts": 0,
+    "inter_agent_conflict_rate": 0.0,
+    "by_stage_mode_severity": {
+      "classify/grounding_missing/flagged": 497,
+      "classify/low_confidence/flagged": 6,
+      "classify/schema_invalid/fatal": 3,
+      "prioritize/grounding_missing/flagged": 540
+    }
+  },
+  {
+    "run_id": "pipeline_ollama-mistral-7b-ollama-mistral-7b_pt_n625_1783975545",
+    "strategy": "pipeline",
+    "model": "ollama/mistral:7b+ollama/mistral:7b",
+    "lang": "pt",
+    "n_dataset": 625,
+    "n_predictions": 608,
+    "n_fatal_items": 17,
+    "n_flagged_items": 196,
+    "failure_rate": 0.0272,
+    "flagged_rate": 0.3136,
+    "n_inter_agent_conflicts": 0,
+    "inter_agent_conflict_rate": 0.0,
+    "by_stage_mode_severity": {
+      "classify/grounding_missing/flagged": 167,
+      "classify/low_confidence/flagged": 17,
+      "classify/schema_invalid/fatal": 17,
+      "prioritize/grounding_missing/flagged": 74
+    }
+  },
+  {
+    "run_id": "pipeline_ollama-qwen2.5-7b-ollama-qwen2.5-7b_en_n625_1783950021",
+    "strategy": "pipeline",
+    "model": "ollama/qwen2.5:7b+ollama/qwen2.5:7b",
+    "lang": "en",
+    "n_dataset": 625,
+    "n_predictions": 625,
+    "n_fatal_items": 0,
+    "n_flagged_items": 595,
+    "failure_rate": 0.0,
+    "flagged_rate": 0.952,
+    "n_inter_agent_conflicts": 0,
+    "inter_agent_conflict_rate": 0.0,
+    "by_stage_mode_severity": {
+      "classify/grounding_missing/flagged": 541,
+      "prioritize/grounding_missing/flagged": 576
+    }
+  },
+  {
+    "run_id": "pipeline_ollama-qwen2.5-7b-ollama-qwen2.5-7b_pt_n625_1783943034",
+    "strategy": "pipeline",
+    "model": "ollama/qwen2.5:7b+ollama/qwen2.5:7b",
+    "lang": "pt",
+    "n_dataset": 625,
+    "n_predictions": 623,
+    "n_fatal_items": 2,
+    "n_flagged_items": 233,
+    "failure_rate": 0.0032,
+    "flagged_rate": 0.3728,
+    "n_inter_agent_conflicts": 0,
+    "inter_agent_conflict_rate": 0.0,
+    "by_stage_mode_severity": {
+      "classify/grounding_missing/flagged": 178,
+      "classify/low_confidence/flagged": 1,
+      "classify/schema_invalid/fatal": 1,
+      "prioritize/grounding_missing/flagged": 107,
+      "prioritize/schema_invalid/fatal": 1
+    }
+  },
+  {
+    "run_id": "two_call_baseline_ollama-llama3.1-8b_en_n625_1783969466",
+    "strategy": "two_call_baseline",
+    "model": "ollama/llama3.1:8b",
+    "lang": "en",
+    "n_dataset": 625,
+    "n_predictions": 625,
+    "n_fatal_items": 0,
+    "n_flagged_items": 550,
+    "failure_rate": 0.0,
+    "flagged_rate": 0.88,
+    "n_inter_agent_conflicts": 0,
+    "inter_agent_conflict_rate": null,
+    "by_stage_mode_severity": {
+      "two_call_baseline/grounding_missing/flagged": 550
+    }
+  },
+  {
+    "run_id": "two_call_baseline_ollama-llama3.1-8b_pt_n625_1783960453",
+    "strategy": "two_call_baseline",
+    "model": "ollama/llama3.1:8b",
+    "lang": "pt",
+    "n_dataset": 625,
+    "n_predictions": 625,
+    "n_fatal_items": 0,
+    "n_flagged_items": 75,
+    "failure_rate": 0.0,
+    "flagged_rate": 0.12,
+    "n_inter_agent_conflicts": 0,
+    "inter_agent_conflict_rate": null,
+    "by_stage_mode_severity": {
+      "two_call_baseline/grounding_missing/flagged": 75
+    }
+  },
+  {
+    "run_id": "two_call_baseline_ollama-mistral-7b_en_n625_1783986126",
+    "strategy": "two_call_baseline",
+    "model": "ollama/mistral:7b",
+    "lang": "en",
+    "n_dataset": 625,
+    "n_predictions": 625,
+    "n_fatal_items": 0,
+    "n_flagged_items": 542,
+    "failure_rate": 0.0,
+    "flagged_rate": 0.8672,
+    "n_inter_agent_conflicts": 0,
+    "inter_agent_conflict_rate": null,
+    "by_stage_mode_severity": {
+      "two_call_baseline/grounding_missing/flagged": 542,
+      "two_call_baseline/low_confidence/flagged": 1
+    }
+  },
+  {
+    "run_id": "two_call_baseline_ollama-mistral-7b_pt_n625_1783978258",
+    "strategy": "two_call_baseline",
+    "model": "ollama/mistral:7b",
+    "lang": "pt",
+    "n_dataset": 625,
+    "n_predictions": 625,
+    "n_fatal_items": 0,
+    "n_flagged_items": 141,
+    "failure_rate": 0.0,
+    "flagged_rate": 0.2256,
+    "n_inter_agent_conflicts": 0,
+    "inter_agent_conflict_rate": null,
+    "by_stage_mode_severity": {
+      "two_call_baseline/grounding_missing/flagged": 141
+    }
+  },
+  {
+    "run_id": "two_call_baseline_ollama-qwen2.5-7b_en_n625_1783952136",
+    "strategy": "two_call_baseline",
+    "model": "ollama/qwen2.5:7b",
+    "lang": "en",
+    "n_dataset": 625,
+    "n_predictions": 625,
+    "n_fatal_items": 0,
+    "n_flagged_items": 580,
+    "failure_rate": 0.0,
+    "flagged_rate": 0.928,
+    "n_inter_agent_conflicts": 0,
+    "inter_agent_conflict_rate": null,
+    "by_stage_mode_severity": {
+      "two_call_baseline/grounding_missing/flagged": 580
+    }
+  },
+  {
+    "run_id": "two_call_baseline_ollama-qwen2.5-7b_pt_n625_1783945375",
+    "strategy": "two_call_baseline",
+    "model": "ollama/qwen2.5:7b",
+    "lang": "pt",
+    "n_dataset": 625,
+    "n_predictions": 623,
+    "n_fatal_items": 2,
+    "n_flagged_items": 163,
+    "failure_rate": 0.0032,
+    "flagged_rate": 0.2608,
+    "n_inter_agent_conflicts": 0,
+    "inter_agent_conflict_rate": null,
+    "by_stage_mode_severity": {
+      "two_call_baseline/grounding_missing/flagged": 164,
+      "two_call_baseline/low_confidence/flagged": 1,
+      "two_call_baseline/schema_invalid/fatal": 2
+    }
+  }
+]

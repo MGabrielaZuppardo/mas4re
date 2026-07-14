@@ -1,0 +1,226 @@
+{
+  "run_id": "pipeline_ollama-qwen2.5-7b-ollama-qwen2.5-7b_pt_n5_1783939270",
+  "config": {
+    "strategy": "pipeline",
+    "model": "ollama/qwen2.5:7b+ollama/qwen2.5:7b",
+    "lang": "pt",
+    "seed": 42,
+    "n": 5
+  },
+  "metrics": {
+    "inter_agent_conflicts": [],
+    "classification": {
+      "accuracy": 1.0,
+      "f1_macro": 1.0,
+      "f1_weighted": 1.0,
+      "mcc": 1.0,
+      "n_evaluated": 5,
+      "n_parse_failed": 0
+    },
+    "subcategory": {
+      "A": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 0
+      },
+      "FT": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 0
+      },
+      "LF": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 0
+      },
+      "MN": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 0
+      },
+      "O": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 0
+      },
+      "PE": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 0
+      },
+      "PO": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 0
+      },
+      "SC": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 0
+      },
+      "SE": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "support": 0
+      },
+      "US": {
+        "f1": 0.6667,
+        "precision": 1.0,
+        "recall": 0.5,
+        "support": 2
+      },
+      "macro_avg": {
+        "f1": 0.0667,
+        "precision": 0.1,
+        "recall": 0.05,
+        "support": 2
+      }
+    },
+    "moscow_distribution": {
+      "M": 0.0,
+      "S": 1.0,
+      "C": 0.0,
+      "W": 0.0
+    }
+  },
+  "n_predictions": 5,
+  "predictions": [
+    {
+      "id": "612ca1ab",
+      "text": "visualizando os detalhes de um filme, o site exibirá a descrição do filme, ator e diretor, inserida pelo administrador.",
+      "text_en": "viewing a movie details  the website will display the movies description  actor  and director entered in by the administrator.",
+      "source": "PROMISE_NFR_PT",
+      "metadata": {
+        "label_type": "F",
+        "label_category": "F",
+        "ground_truth_type": "F",
+        "ground_truth_category": "F",
+        "project": "8"
+      },
+      "requirement_type": "F",
+      "nfr_category": null,
+      "confidence": 1.0,
+      "justification": "Este requisito descreve uma funcionalidade exibindo informações do filme, relacionada diretamente ao comportamento esperado do sistema.",
+      "parse_failed": false,
+      "priority": "S",
+      "priority_score": 0.75,
+      "priority_rank": 1,
+      "priority_justification": "A descrição do filme, ator e diretor são informações adicionais que melhoram a experiência do usuário, mas não são críticas para o funcionamento básico do sistema.",
+      "priority_parse_failed": false
+    },
+    {
+      "id": "b61260e1",
+      "text": "A funcionalidade de lavagem de eletrodos terá uma interface na qual os parâmetros de dados dos eletrodos poderão ser mantidos.",
+      "text_en": "The leads washing functionality will have an interface in which lead data parameters can be maintained.",
+      "source": "PROMISE_NFR_PT",
+      "metadata": {
+        "label_type": "F",
+        "label_category": "F",
+        "ground_truth_type": "F",
+        "ground_truth_category": "F",
+        "project": "9"
+      },
+      "requirement_type": "F",
+      "nfr_category": null,
+      "confidence": 1.0,
+      "justification": "Este requisito descreve uma funcionalidade específica do sistema, sem impor restrições não-funcionais.",
+      "parse_failed": false,
+      "priority": "S",
+      "priority_score": 0.75,
+      "priority_rank": 2,
+      "priority_justification": "A interface de lavagem de eletrodos é importante, mas não crítica para o funcionamento básico do sistema.",
+      "priority_parse_failed": false
+    },
+    {
+      "id": "147fcb8f",
+      "text": "O usuário deverá localizar facilmente as instruções durante a utilização do produto.  A ajuda do usuário pode ser encontrada em 90% do sistema.",
+      "text_en": "The user shall easily locate instructions while using the product.  User help can be found within 90% of the system.",
+      "source": "PROMISE_NFR_PT",
+      "metadata": {
+        "label_type": "NF",
+        "label_category": "US",
+        "ground_truth_type": "NF",
+        "ground_truth_category": "US",
+        "project": "5"
+      },
+      "requirement_type": "NF",
+      "nfr_category": "US",
+      "confidence": 0.85,
+      "justification": "O requisito se refere à facilidade de uso, que é uma característica não-funcional relacionada à usabilidade.",
+      "parse_failed": false,
+      "priority": "S",
+      "priority_score": 0.75,
+      "priority_rank": 3,
+      "priority_justification": "A usabilidade é importante para a experiência do usuário, mas não crítica para o funcionamento básico do sistema.",
+      "priority_parse_failed": false
+    },
+    {
+      "id": "f57295cf",
+      "text": "O produto aumentará a produtividade dos Estimadores de Colisão. 80% dos Estimadores de Colisão concordarão que sua produtividade aumentou dentro de 1 mês após o uso do produto.",
+      "text_en": "The product shall increase productivity of Collision Estimators. 80% of the Collision Estimators shall agree their productivity has increase within 1 month of using the product.",
+      "source": "PROMISE_NFR_PT",
+      "metadata": {
+        "label_type": "NF",
+        "label_category": "US",
+        "ground_truth_type": "NF",
+        "ground_truth_category": "US",
+        "project": "5"
+      },
+      "requirement_type": "NF",
+      "nfr_category": "PE",
+      "confidence": 0.9,
+      "justification": "O requisito se refere ao desempenho percebido pelos usuários, indicando uma melhoria na produtividade.",
+      "parse_failed": false,
+      "priority": "S",
+      "priority_score": 0.75,
+      "priority_rank": 4,
+      "priority_justification": "Aumentar a produtividade é importante, mas não crítico para o funcionamento básico do sistema. A frequência de uso e impacto são altos, justificando uma alta prioridade.",
+      "priority_parse_failed": false
+    },
+    {
+      "id": "5fbd2099",
+      "text": "Se a pontuação do lead estiver dentro da média média, ela será definida para verificação manual por um Coordenador de Inscrição por meio do sistema eleads.",
+      "text_en": "If the leads score falls within the medium average then it will be set for manual verification by an Enrollment Coordinator through the eleads system.",
+      "source": "PROMISE_NFR_PT",
+      "metadata": {
+        "label_type": "F",
+        "label_category": "F",
+        "ground_truth_type": "F",
+        "ground_truth_category": "F",
+        "project": "9"
+      },
+      "requirement_type": "F",
+      "nfr_category": null,
+      "confidence": 1.0,
+      "justification": "Este requisito descreve uma funcionalidade relacionada à definição de um processo de verificação manual, não sendo classificado como não-funcional.",
+      "parse_failed": false,
+      "priority": "S",
+      "priority_score": 0.75,
+      "priority_rank": 5,
+      "priority_justification": "A verificação manual é importante, mas não crítica para o funcionamento básico do sistema.",
+      "priority_parse_failed": false
+    }
+  ],
+  "errors": [],
+  "n_failure_records": 1,
+  "failure_records": [
+    {
+      "requirement_id": "147fcb8f",
+      "stage": "classify",
+      "mode": "grounding_missing",
+      "severity": "flagged",
+      "evidence": "no lexical overlap between justification and requirement",
+      "detector_version": "v1",
+      "timestamp": "2026-07-13T10:41:16.812562Z"
+    }
+  ]
+}

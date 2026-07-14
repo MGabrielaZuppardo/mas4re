@@ -1,0 +1,17 @@
+{
+  "run_id": "baseline_ollama-mistral-7b_pt_n625_1783917038",
+  "git_commit": "dfacd8e972fc299d9cfaf700377e53ad26573a5a",
+  "timestamp_utc": "2026-07-13T05:19:04.313177+00:00",
+  "strategy": "baseline",
+  "model": "ollama/mistral:7b",
+  "lang": "pt",
+  "seed": 42,
+  "temperature": 0.0,
+  "prompt_version": "v1",
+  "dataset": "datasets/data/promise_nfr/promise_nfr_pt.csv",
+  "dataset_n": 625,
+  "dataset_md5": "ea0ec6f6b7c45225819aebbae40b8cff",
+  "langgraph_version": "1.1.6",
+  "elapsed_seconds": 2905.451,
+  "trace_path": "experiments\\traces\\baseline_ollama-mistral-7b_pt_n625_1783917038.jsonl"
+}

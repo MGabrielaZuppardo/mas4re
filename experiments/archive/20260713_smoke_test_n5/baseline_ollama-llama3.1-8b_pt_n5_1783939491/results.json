@@ -1,0 +1,158 @@
+{
+  "run_id": "baseline_ollama-llama3.1-8b_pt_n5_1783939491",
+  "config": {
+    "strategy": "baseline",
+    "model": "ollama/llama3.1:8b",
+    "lang": "pt",
+    "seed": 42,
+    "n": 5
+  },
+  "metrics": {
+    "classification": {
+      "accuracy": 0.6,
+      "f1_macro": 0.375,
+      "f1_weighted": 0.45,
+      "mcc": 0.0,
+      "n_evaluated": 5,
+      "n_parse_failed": 0
+    },
+    "subcategory": {},
+    "moscow_distribution": {
+      "M": 1.0,
+      "S": 0.0,
+      "C": 0.0,
+      "W": 0.0
+    }
+  },
+  "n_predictions": 5,
+  "predictions": [
+    {
+      "id": "c213c530",
+      "text": "visualizando os detalhes de um filme, o site exibirá a descrição do filme, ator e diretor, inserida pelo administrador.",
+      "text_en": "viewing a movie details  the website will display the movies description  actor  and director entered in by the administrator.",
+      "source": "PROMISE_NFR_PT",
+      "metadata": {
+        "label_type": "F",
+        "label_category": "F",
+        "ground_truth_type": "F",
+        "ground_truth_category": "F",
+        "project": "8"
+      },
+      "requirement_type": "F",
+      "nfr_category": null,
+      "confidence": 0.9,
+      "justification": "O requisito descreve o que o sistema deve fazer ao exibir detalhes de um filme.",
+      "parse_failed": false,
+      "priority": "M",
+      "priority_score": 1.0,
+      "priority_rank": 1,
+      "priority_justification": "Essa funcionalidade é fundamental para a experiência do usuário, pois permite visualizar informações importantes sobre o filme.",
+      "priority_parse_failed": false
+    },
+    {
+      "id": "531af161",
+      "text": "A funcionalidade de lavagem de eletrodos terá uma interface na qual os parâmetros de dados dos eletrodos poderão ser mantidos.",
+      "text_en": "The leads washing functionality will have an interface in which lead data parameters can be maintained.",
+      "source": "PROMISE_NFR_PT",
+      "metadata": {
+        "label_type": "F",
+        "label_category": "F",
+        "ground_truth_type": "F",
+        "ground_truth_category": "F",
+        "project": "9"
+      },
+      "requirement_type": "F",
+      "nfr_category": null,
+      "confidence": 0.9,
+      "justification": "O requisito descreve o que o sistema deve fazer, ou seja, armazenar dados dos eletrodos.",
+      "parse_failed": false,
+      "priority": "M",
+      "priority_score": 1.0,
+      "priority_rank": 2,
+      "priority_justification": "Essa funcionalidade é fundamental para a operação do sistema, pois permite que os usuários mantenham registros precisos dos dados dos eletrodos.",
+      "priority_parse_failed": false
+    },
+    {
+      "id": "59da7871",
+      "text": "O usuário deverá localizar facilmente as instruções durante a utilização do produto.  A ajuda do usuário pode ser encontrada em 90% do sistema.",
+      "text_en": "The user shall easily locate instructions while using the product.  User help can be found within 90% of the system.",
+      "source": "PROMISE_NFR_PT",
+      "metadata": {
+        "label_type": "NF",
+        "label_category": "US",
+        "ground_truth_type": "NF",
+        "ground_truth_category": "US",
+        "project": "5"
+      },
+      "requirement_type": "F",
+      "nfr_category": null,
+      "confidence": 0.9,
+      "justification": "O requisito descreve o que o sistema deve fazer, ou seja, fornecer ajuda ao usuário.",
+      "parse_failed": false,
+      "priority": "M",
+      "priority_score": 1.0,
+      "priority_rank": 3,
+      "priority_justification": "A facilidade de localização das instruções é crucial para a experiência do usuário e impacta diretamente no negócio, pois afeta a satisfação do cliente.",
+      "priority_parse_failed": false
+    },
+    {
+      "id": "1186a6f8",
+      "text": "O produto aumentará a produtividade dos Estimadores de Colisão. 80% dos Estimadores de Colisão concordarão que sua produtividade aumentou dentro de 1 mês após o uso do produto.",
+      "text_en": "The product shall increase productivity of Collision Estimators. 80% of the Collision Estimators shall agree their productivity has increase within 1 month of using the product.",
+      "source": "PROMISE_NFR_PT",
+      "metadata": {
+        "label_type": "NF",
+        "label_category": "US",
+        "ground_truth_type": "NF",
+        "ground_truth_category": "US",
+        "project": "5"
+      },
+      "requirement_type": "F",
+      "nfr_category": null,
+      "confidence": 0.9,
+      "justification": "O requisito descreve uma funcionalidade que deve ser implementada pelo sistema.",
+      "parse_failed": false,
+      "priority": "M",
+      "priority_score": 1.0,
+      "priority_rank": 4,
+      "priority_justification": "Aumentar a produtividade dos Estimadores de Colisão é um objetivo crítico para o sucesso do produto, e 80% da concordância dos usuários em apenas 1 mês após o uso indica que essa funcionalidade é essencial.",
+      "priority_parse_failed": false
+    },
+    {
+      "id": "8c5ca905",
+      "text": "Se a pontuação do lead estiver dentro da média média, ela será definida para verificação manual por um Coordenador de Inscrição por meio do sistema eleads.",
+      "text_en": "If the leads score falls within the medium average then it will be set for manual verification by an Enrollment Coordinator through the eleads system.",
+      "source": "PROMISE_NFR_PT",
+      "metadata": {
+        "label_type": "F",
+        "label_category": "F",
+        "ground_truth_type": "F",
+        "ground_truth_category": "F",
+        "project": "9"
+      },
+      "requirement_type": "F",
+      "nfr_category": null,
+      "confidence": 0.9,
+      "justification": "O requisito descreve o que o sistema deve fazer, ou seja, processar a pontuação do lead e definir para verificação manual.",
+      "parse_failed": false,
+      "priority": "M",
+      "priority_score": 1.0,
+      "priority_rank": 5,
+      "priority_justification": "Sem essa funcionalidade, o sistema não poderá realizar a verificação manual da pontuação do lead, impactando negativamente no processo de inscrição.",
+      "priority_parse_failed": false
+    }
+  ],
+  "errors": [],
+  "n_failure_records": 1,
+  "failure_records": [
+    {
+      "requirement_id": "1186a6f8",
+      "stage": "baseline",
+      "mode": "grounding_missing",
+      "severity": "flagged",
+      "evidence": "no lexical overlap between justification and requirement",
+      "detector_version": "v1",
+      "timestamp": "2026-07-13T10:46:13.130932Z"
+    }
+  ]
+}

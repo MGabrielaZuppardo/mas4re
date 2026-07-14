@@ -1,0 +1,17 @@
+{
+  "run_id": "two_call_baseline_ollama-qwen2.5-7b_en_n5_1783939451",
+  "git_commit": "dfacd8e972fc299d9cfaf700377e53ad26573a5a",
+  "timestamp_utc": "2026-07-13T10:44:47.746894+00:00",
+  "strategy": "two_call_baseline",
+  "model": "ollama/qwen2.5:7b",
+  "lang": "en",
+  "seed": 42,
+  "temperature": 0.0,
+  "prompt_version": "v1",
+  "dataset": "datasets/data/promise_nfr/promise_nfr_pt.csv",
+  "dataset_n": 5,
+  "dataset_md5": "ea0ec6f6b7c45225819aebbae40b8cff",
+  "langgraph_version": "1.1.6",
+  "elapsed_seconds": 35.965,
+  "trace_path": "experiments\\traces\\two_call_baseline_ollama-qwen2.5-7b_en_n5_1783939451.jsonl"
+}

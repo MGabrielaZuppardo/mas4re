@@ -1,0 +1,167 @@
+{
+  "run_id": "baseline_ollama-qwen2.5-7b_en_n5_1783939370",
+  "config": {
+    "strategy": "baseline",
+    "model": "ollama/qwen2.5:7b",
+    "lang": "en",
+    "seed": 42,
+    "n": 5
+  },
+  "metrics": {
+    "classification": {
+      "accuracy": 0.6,
+      "f1_macro": 0.375,
+      "f1_weighted": 0.45,
+      "mcc": 0.0,
+      "n_evaluated": 5,
+      "n_parse_failed": 0
+    },
+    "subcategory": {},
+    "moscow_distribution": {
+      "M": 0.0,
+      "S": 1.0,
+      "C": 0.0,
+      "W": 0.0
+    }
+  },
+  "n_predictions": 5,
+  "predictions": [
+    {
+      "id": "cc6f71ca",
+      "text": "visualizando os detalhes de um filme, o site exibirá a descrição do filme, ator e diretor, inserida pelo administrador.",
+      "text_en": "viewing a movie details  the website will display the movies description  actor  and director entered in by the administrator.",
+      "source": "PROMISE_NFR_PT",
+      "metadata": {
+        "label_type": "F",
+        "label_category": "F",
+        "ground_truth_type": "F",
+        "ground_truth_category": "F",
+        "project": "8"
+      },
+      "requirement_type": "F",
+      "nfr_category": null,
+      "confidence": 0.95,
+      "justification": "This requirement describes what the system must display when viewing a movie's details.",
+      "parse_failed": false,
+      "priority": "S",
+      "priority_score": 0.75,
+      "priority_rank": 1,
+      "priority_justification": "While important, this feature is not critical for the core functionality of the site.",
+      "priority_parse_failed": false
+    },
+    {
+      "id": "a2542a25",
+      "text": "A funcionalidade de lavagem de eletrodos terá uma interface na qual os parâmetros de dados dos eletrodos poderão ser mantidos.",
+      "text_en": "The leads washing functionality will have an interface in which lead data parameters can be maintained.",
+      "source": "PROMISE_NFR_PT",
+      "metadata": {
+        "label_type": "F",
+        "label_category": "F",
+        "ground_truth_type": "F",
+        "ground_truth_category": "F",
+        "project": "9"
+      },
+      "requirement_type": "F",
+      "nfr_category": null,
+      "confidence": 0.9,
+      "justification": "This requirement describes what the system must do, specifically providing an interface for maintaining electrode data parameters.",
+      "parse_failed": false,
+      "priority": "S",
+      "priority_score": 0.75,
+      "priority_rank": 2,
+      "priority_justification": "While important, this feature is not critical to the core functionality of the system and can be deferred if necessary.",
+      "priority_parse_failed": false
+    },
+    {
+      "id": "35c44355",
+      "text": "O usuário deverá localizar facilmente as instruções durante a utilização do produto.  A ajuda do usuário pode ser encontrada em 90% do sistema.",
+      "text_en": "The user shall easily locate instructions while using the product.  User help can be found within 90% of the system.",
+      "source": "PROMISE_NFR_PT",
+      "metadata": {
+        "label_type": "NF",
+        "label_category": "US",
+        "ground_truth_type": "NF",
+        "ground_truth_category": "US",
+        "project": "5"
+      },
+      "requirement_type": "F",
+      "nfr_category": null,
+      "confidence": 0.85,
+      "justification": "Descreve uma funcionalidade que o sistema deve realizar, permitindo que os usuários encontrem facilmente as instruções.",
+      "parse_failed": false,
+      "priority": "S",
+      "priority_score": 0.75,
+      "priority_rank": 3,
+      "priority_justification": "É importante para a experiência do usuário, mas não crítico para o funcionamento básico do sistema.",
+      "priority_parse_failed": false
+    },
+    {
+      "id": "e2a32698",
+      "text": "O produto aumentará a produtividade dos Estimadores de Colisão. 80% dos Estimadores de Colisão concordarão que sua produtividade aumentou dentro de 1 mês após o uso do produto.",
+      "text_en": "The product shall increase productivity of Collision Estimators. 80% of the Collision Estimators shall agree their productivity has increase within 1 month of using the product.",
+      "source": "PROMISE_NFR_PT",
+      "metadata": {
+        "label_type": "NF",
+        "label_category": "US",
+        "ground_truth_type": "NF",
+        "ground_truth_category": "US",
+        "project": "5"
+      },
+      "requirement_type": "F",
+      "nfr_category": null,
+      "confidence": 0.85,
+      "justification": "This requirement describes what the system must achieve in terms of increasing productivity for a specific user group, which is a functional requirement.",
+      "parse_failed": false,
+      "priority": "S",
+      "priority_score": 0.75,
+      "priority_rank": 4,
+      "priority_justification": "While important, this feature is not critical as there are likely other core functionalities that must be prioritized first. However, its high usage frequency and business impact make it a significant priority.",
+      "priority_parse_failed": false
+    },
+    {
+      "id": "da3bd9bc",
+      "text": "Se a pontuação do lead estiver dentro da média média, ela será definida para verificação manual por um Coordenador de Inscrição por meio do sistema eleads.",
+      "text_en": "If the leads score falls within the medium average then it will be set for manual verification by an Enrollment Coordinator through the eleads system.",
+      "source": "PROMISE_NFR_PT",
+      "metadata": {
+        "label_type": "F",
+        "label_category": "F",
+        "ground_truth_type": "F",
+        "ground_truth_category": "F",
+        "project": "9"
+      },
+      "requirement_type": "F",
+      "nfr_category": null,
+      "confidence": 0.9,
+      "justification": "This requirement describes an action the system must perform based on lead score criteria.",
+      "parse_failed": false,
+      "priority": "S",
+      "priority_score": 0.75,
+      "priority_rank": 5,
+      "priority_justification": "While important, this feature is not critical for the initial release and can be deferred if necessary.",
+      "priority_parse_failed": false
+    }
+  ],
+  "errors": [],
+  "n_failure_records": 2,
+  "failure_records": [
+    {
+      "requirement_id": "cc6f71ca",
+      "stage": "baseline",
+      "mode": "grounding_missing",
+      "severity": "flagged",
+      "evidence": "no lexical overlap between justification and requirement",
+      "detector_version": "v1",
+      "timestamp": "2026-07-13T10:43:07.126825Z"
+    },
+    {
+      "requirement_id": "e2a32698",
+      "stage": "baseline",
+      "mode": "grounding_missing",
+      "severity": "flagged",
+      "evidence": "no lexical overlap between justification and requirement",
+      "detector_version": "v1",
+      "timestamp": "2026-07-13T10:43:23.760058Z"
+    }
+  ]
+}

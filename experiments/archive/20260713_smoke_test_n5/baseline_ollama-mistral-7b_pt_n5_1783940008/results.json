@@ -1,0 +1,148 @@
+{
+  "run_id": "baseline_ollama-mistral-7b_pt_n5_1783940008",
+  "config": {
+    "strategy": "baseline",
+    "model": "ollama/mistral:7b",
+    "lang": "pt",
+    "seed": 42,
+    "n": 5
+  },
+  "metrics": {
+    "classification": {
+      "accuracy": 0.6,
+      "f1_macro": 0.375,
+      "f1_weighted": 0.45,
+      "mcc": 0.0,
+      "n_evaluated": 5,
+      "n_parse_failed": 0
+    },
+    "subcategory": {},
+    "moscow_distribution": {
+      "M": 1.0,
+      "S": 0.0,
+      "C": 0.0,
+      "W": 0.0
+    }
+  },
+  "n_predictions": 5,
+  "predictions": [
+    {
+      "id": "c0b44207",
+      "text": "visualizando os detalhes de um filme, o site exibirá a descrição do filme, ator e diretor, inserida pelo administrador.",
+      "text_en": "viewing a movie details  the website will display the movies description  actor  and director entered in by the administrator.",
+      "source": "PROMISE_NFR_PT",
+      "metadata": {
+        "label_type": "F",
+        "label_category": "F",
+        "ground_truth_type": "F",
+        "ground_truth_category": "F",
+        "project": "8"
+      },
+      "requirement_type": "F",
+      "nfr_category": null,
+      "confidence": 1.0,
+      "justification": "Este requisito descreve uma funcionalidade principal do sistema: visualizar detalhes de um filme.",
+      "parse_failed": false,
+      "priority": "M",
+      "priority_score": 1.0,
+      "priority_rank": 1,
+      "priority_justification": "Este requisito é essencial para a funcionalidade principal do sistema, que é visualizar detalhes de filmes.",
+      "priority_parse_failed": false
+    },
+    {
+      "id": "a8c1572f",
+      "text": "A funcionalidade de lavagem de eletrodos terá uma interface na qual os parâmetros de dados dos eletrodos poderão ser mantidos.",
+      "text_en": "The leads washing functionality will have an interface in which lead data parameters can be maintained.",
+      "source": "PROMISE_NFR_PT",
+      "metadata": {
+        "label_type": "F",
+        "label_category": "F",
+        "ground_truth_type": "F",
+        "ground_truth_category": "F",
+        "project": "9"
+      },
+      "requirement_type": "F",
+      "nfr_category": null,
+      "confidence": 1.0,
+      "justification": "Este requisito descreve uma funcionalidade do sistema que envolve a interface de manutenção de parâmetros de dados dos eletrodos.",
+      "parse_failed": false,
+      "priority": "M",
+      "priority_score": 1.0,
+      "priority_rank": 2,
+      "priority_justification": "Esta funcionalidade é essencial para o sistema de lavagem de eletrodos, pois ela permite a manutenção dos parâmetros necessários para o funcionamento do processo.",
+      "priority_parse_failed": false
+    },
+    {
+      "id": "59f4a00b",
+      "text": "O usuário deverá localizar facilmente as instruções durante a utilização do produto.  A ajuda do usuário pode ser encontrada em 90% do sistema.",
+      "text_en": "The user shall easily locate instructions while using the product.  User help can be found within 90% of the system.",
+      "source": "PROMISE_NFR_PT",
+      "metadata": {
+        "label_type": "NF",
+        "label_category": "US",
+        "ground_truth_type": "NF",
+        "ground_truth_category": "US",
+        "project": "5"
+      },
+      "requirement_type": "F",
+      "nfr_category": null,
+      "confidence": 1.0,
+      "justification": "O requisito descreve um comportamento do sistema (o usuário deverá localizar facilmente as instruções), portanto é funcional.",
+      "parse_failed": false,
+      "priority": "M",
+      "priority_score": 1.0,
+      "priority_rank": 3,
+      "priority_justification": "O requisito tem impacto significativo no negócio (usabilidade do produto) e é frequentemente utilizado pelo usuário.",
+      "priority_parse_failed": false
+    },
+    {
+      "id": "aa1b4ea8",
+      "text": "O produto aumentará a produtividade dos Estimadores de Colisão. 80% dos Estimadores de Colisão concordarão que sua produtividade aumentou dentro de 1 mês após o uso do produto.",
+      "text_en": "The product shall increase productivity of Collision Estimators. 80% of the Collision Estimators shall agree their productivity has increase within 1 month of using the product.",
+      "source": "PROMISE_NFR_PT",
+      "metadata": {
+        "label_type": "NF",
+        "label_category": "US",
+        "ground_truth_type": "NF",
+        "ground_truth_category": "US",
+        "project": "5"
+      },
+      "requirement_type": "F",
+      "nfr_category": null,
+      "confidence": 0.9,
+      "justification": "O requisito descreve um efeito direto sobre o que o sistema deve fazer (aumentar a produtividade dos Estimadores de Colisão), portanto é funcional.",
+      "parse_failed": false,
+      "priority": "M",
+      "priority_score": 1.0,
+      "priority_rank": 4,
+      "priority_justification": "O aumento da produtividade dos Estimadores de Colisão é crucial para o negócio e tem impacto direto no negócio, além de ser concordado por 80% deles.",
+      "priority_parse_failed": false
+    },
+    {
+      "id": "8fee56cf",
+      "text": "Se a pontuação do lead estiver dentro da média média, ela será definida para verificação manual por um Coordenador de Inscrição por meio do sistema eleads.",
+      "text_en": "If the leads score falls within the medium average then it will be set for manual verification by an Enrollment Coordinator through the eleads system.",
+      "source": "PROMISE_NFR_PT",
+      "metadata": {
+        "label_type": "F",
+        "label_category": "F",
+        "ground_truth_type": "F",
+        "ground_truth_category": "F",
+        "project": "9"
+      },
+      "requirement_type": "F",
+      "nfr_category": null,
+      "confidence": 1.0,
+      "justification": "O requisito descreve uma ação que o sistema deve realizar (verificação manual por um Coordenador de Inscrição), portanto é funcional.",
+      "parse_failed": false,
+      "priority": "M",
+      "priority_score": 1.0,
+      "priority_rank": 5,
+      "priority_justification": "A verificação manual é obrigatória para garantir a qualidade do lead.",
+      "priority_parse_failed": false
+    }
+  ],
+  "errors": [],
+  "n_failure_records": 0,
+  "failure_records": []
+}
