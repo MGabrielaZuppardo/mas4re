@@ -59,7 +59,9 @@ class TestClassificationAgentUnit:
         state = PipelineState(run_id="run-test", raw_requirements=requirements)
         with patch.object(agent, "classify_batch", return_value=[]) as mock:
             result = agent.run(state)
-            mock.assert_called_once_with(requirements, max_workers=3)
+            mock.assert_called_once_with(
+                requirements, max_workers=3, failed_ids=[], failure_records=[]
+            )
             assert result.model_used == agent.model
 
     def test_run_retorna_classificados(self, agent, requirements):

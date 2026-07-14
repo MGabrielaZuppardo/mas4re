@@ -126,7 +126,11 @@ class ExperimentRunner:
             state.prioritized_requirements or state.classified_requirements,
         )
 
-        metrics: dict[str, Any] = {}
+        # Starts from state.metrics (not {}): cross_check_node (ADR-003) writes
+        # inter_agent_conflicts there when the pipeline architecture is used,
+        # and it must survive into the persisted results.json, not be
+        # silently discarded by this dict being rebuilt from scratch.
+        metrics: dict[str, Any] = dict(state.metrics)
         if classified:
             metrics["classification"] = compute_classification_metrics(classified, ground_truth)
             metrics["subcategory"] = compute_subcategory_metrics(classified, ground_truth)
@@ -176,6 +180,7 @@ class ExperimentRunner:
         predictions = [r.model_dump(mode="json") for r in state.prioritized_requirements] or [
             r.model_dump(mode="json") for r in state.classified_requirements
         ]
+        failure_records = [r.model_dump(mode="json") for r in state.failure_records]
         results = {
             "run_id": run_id,
             "config": {
@@ -188,6 +193,9 @@ class ExperimentRunner:
             "metrics": metrics,
             "n_predictions": len(predictions),
             "predictions": predictions,
+            "errors": state.errors,
+            "n_failure_records": len(failure_records),
+            "failure_records": failure_records,
         }
         (run_path / "results.json").write_text(
             json.dumps(results, indent=2, ensure_ascii=False), encoding="utf-8"

@@ -51,12 +51,14 @@ from tqdm import tqdm
 
 from agents.base import BaseAgent
 from domain.enums import Lang, MoSCoWPriority, NFRCategory, RequirementType
+from domain.failures import FailureRecord, FailureSeverity
 from domain.models import (
     BaselineOutput,
     PipelineState,
     PrioritizedRequirement,
     Requirement,
 )
+from evaluation.failure_detectors import DetectionContext, default_chain, max_severity
 from llm.factory import build_llm
 from prompts.v1.classification import build_classification_messages
 from prompts.v1.prioritization import build_prioritization_messages
@@ -65,6 +67,9 @@ if TYPE_CHECKING:
     from evaluation.trace_writer import TraceWriter
 
 logger = logging.getLogger(__name__)
+
+_KNOWN_NFR_CATEGORIES = {c.value for c in NFRCategory.nfr_only()}
+_CONFIDENCE_UNCERTAIN_THRESHOLD = 0.70
 
 # ── NFR category normalisation (mirrored from ClassificationAgent) ────────────
 
@@ -159,6 +164,7 @@ class _ClassificationResult:
     nfr_category: str | None
     confidence: float
     justification: str
+    parse_failed: bool = False
 
 
 @dataclass
@@ -169,6 +175,7 @@ class _PrioritizationResult:
     priority_score: float
     priority_rank: int
     justification: str
+    parse_failed: bool = False
 
 
 # ── Main agent ────────────────────────────────────────────────────────────────
@@ -193,6 +200,7 @@ class TwoCallBaselineAgent(BaseAgent[Requirement, PrioritizedRequirement]):
         self._llm = build_llm(model, temperature)
         self._nfr_categories = nfr_categories
         self._lang: Lang = lang
+        self._detector_chain = default_chain()
         logger.info(
             "TwoCallBaselineAgent inicializado | model=%s | lang=%s",
             model,
@@ -207,13 +215,27 @@ class TwoCallBaselineAgent(BaseAgent[Requirement, PrioritizedRequirement]):
             state.run_id,
             state.n_requirements,
         )
-        prioritized = self._run_batch(state.raw_requirements, max_workers=3)
+        failed_ids: list[str] = []
+        failure_records: list[FailureRecord] = []
+        prioritized = self._run_batch(
+            state.raw_requirements,
+            max_workers=3,
+            failed_ids=failed_ids,
+            failure_records=failure_records,
+        )
         state.prioritized_requirements = prioritized
         state.model_used = self.model
+        state.errors.extend(f"two_call_baseline_failed:{req_id}" for req_id in failed_ids)
+        state.failure_records.extend(failure_records)
+        n_fatal = sum(1 for r in failure_records if r.severity is FailureSeverity.FATAL)
         logger.info(
-            "Two-call-baseline concluído | run_id=%s | processados=%d",
+            "Two-call-baseline concluído | run_id=%s | processados=%d | dropados=%d | "
+            "fatal=%d | flagged=%d",
             state.run_id,
             len(prioritized),
+            len(failed_ids),
+            n_fatal,
+            len(failure_records) - n_fatal,
         )
         return state
 
@@ -266,6 +288,7 @@ class TwoCallBaselineAgent(BaseAgent[Requirement, PrioritizedRequirement]):
             priority_score=pri_result.priority_score,
             priority_rank=pri_result.priority_rank,
             priority_justification=pri_result.justification,
+            parse_failed=cls_result.parse_failed or pri_result.parse_failed,
         )
         return PrioritizedRequirement.from_baseline(requirement, output)
 
@@ -275,9 +298,12 @@ class TwoCallBaselineAgent(BaseAgent[Requirement, PrioritizedRequirement]):
         self,
         requirements: list[Requirement],
         max_workers: int = 3,
+        failed_ids: list[str] | None = None,
+        failure_records: list[FailureRecord] | None = None,
     ) -> list[PrioritizedRequirement]:
         results: dict[str, PrioritizedRequirement] = {}
         n = len(requirements)
+        req_by_id = {r.id: r for r in requirements}
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = {
                 executor.submit(self._call_and_trace, "two_call_baseline", req): req
@@ -294,18 +320,39 @@ class TwoCallBaselineAgent(BaseAgent[Requirement, PrioritizedRequirement]):
                 for future in pbar:
                     req = futures[future]
                     try:
-                        result = future.result()
-                        results[req.id] = result
-                        nfr = result.nfr_category or "  -"
-                        pbar.set_postfix(
-                            type=result.requirement_type.value,
-                            nfr=nfr,
-                            priority=result.priority.value,
-                            conf=f"{result.confidence:.2f}",
-                        )
+                        output = future.result()
                     except Exception as e:
                         logger.error("Falha ao processar | id=%s | erro=%s", req.id, e)
                         pbar.set_postfix(status="ERRO")
+                        if failed_ids is not None:
+                            failed_ids.append(req.id)
+                        continue
+
+                    ctx = DetectionContext(
+                        requirement_id=output.id,
+                        stage="two_call_baseline",
+                        requirement_text=req_by_id[output.id].text,
+                        parsed_ok=not output.parse_failed,
+                        confidence=output.confidence,
+                        predicted_category=output.nfr_category,
+                        known_categories=_KNOWN_NFR_CATEGORIES,
+                        justification=output.justification,
+                        confidence_threshold=_CONFIDENCE_UNCERTAIN_THRESHOLD,
+                    )
+                    records = self._detector_chain.run(ctx)
+                    if failure_records is not None:
+                        failure_records.extend(records)
+                    if max_severity(records) is FailureSeverity.FATAL:
+                        continue
+
+                    results[req.id] = output
+                    nfr = output.nfr_category or "  -"
+                    pbar.set_postfix(
+                        type=output.requirement_type.value,
+                        nfr=nfr,
+                        priority=output.priority.value,
+                        conf=f"{output.confidence:.2f}",
+                    )
 
         ordered = [results[r.id] for r in requirements if r.id in results]
         ordered.sort(key=lambda r: r.priority_score or 0.0, reverse=True)
@@ -354,6 +401,7 @@ class TwoCallBaselineAgent(BaseAgent[Requirement, PrioritizedRequirement]):
                 nfr_category=None,
                 confidence=0.0,
                 justification=f"Parse falhou: {e}",
+                parse_failed=True,
             )
 
     def _parse_prioritization(self, content: str, req_id: str) -> _PrioritizationResult:
@@ -382,4 +430,5 @@ class TwoCallBaselineAgent(BaseAgent[Requirement, PrioritizedRequirement]):
                 priority_score=0.5,
                 priority_rank=1,
                 justification=f"Parse falhou: {e}",
+                parse_failed=True,
             )

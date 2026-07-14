@@ -7,6 +7,7 @@ from typing import Any
 from pydantic import BaseModel, Field, field_validator
 
 from domain.enums import MoSCoWPriority, RequirementType
+from domain.failures import FailureRecord
 
 
 class Requirement(BaseModel):
@@ -34,6 +35,13 @@ class ClassificationOutput(BaseModel):
     nfr_category: str | None = None
     confidence: float = Field(..., ge=0.0, le=1.0)
     justification: str = Field(default="")
+    parse_failed: bool = Field(
+        default=False,
+        description="True quando o LLM retornou saída não-parseável e "
+        "requirement_type foi preenchido com um valor de fallback, não "
+        "uma classificação real. Consumido por compute_classification_metrics "
+        "para excluir o item das métricas em vez de contá-lo como acerto/erro.",
+    )
 
 
 class ClassifiedRequirement(Requirement):
@@ -43,6 +51,7 @@ class ClassifiedRequirement(Requirement):
     nfr_category: str | None = None
     confidence: float = Field(default=0.0, ge=0.0, le=1.0)
     justification: str = Field(default="")
+    parse_failed: bool = Field(default=False)
 
     @classmethod
     def from_requirement(
@@ -56,6 +65,7 @@ class ClassifiedRequirement(Requirement):
             nfr_category=output.nfr_category,
             confidence=output.confidence,
             justification=output.justification,
+            parse_failed=output.parse_failed,
         )
 
 
@@ -67,6 +77,12 @@ class PrioritizationOutput(BaseModel):
     priority_score: float = Field(..., ge=0.0, le=1.0)
     priority_rank: int = Field(..., ge=1)
     justification: str = Field(default="")
+    priority_parse_failed: bool = Field(
+        default=False,
+        description="True quando o LLM retornou saída não-parseável para a "
+        "priorização e o resultado foi preenchido com um fallback fixo "
+        "(COULD_HAVE, score=0.5), não uma priorização real.",
+    )
 
 
 class BaselineOutput(BaseModel):
@@ -81,6 +97,12 @@ class BaselineOutput(BaseModel):
     priority_score: float = Field(..., ge=0.0, le=1.0)
     priority_rank: int = Field(..., ge=1)
     priority_justification: str = Field(default="")
+    parse_failed: bool = Field(
+        default=False,
+        description="True quando a resposta única do baseline (classificação+"
+        "priorização no mesmo JSON) não pôde ser parseada e ambos os campos "
+        "foram preenchidos com fallback (FUNCTIONAL/COULD_HAVE).",
+    )
 
 
 class PrioritizedRequirement(ClassifiedRequirement):
@@ -90,6 +112,7 @@ class PrioritizedRequirement(ClassifiedRequirement):
     priority_score: float | None = None
     priority_rank: int | None = None
     priority_justification: str = Field(default="")  # ← renomeado
+    priority_parse_failed: bool = Field(default=False)
 
     @classmethod
     def from_classified(
@@ -103,6 +126,7 @@ class PrioritizedRequirement(ClassifiedRequirement):
             priority_score=output.priority_score,
             priority_rank=output.priority_rank,
             priority_justification=output.justification,  # ← renomeado
+            priority_parse_failed=output.priority_parse_failed,
         )
 
     @classmethod
@@ -118,10 +142,12 @@ class PrioritizedRequirement(ClassifiedRequirement):
             nfr_category=output.nfr_category,
             confidence=output.confidence,
             justification=output.classification_justification,
+            parse_failed=output.parse_failed,
             priority=output.priority,
             priority_score=output.priority_score,
             priority_rank=output.priority_rank,
             priority_justification=output.priority_justification,  # ← renomeado
+            priority_parse_failed=output.parse_failed,
         )
 
 
@@ -138,6 +164,12 @@ class PipelineState(BaseModel):
 
     errors: list[str] = Field(default_factory=list)
     metrics: dict[str, Any] = Field(default_factory=dict)
+    failure_records: list[FailureRecord] = Field(
+        default_factory=list,
+        description="FailureRecords emitted by DetectorChain (ADR-003) across all "
+        "agents that ran in this pipeline, plus cross_check_node's "
+        "inter-agent conflict records when the pipeline architecture is used.",
+    )
 
     @property
     def n_requirements(self) -> int:

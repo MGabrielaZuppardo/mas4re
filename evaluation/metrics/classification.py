@@ -36,14 +36,16 @@ def compute_classification_metrics(
         Dicionário com as métricas calculadas.
     """
     gt_map = {r.id: r for r in ground_truth}
-    common_ids = [r.id for r in predictions if r.id in gt_map]
+    pred_map = {r.id: r for r in predictions}
+    n_parse_failed = sum(1 for r in predictions if r.parse_failed and r.id in gt_map)
+    common_ids = [r.id for r in predictions if r.id in gt_map and not r.parse_failed]
 
     if not common_ids:
         logger.warning("Nenhum ID em comum para compute_classification_metrics.")
         return {}
 
     y_true = [gt_map[i].metadata["label_type"] for i in common_ids]
-    y_pred = [next(r.requirement_type.value for r in predictions if r.id == i) for i in common_ids]
+    y_pred = [pred_map[i].requirement_type.value for i in common_ids]
 
     metrics = {
         "accuracy": round(accuracy_score(y_true, y_pred), 4),
@@ -51,6 +53,7 @@ def compute_classification_metrics(
         "f1_weighted": round(f1_score(y_true, y_pred, average="weighted", zero_division=0), 4),
         "mcc": round(float(matthews_corrcoef(y_true, y_pred)), 4),
         "n_evaluated": len(common_ids),
+        "n_parse_failed": n_parse_failed,
     }
     logger.info("Métricas de classificação: %s", metrics)
     return metrics

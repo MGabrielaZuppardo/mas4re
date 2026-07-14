@@ -13,7 +13,8 @@ from tenacity import (
 )
 
 from agents.base import BaseAgent
-from domain.enums import Lang, RequirementType
+from domain.enums import Lang, NFRCategory, RequirementType
+from domain.failures import FailureRecord, FailureSeverity
 
 if TYPE_CHECKING:
     from evaluation.trace_writer import TraceWriter
@@ -23,11 +24,15 @@ from domain.models import (
     PipelineState,
     Requirement,
 )
+from evaluation.failure_detectors import DetectionContext, default_chain, max_severity
 from llm.factory import build_llm
 from llm.json_parser import extract_first_json
 from prompts.v1.classification import build_classification_messages
 
 logger = logging.getLogger(__name__)
+
+_KNOWN_NFR_CATEGORIES = {c.value for c in NFRCategory.nfr_only()}
+_CONFIDENCE_UNCERTAIN_THRESHOLD = 0.70
 
 
 class ClassificationAgent(BaseAgent[Requirement, ClassifiedRequirement]):
@@ -45,6 +50,7 @@ class ClassificationAgent(BaseAgent[Requirement, ClassifiedRequirement]):
         self._llm = build_llm(model, temperature)
         self._nfr_categories = nfr_categories
         self._lang: Lang = lang
+        self._detector_chain = default_chain()
         logger.info(
             "ClassificationAgent inicializado | model=%s | lang=%s | nfr_categories=%s",
             model,
@@ -58,13 +64,27 @@ class ClassificationAgent(BaseAgent[Requirement, ClassifiedRequirement]):
             state.run_id,
             state.n_requirements,
         )
-        classified = self.classify_batch(state.raw_requirements, max_workers=3)
+        failed_ids: list[str] = []
+        failure_records: list[FailureRecord] = []
+        classified = self.classify_batch(
+            state.raw_requirements,
+            max_workers=3,
+            failed_ids=failed_ids,
+            failure_records=failure_records,
+        )
         state.classified_requirements = classified
         state.model_used = self.model
+        state.errors.extend(f"classify_failed:{req_id}" for req_id in failed_ids)
+        state.failure_records.extend(failure_records)
+        n_fatal = sum(1 for r in failure_records if r.severity is FailureSeverity.FATAL)
         logger.info(
-            "Classificação concluída | run_id=%s | classificados=%d",
+            "Classificação concluída | run_id=%s | classificados=%d | "
+            "dropados=%d | fatal=%d | flagged=%d",
             state.run_id,
             len(classified),
+            len(failed_ids),
+            n_fatal,
+            len(failure_records) - n_fatal,
         )
         return state
 
@@ -72,7 +92,26 @@ class ClassificationAgent(BaseAgent[Requirement, ClassifiedRequirement]):
         self,
         requirements: list[Requirement],
         max_workers: int = 3,
+        failed_ids: list[str] | None = None,
+        failure_records: list[FailureRecord] | None = None,
     ) -> list[ClassifiedRequirement]:
+        """Classifica requisitos em paralelo.
+
+        Runs the ADR-003 DetectorChain on every processed item. Items whose
+        most severe FailureRecord is FATAL (currently: unparseable output)
+        are excluded from the returned list — equivalent to BatchResult's
+        `successes ∪ flagged` semantics without changing this method's
+        return type. DEGRADED/FLAGGED items (e.g. hallucinated category,
+        low confidence, ungrounded justification) stay in the result.
+
+        Args:
+            failed_ids: se fornecida, recebe (via append) os ids que
+                falharam após esgotar as tentativas de retry — não
+                presentes no retorno.
+            failure_records: se fornecida, recebe (via extend) todos os
+                FailureRecords emitidos pela DetectorChain, incluindo os
+                dos itens excluídos (severidade FATAL).
+        """
         results: dict[str, ClassifiedRequirement] = {}
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = {
@@ -81,9 +120,30 @@ class ClassificationAgent(BaseAgent[Requirement, ClassifiedRequirement]):
             for future in as_completed(futures):
                 req = futures[future]
                 try:
-                    results[req.id] = future.result()
+                    output = future.result()
                 except Exception as e:
                     logger.error("Falha ao classificar | id=%s | erro=%s", req.id, e)
+                    if failed_ids is not None:
+                        failed_ids.append(req.id)
+                    continue
+
+                ctx = DetectionContext(
+                    requirement_id=output.id,
+                    stage="classify",
+                    requirement_text=req.text,
+                    parsed_ok=not output.parse_failed,
+                    confidence=output.confidence,
+                    predicted_category=output.nfr_category,
+                    known_categories=_KNOWN_NFR_CATEGORIES,
+                    justification=output.justification,
+                    confidence_threshold=_CONFIDENCE_UNCERTAIN_THRESHOLD,
+                )
+                records = self._detector_chain.run(ctx)
+                if failure_records is not None:
+                    failure_records.extend(records)
+                if max_severity(records) is FailureSeverity.FATAL:
+                    continue
+                results[req.id] = output
         return [results[r.id] for r in requirements if r.id in results]
 
     @retry(
@@ -125,4 +185,5 @@ class ClassificationAgent(BaseAgent[Requirement, ClassifiedRequirement]):
                 requirement_type=RequirementType.FUNCTIONAL,
                 confidence=0.0,
                 justification=f"Parse falhou: {e}",
+                parse_failed=True,
             )

@@ -13,7 +13,8 @@ from tenacity import (
 )
 
 from agents.base import BaseAgent
-from domain.enums import Lang, MoSCoWPriority, RequirementType
+from domain.enums import Lang, MoSCoWPriority, NFRCategory, RequirementType
+from domain.failures import FailureRecord, FailureSeverity
 
 if TYPE_CHECKING:
     from evaluation.trace_writer import TraceWriter
@@ -23,11 +24,15 @@ from domain.models import (
     PrioritizedRequirement,
     Requirement,
 )
+from evaluation.failure_detectors import DetectionContext, default_chain, max_severity
 from llm.factory import build_llm
 from llm.json_parser import coerce_str, extract_first_json
 from prompts.v1.baseline import build_baseline_messages
 
 logger = logging.getLogger(__name__)
+
+_KNOWN_NFR_CATEGORIES = {c.value for c in NFRCategory.nfr_only()}
+_CONFIDENCE_UNCERTAIN_THRESHOLD = 0.70
 
 
 class BaselineAgent(BaseAgent[Requirement, PrioritizedRequirement]):
@@ -45,6 +50,7 @@ class BaselineAgent(BaseAgent[Requirement, PrioritizedRequirement]):
         self._llm = build_llm(model, temperature)
         self._nfr_categories = nfr_categories
         self._lang: Lang = lang
+        self._detector_chain = default_chain()
         logger.info(
             "BaselineAgent inicializado | model=%s | lang=%s | nfr_categories=%s",
             model,
@@ -54,13 +60,26 @@ class BaselineAgent(BaseAgent[Requirement, PrioritizedRequirement]):
 
     def run(self, state: PipelineState) -> PipelineState:
         logger.info("Iniciando baseline | run_id=%s | n=%d", state.run_id, state.n_requirements)
-        prioritized = self._run_batch(state.raw_requirements, max_workers=3)
+        failed_ids: list[str] = []
+        failure_records: list[FailureRecord] = []
+        prioritized = self._run_batch(
+            state.raw_requirements,
+            max_workers=3,
+            failed_ids=failed_ids,
+            failure_records=failure_records,
+        )
         state.prioritized_requirements = prioritized
         state.model_used = self.model
+        state.errors.extend(f"baseline_failed:{req_id}" for req_id in failed_ids)
+        state.failure_records.extend(failure_records)
+        n_fatal = sum(1 for r in failure_records if r.severity is FailureSeverity.FATAL)
         logger.info(
-            "Baseline concluído | run_id=%s | processados=%d",
+            "Baseline concluído | run_id=%s | processados=%d | dropados=%d | fatal=%d | flagged=%d",
             state.run_id,
             len(prioritized),
+            len(failed_ids),
+            n_fatal,
+            len(failure_records) - n_fatal,
         )
         return state
 
@@ -68,6 +87,8 @@ class BaselineAgent(BaseAgent[Requirement, PrioritizedRequirement]):
         self,
         requirements: list[Requirement],
         max_workers: int = 3,
+        failed_ids: list[str] | None = None,
+        failure_records: list[FailureRecord] | None = None,
     ) -> list[PrioritizedRequirement]:
         results: dict[str, PrioritizedRequirement] = {}
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
@@ -77,9 +98,30 @@ class BaselineAgent(BaseAgent[Requirement, PrioritizedRequirement]):
             for future in as_completed(futures):
                 req = futures[future]
                 try:
-                    results[req.id] = future.result()
+                    output = future.result()
                 except Exception as e:
                     logger.error("Falha ao processar | id=%s | erro=%s", req.id, e)
+                    if failed_ids is not None:
+                        failed_ids.append(req.id)
+                    continue
+
+                ctx = DetectionContext(
+                    requirement_id=output.id,
+                    stage="baseline",
+                    requirement_text=req.text,
+                    parsed_ok=not output.parse_failed,
+                    confidence=output.confidence,
+                    predicted_category=output.nfr_category,
+                    known_categories=_KNOWN_NFR_CATEGORIES,
+                    justification=output.justification,
+                    confidence_threshold=_CONFIDENCE_UNCERTAIN_THRESHOLD,
+                )
+                records = self._detector_chain.run(ctx)
+                if failure_records is not None:
+                    failure_records.extend(records)
+                if max_severity(records) is FailureSeverity.FATAL:
+                    continue
+                results[req.id] = output
 
         ordered = [results[r.id] for r in requirements if r.id in results]
         ordered.sort(key=lambda r: r.priority_score or 0.0, reverse=True)
@@ -138,4 +180,5 @@ class BaselineAgent(BaseAgent[Requirement, PrioritizedRequirement]):
                 priority_score=0.5,
                 priority_rank=1,
                 priority_justification=f"Parse falhou: {e}",
+                parse_failed=True,
             )

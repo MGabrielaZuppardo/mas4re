@@ -109,7 +109,9 @@ class TestPrioritizationAgentUnit:
         )
         with patch.object(agent, "prioritize_batch", return_value=[]) as mock:
             agent.run(state)
-            mock.assert_called_once_with(classified_requirements, max_workers=3)
+            mock.assert_called_once_with(
+                classified_requirements, max_workers=3, failed_ids=[], failure_records=[]
+            )
 
     def test_run_retorna_priorizados(self, agent, classified_requirements):
         mock_prioritized = [make_prioritized(classified_requirements[0], score=0.9)]

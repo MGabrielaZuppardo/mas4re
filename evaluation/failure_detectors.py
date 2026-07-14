@@ -120,7 +120,15 @@ class DetectorChain:
 
 
 def default_chain() -> DetectorChain:
-    """The v1 deterministic chain used as the SQ3 baseline."""
+    """The v1 deterministic chain used as the SQ3 baseline.
+
+    Detectors are self-gating: each returns None when a required signal
+    (confidence, predicted_category, ...) is absent from the
+    DetectionContext, so the same chain can run uniformly across stages
+    with different available signals (e.g. classification has confidence
+    and category; prioritization has neither) without hand-picking a
+    subset per stage.
+    """
     return DetectorChain(
         detectors=[
             detect_schema,
@@ -129,3 +137,11 @@ def default_chain() -> DetectorChain:
             detect_grounding,
         ]
     )
+
+
+def max_severity(records: list[FailureRecord]) -> FailureSeverity | None:
+    """Most severe record in the batch (fatal > degraded > flagged), or None."""
+    if not records:
+        return None
+    order = {FailureSeverity.FATAL: 0, FailureSeverity.DEGRADED: 1, FailureSeverity.FLAGGED: 2}
+    return min((r.severity for r in records), key=lambda s: order[s])
