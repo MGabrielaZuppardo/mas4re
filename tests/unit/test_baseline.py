@@ -1,9 +1,11 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
+from pydantic import ValidationError
 
 from agents.baseline import BaselineAgent
 from domain.enums import Lang, MoSCoWPriority, RequirementType
+from domain.failures import FailureMode
 from domain.models import PipelineState, Requirement
 
 
@@ -91,6 +93,26 @@ class TestBaselineAgentParsing:
         assert output.priority == MoSCoWPriority.COULD_HAVE
 
 
+class TestBaselineAgentProcessSingle:
+    def test_process_single_confidence_invalida_propaga_validation_error(
+        self, agent, sample_requirement
+    ):
+        """Structured-but-invalid output (confidence out of [0,1]) must NOT be
+        silently swallowed into the safe fallback like a JSON decode failure —
+        it should propagate as a ValidationError so @llm_retry re-queries the
+        LLM and, on exhaustion, DetectorChain sees parsed_ok=False."""
+        agent._llm.invoke = MagicMock(
+            return_value=_mock_response(
+                '{"requirement_type": "F", "nfr_category": null, "confidence": 1.4,'
+                ' "classification_justification": "ok", "priority": "M",'
+                ' "priority_score": 1.0, "priority_rank": 1, "priority_justification": "ok"}'
+            )
+        )
+
+        with pytest.raises(ValidationError):
+            agent._process_single.__wrapped__(agent, sample_requirement)
+
+
 class TestBaselineAgentRun:
     def test_run_preenche_prioritized_requirements(self, agent, sample_requirement):
         agent._llm.invoke = MagicMock(
@@ -131,6 +153,14 @@ class TestBaselineAgentRun:
 
         ranks = sorted(r.priority_rank for r in result.prioritized_requirements)
         assert ranks == list(range(1, len(reqs) + 1))
+
+    def test_run_registra_failure_detections_em_falha(self, agent, sample_requirement):
+        state = PipelineState(raw_requirements=[sample_requirement])
+        with patch.object(agent, "_process_single", side_effect=RuntimeError("erro")):
+            result = agent.run(state)
+
+        detections = result.metrics["failure_detections"]
+        assert any(d["mode"] == FailureMode.SCHEMA_INVALID.value for d in detections)
 
 
 class TestBaselineAgentConfig:

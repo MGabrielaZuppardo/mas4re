@@ -2,17 +2,9 @@ from __future__ import annotations
 
 import json
 import logging
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import TYPE_CHECKING
 
-from tenacity import (
-    retry,
-    retry_if_exception_type,
-    stop_after_attempt,
-    wait_exponential,
-)
-
-from agents.base import BaseAgent
+from agents.base import BaseAgent, llm_retry, rank_by_priority
 from domain.enums import Lang, MoSCoWPriority
 
 if TYPE_CHECKING:
@@ -23,6 +15,7 @@ from domain.models import (
     PrioritizationOutput,
     PrioritizedRequirement,
 )
+from evaluation.failure_detectors import DetectionContext
 from llm.factory import build_llm
 from llm.json_parser import coerce_str, extract_first_json
 from prompts.v1.prioritization import build_prioritization_messages
@@ -62,11 +55,9 @@ class PrioritizationAgent(BaseAgent[ClassifiedRequirement, PrioritizedRequiremen
             state.run_id,
             len(state.classified_requirements),
         )
-        prioritized = self.prioritize_batch(
-            state.classified_requirements,
-            max_workers=3,
-        )
+        prioritized = self.prioritize_batch(state.classified_requirements)
         state.prioritized_requirements = prioritized
+        self._persist_failure_records(state)
         logger.info(
             "Priorização concluída | run_id=%s | priorizados=%d",
             state.run_id,
@@ -77,39 +68,31 @@ class PrioritizationAgent(BaseAgent[ClassifiedRequirement, PrioritizedRequiremen
     def prioritize_batch(
         self,
         requirements: list[ClassifiedRequirement],
-        max_workers: int = 3,
+        max_workers: int | None = None,
     ) -> list[PrioritizedRequirement]:
         """Prioriza requisitos em paralelo e aplica ranking global."""
-        results: dict[str, PrioritizedRequirement] = {}
+        ordered = self._run_batch(requirements, stage="prioritize", max_workers=max_workers)
+        return rank_by_priority(ordered)
 
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = {
-                executor.submit(self._call_and_trace, "prioritize", req): req
-                for req in requirements
-            }
-            for future in as_completed(futures):
-                req = futures[future]
-                try:
-                    results[req.id] = future.result()
-                except Exception as e:
-                    logger.error("Falha ao priorizar | id=%s | erro=%s", req.id, e)
+    def _detection_context(
+        self,
+        item: ClassifiedRequirement,
+        output: PrioritizedRequirement | None,
+        stage: str,
+        parsed_ok: bool,
+    ) -> DetectionContext | None:
+        # MoSCoW priority isn't a confidence/category signal, so only
+        # detect_schema and detect_grounding are meaningful for this stage.
+        text = item.text_en if self._lang is Lang.EN and item.text_en else item.text
+        return DetectionContext(
+            requirement_id=item.id,
+            stage=stage,
+            requirement_text=text,
+            parsed_ok=parsed_ok,
+            justification=output.priority_justification if output is not None else "",
+        )
 
-        # Preserva ordem original
-        ordered = [results[r.id] for r in requirements if r.id in results]
-
-        # Aplica ranking global por priority_score decrescente
-        ordered.sort(key=lambda r: r.priority_score or 0.0, reverse=True)
-        for rank, req in enumerate(ordered, start=1):
-            req.priority_rank = rank
-
-        return ordered
-
-    @retry(
-        retry=retry_if_exception_type(Exception),
-        wait=wait_exponential(multiplier=30, min=30, max=240),
-        stop=stop_after_attempt(3),
-        reraise=True,
-    )
+    @llm_retry
     def _process_single(self, requirement: ClassifiedRequirement) -> PrioritizedRequirement:
         """Prioriza um requisito com retry/backoff."""
         req_text = (
@@ -128,22 +111,18 @@ class PrioritizationAgent(BaseAgent[ClassifiedRequirement, PrioritizedRequiremen
         return PrioritizedRequirement.from_classified(requirement, output)
 
     def _parse_response(self, content: str, req_id: str) -> PrioritizationOutput:
-        """Parse do JSON retornado pelo LLM com fallback seguro."""
+        """Parse do JSON retornado pelo LLM com fallback seguro.
+
+        Same two-stage split as ClassificationAgent._parse_response — JSON
+        decode failure keeps the safe fallback (no retry); an invalid enum
+        or Pydantic constraint violation propagates so @llm_retry re-queries
+        the LLM and, on exhaustion, DetectorChain sees parsed_ok=False.
+        """
         try:
             data = json.loads(extract_first_json(content))
-
-            priority = MoSCoWPriority(data["priority"])
-
-            return PrioritizationOutput(
-                requirement_id=req_id,
-                priority=priority,
-                priority_score=float(data.get("priority_score", priority.score)),
-                priority_rank=int(data.get("priority_rank", 1)),
-                justification=coerce_str(data.get("justification", "")),
-            )
         except Exception as e:
             logger.error(
-                "Parse falhou | req_id=%s | erro=%s | conteúdo=%r",
+                "JSON decode falhou | req_id=%s | erro=%s | conteúdo=%r",
                 req_id,
                 e,
                 content[:200],
@@ -153,5 +132,14 @@ class PrioritizationAgent(BaseAgent[ClassifiedRequirement, PrioritizedRequiremen
                 priority=MoSCoWPriority.COULD_HAVE,
                 priority_score=0.5,
                 priority_rank=1,
-                justification=f"Parse falhou: {e}",
+                justification=f"Parse falhou (JSON): {e}",
             )
+
+        priority = MoSCoWPriority(data["priority"])
+        return PrioritizationOutput(
+            requirement_id=req_id,
+            priority=priority,
+            priority_score=float(data.get("priority_score", priority.score)),
+            priority_rank=int(data.get("priority_rank", 1)),
+            justification=coerce_str(data.get("justification", "")),
+        )

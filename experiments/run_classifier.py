@@ -24,14 +24,10 @@ from pathlib import Path
 # Garante que o root do projeto está no path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from config.logging import configure_logging
 from evaluation.reporter import compare_models, print_summary, save_results
 from evaluation.runner import run_classifier_on_promise
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
-    datefmt="%H:%M:%S",
-)
 logger = logging.getLogger(__name__)
 
 # Modelos disponíveis para avaliação
@@ -124,4 +120,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    configure_logging()
     main()

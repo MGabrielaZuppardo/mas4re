@@ -1,9 +1,11 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
+from pydantic import ValidationError
 
 from agents.classifier import ClassificationAgent
 from domain.enums import NFRCategory, RequirementType
+from domain.failures import FailureMode
 from domain.models import ClassificationOutput, ClassifiedRequirement, PipelineState, Requirement
 
 
@@ -59,7 +61,7 @@ class TestClassificationAgentUnit:
         state = PipelineState(run_id="run-test", raw_requirements=requirements)
         with patch.object(agent, "classify_batch", return_value=[]) as mock:
             result = agent.run(state)
-            mock.assert_called_once_with(requirements, max_workers=3)
+            mock.assert_called_once_with(requirements)
             assert result.model_used == agent.model
 
     def test_run_retorna_classificados(self, agent, requirements):
@@ -121,3 +123,47 @@ class TestClassificationAgentUnit:
 
         with pytest.raises(ConnectionError):
             agent._process_single.__wrapped__(agent, req)
+
+    def test_process_single_confidence_invalida_propaga_validation_error(self, agent):
+        """Structured-but-invalid output (confidence out of [0,1]) must NOT be
+        silently swallowed into the safe fallback like a JSON decode failure —
+        it should propagate as a ValidationError so @llm_retry re-queries the
+        LLM and, on exhaustion, DetectorChain sees parsed_ok=False."""
+        req = Requirement(id="req-01", text="texto")
+        mock_response = MagicMock()
+        mock_response.content = (
+            '{"requirement_type": "F", "confidence": 1.4, "justification": "ok"}'
+        )
+        agent._llm.invoke = MagicMock(return_value=mock_response)
+
+        with pytest.raises(ValidationError):
+            agent._process_single.__wrapped__(agent, req)
+
+    # ── failure detection (SQ3, ADR-003) ──────────────────────────────────────
+
+    def test_run_registra_baixa_confianca_em_failure_detections(self, agent, requirements):
+        def process_side_effect(req):
+            return ClassifiedRequirement.from_requirement(
+                req,
+                ClassificationOutput(
+                    requirement_id=req.id,
+                    requirement_type=RequirementType.FUNCTIONAL,
+                    confidence=0.2,
+                    justification="ok",
+                ),
+            )
+
+        state = PipelineState(run_id="run-test", raw_requirements=requirements)
+        with patch.object(agent, "_process_single", side_effect=process_side_effect):
+            result = agent.run(state)
+
+        detections = result.metrics["failure_detections"]
+        modes = {d["mode"] for d in detections}
+        assert FailureMode.LOW_CONFIDENCE.value in modes
+
+    def test_classify_batch_falha_registra_schema_invalid(self, agent, requirements):
+        with patch.object(agent, "_process_single", side_effect=RuntimeError("erro")):
+            agent.classify_batch(requirements)
+
+        modes = {r.mode for r in agent._failure_records}
+        assert FailureMode.SCHEMA_INVALID in modes

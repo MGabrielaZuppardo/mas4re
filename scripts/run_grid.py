@@ -37,6 +37,7 @@ from pathlib import Path
 # Ensure project root is on sys.path when called as a script.
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from config.logging import configure_logging
 from config.settings import settings
 from domain.enums import Lang
 from experiments.runner import ExperimentRunner, RunConfig
@@ -178,7 +179,9 @@ def _run_condition(
             "status": "ok",
             "error": "",
         }
-        print(f"{label} ... ok  ({elapsed:.1f}s | acc={cls.get('accuracy', '?'):.3f})", flush=True)
+        acc = cls.get("accuracy")
+        acc_str = f"{acc:.3f}" if isinstance(acc, (int, float)) else "?"
+        print(f"{label} ... ok  ({elapsed:.1f}s | acc={acc_str})", flush=True)
     except Exception as e:
         elapsed = time.monotonic() - t0
         row = {
@@ -272,6 +275,8 @@ def _print_summary() -> None:
 
 
 if __name__ == "__main__":
+    configure_logging(log_file="experiments/grid_run.log")
+
     parser = argparse.ArgumentParser(description="MAS4RE Grid Runner")
     parser.add_argument("--n", type=int, default=None, help="Sample size (None = full dataset)")
     parser.add_argument("--dry-run", action="store_true", help="Print conditions without running")

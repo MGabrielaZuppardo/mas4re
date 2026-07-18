@@ -96,6 +96,12 @@ select = ["E", "F", "I", "UP"]
 # kept intact than artificially wrapped.
 "tests/unit/test_baseline.py" = ["E501"]
 
+# CI/make typecheck only run mypy over the core library layers
+# (agents config domain evaluation llm prompts pipeline) — experiments/ is
+# deliberately excluded: those are one-off statistical analysis scripts
+# (numpy/scipy), not core library code, and hit a lot of numpy/scipy stub
+# overload friction (e.g. np.mean on list[int | None], wilcoxon/mannwhitneyu
+# overload resolution) that isn't worth chasing for scripts that don't ship.
 [tool.mypy]
 plugins = ["pydantic.mypy"]
 ignore_missing_imports = true

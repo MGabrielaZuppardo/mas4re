@@ -38,6 +38,9 @@ class Settings(BaseSettings):
     agent_temperature: float = Field(default=0.0)
     max_workers: int = Field(default=3)
     max_retries: int = Field(default=3)
+    retry_wait_multiplier: float = Field(default=2.0)
+    retry_wait_min: float = Field(default=2.0)
+    retry_wait_max: float = Field(default=30.0)
 
     promise_dataset_path: str = Field(default="datasets/data/promise_nfr/promise_nfr_pt.csv")
     nfric_dataset_path: str = Field(default="datasets/data/nfric/")

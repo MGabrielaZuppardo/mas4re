@@ -51,7 +51,7 @@ def _patch_adapter(reqs: list[Requirement]):
 
 def test_runner_executes_strategy(tmp_path: Path, fake_requirements) -> None:
     with _patch_adapter(fake_requirements):
-        runner = ExperimentRunner(out_dir=str(tmp_path))
+        runner = ExperimentRunner(out_dir=str(tmp_path), trace_dir=str(tmp_path / "traces"))
         config = RunConfig(
             strategy_name="fake",
             model="fake/model",
@@ -69,7 +69,7 @@ def test_runner_executes_strategy(tmp_path: Path, fake_requirements) -> None:
 
 def test_runner_writes_manifest(tmp_path: Path, fake_requirements) -> None:
     with _patch_adapter(fake_requirements):
-        runner = ExperimentRunner(out_dir=str(tmp_path))
+        runner = ExperimentRunner(out_dir=str(tmp_path), trace_dir=str(tmp_path / "traces"))
         config = RunConfig(
             strategy_name="fake",
             model="fake/model",
@@ -89,7 +89,7 @@ def test_runner_writes_manifest(tmp_path: Path, fake_requirements) -> None:
 def test_manifest_deterministic_fields(tmp_path: Path, fake_requirements) -> None:
     """Same config -> same deterministic fields (seed, model, strategy)."""
     with _patch_adapter(fake_requirements):
-        runner = ExperimentRunner(out_dir=str(tmp_path))
+        runner = ExperimentRunner(out_dir=str(tmp_path), trace_dir=str(tmp_path / "traces"))
         config = RunConfig(
             strategy_name="fake",
             model="fake/model",
@@ -106,7 +106,7 @@ def test_manifest_deterministic_fields(tmp_path: Path, fake_requirements) -> Non
 
 def test_runner_persists_results_json(tmp_path: Path, fake_requirements) -> None:
     with _patch_adapter(fake_requirements):
-        runner = ExperimentRunner(out_dir=str(tmp_path))
+        runner = ExperimentRunner(out_dir=str(tmp_path), trace_dir=str(tmp_path / "traces"))
         config = RunConfig(
             strategy_name="fake",
             model="fake/model",
@@ -126,7 +126,7 @@ def test_runner_persists_results_json(tmp_path: Path, fake_requirements) -> None
 
 def test_runner_metrics_moscow_distribution_sums_to_one(tmp_path: Path, fake_requirements) -> None:
     with _patch_adapter(fake_requirements):
-        runner = ExperimentRunner(out_dir=str(tmp_path))
+        runner = ExperimentRunner(out_dir=str(tmp_path), trace_dir=str(tmp_path / "traces"))
         config = RunConfig(
             strategy_name="fake",
             model="fake/model",
@@ -137,3 +137,50 @@ def test_runner_metrics_moscow_distribution_sums_to_one(tmp_path: Path, fake_req
 
     dist = result.metrics["moscow_distribution"]
     assert abs(sum(dist.values()) - 1.0) < 1e-6
+
+
+class FailureDetectingStrategy(OrchestrationStrategy):
+    """Fake strategy that populates state.metrics["failure_detections"]
+    the same way agents/base.py::_persist_failure_records does, to test
+    that ExperimentRunner._compute_metrics propagates it into results.json."""
+
+    @property
+    def name(self) -> str:
+        return "fake_failure"
+
+    def execute(self, requirements: list[Requirement], trace_writer=None) -> PipelineState:
+        state = PipelineState(raw_requirements=requirements)
+        state.prioritized_requirements = [
+            PrioritizedRequirement(
+                text=r.text,
+                requirement_type=RequirementType.FUNCTIONAL,
+                priority=MoSCoWPriority.MUST_HAVE,
+                priority_score=1.0,
+                priority_rank=i + 1,
+                priority_justification="fake",
+            )
+            for i, r in enumerate(requirements)
+        ]
+        state.metrics["failure_detections"] = [
+            {"requirement_id": requirements[0].id, "stage": "classify", "mode": "schema_invalid"}
+        ]
+        return state
+
+
+def test_runner_propagates_failure_detections_to_metrics(tmp_path: Path, fake_requirements) -> None:
+    with _patch_adapter(fake_requirements):
+        runner = ExperimentRunner(out_dir=str(tmp_path), trace_dir=str(tmp_path / "traces"))
+        config = RunConfig(
+            strategy_name="fake_failure",
+            model="fake/model",
+            dataset_path="datasets/data/promise_nfr/promise_nfr_pt.csv",
+            n_samples=5,
+        )
+        result = runner.execute(FailureDetectingStrategy(), config)
+
+    assert result.metrics["failure_detections"] == [
+        {"requirement_id": fake_requirements[0].id, "stage": "classify", "mode": "schema_invalid"}
+    ]
+    results_files = list(tmp_path.glob("**/results.json"))
+    data = json.loads(results_files[0].read_text())
+    assert data["metrics"]["failure_detections"]

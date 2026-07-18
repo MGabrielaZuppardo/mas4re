@@ -33,7 +33,7 @@ jobs:
         run: ruff format --check .
 
       - name: Mypy — typecheck
-        run: mypy agents config domain evaluation llm prompts --ignore-missing-imports
+        run: mypy agents config domain evaluation llm prompts pipeline --ignore-missing-imports
 
   unit-tests:
     name: Testes Unitários
