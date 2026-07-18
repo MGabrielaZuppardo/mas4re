@@ -4,6 +4,7 @@ import pytest
 
 from agents.two_call_baseline import TwoCallBaselineAgent
 from domain.enums import Lang, MoSCoWPriority, RequirementType
+from domain.failures import FailureMode
 from domain.models import PipelineState, Requirement
 
 
@@ -141,6 +142,14 @@ class TestRun:
         assert len(result.prioritized_requirements) == 1
         assert result.prioritized_requirements[0].priority == MoSCoWPriority.MUST_HAVE
         assert result.model_used == agent.model
+
+    def test_run_registra_failure_detections_em_falha(self, agent, sample_requirement):
+        state = PipelineState(raw_requirements=[sample_requirement])
+        with patch.object(agent, "_process_single", side_effect=RuntimeError("erro")):
+            result = agent.run(state)
+
+        detections = result.metrics["failure_detections"]
+        assert any(d["mode"] == FailureMode.SCHEMA_INVALID.value for d in detections)
 
 
 class TestConfig:

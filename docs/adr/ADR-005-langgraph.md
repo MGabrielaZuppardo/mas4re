@@ -101,10 +101,11 @@ atual — `pipeline/graph.py` implementa `StateGraph(PipelineState)` com
 
 Fase 2 avançou parcialmente e em direção diferente da planejada:
 
-- `cross_check_node` (ADR-003) **já está implementado**
-  (`pipeline/nodes/cross_check_node.py`), mas ainda **não está plugado**
-  nas arestas de `pipeline/graph.py` — o grafo compilado continua sendo
-  só o de Fase 1.
+- `cross_check_node` (ADR-003) **agora está implementado e plugado**
+  (2026-07-18): `pipeline/graph.py` compila
+  `classifier → prioritizer → cross_check → END`, três nós — o grafo já não
+  é mais só o de Fase 1. Ver nota de atualização em ADR-003 para o detalhe
+  completo (inclui também o religamento do `DetectorChain`).
 - O `elicitor_node` (ADR-010) **não foi apenas adiado — foi descartado**:
   `pipeline/nodes/elicitor_node.py` documenta explicitamente que o
   elicitor "foi escopado para fora do MAS4RE v1 (SBCARS 2026)", virando

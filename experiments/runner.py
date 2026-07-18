@@ -89,9 +89,11 @@ class ExperimentRunner:
         trace.jsonl    — per-requirement latency + parse outcome (TraceWriter)
     """
 
-    def __init__(self, out_dir: str = "experiments/results") -> None:
+    def __init__(self, out_dir: str = "experiments/results", trace_dir: str | None = None) -> None:
         self._out = Path(out_dir)
         self._out.mkdir(parents=True, exist_ok=True)
+        self._trace_dir = Path(trace_dir) if trace_dir is not None else _TRACE_DIR
+        self._trace_dir.mkdir(parents=True, exist_ok=True)
 
     def _build_manifest(
         self,
@@ -134,6 +136,10 @@ class ExperimentRunner:
             metrics["moscow_distribution"] = compute_moscow_distribution(
                 state.prioritized_requirements
             )
+        if "inter_agent_conflicts" in state.metrics:
+            metrics["inter_agent_conflicts"] = state.metrics["inter_agent_conflicts"]
+        if "failure_detections" in state.metrics:
+            metrics["failure_detections"] = state.metrics["failure_detections"]
         return metrics
 
     def execute(self, strategy: OrchestrationStrategy, config: RunConfig) -> RunResult:
@@ -151,7 +157,7 @@ class ExperimentRunner:
         )
         run_path = self._out / run_id
         run_path.mkdir(parents=True, exist_ok=True)
-        trace_path = _TRACE_DIR / f"{run_id}.jsonl"
+        trace_path = self._trace_dir / f"{run_id}.jsonl"
 
         logger.info(
             "Run start | run_id=%s | strategy=%s | model=%s | lang=%s | n=%d",
@@ -163,7 +169,7 @@ class ExperimentRunner:
         )
 
         start = time.perf_counter()
-        with TraceWriter(output_dir=_TRACE_DIR, run_id=run_id) as tw:
+        with TraceWriter(output_dir=self._trace_dir, run_id=run_id) as tw:
             state = strategy.execute(requirements, trace_writer=tw)
         elapsed = time.perf_counter() - start
 

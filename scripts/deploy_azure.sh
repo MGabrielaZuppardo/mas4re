@@ -141,6 +141,14 @@ else
     --resource-group "$RESOURCE_GROUP" \
     --query "name" -o tsv 2>/dev/null || echo "")
 
+  JOB_CREATE_LOG=$(mktemp)
+  chmod 600 "$JOB_CREATE_LOG"
+  trap 'rm -f "$JOB_CREATE_LOG"' EXIT
+
+  # Segredos (API key, connection string) são gravados via --secrets e
+  # referenciados nas env-vars com secretref: — o Azure CLI nunca ecoa o
+  # valor de volta no stdout/stderr, ao contrário de passá-los diretamente
+  # em --env-vars.
   if [[ -z "$JOB_EXISTS" ]]; then
     az containerapp job create \
       --name "$JOB_NAME" \
@@ -157,21 +165,24 @@ else
       --registry-password "$REGISTRY_PASS" \
       --cpu 2 \
       --memory 4Gi \
+      --secrets \
+        "azure-openai-api-key=$AZURE_OPENAI_API_KEY" \
+        "azure-storage-conn=${AZURE_STORAGE_CONNECTION_STRING:-}" \
       --env-vars \
-        "AZURE_OPENAI_API_KEY=$AZURE_OPENAI_API_KEY" \
+        "AZURE_OPENAI_API_KEY=secretref:azure-openai-api-key" \
         "AZURE_OPENAI_ENDPOINT=$AZURE_OPENAI_ENDPOINT" \
         "CLASSIFIER_MODEL=$CLASSIFIER_MODEL" \
         "PRIORITIZER_MODEL=$PRIORITIZER_MODEL" \
         "GRID_WORKERS=$GRID_WORKERS" \
         "GRID_RESUME=$GRID_RESUME" \
         "GRID_N=$GRID_N" \
-        "AZURE_STORAGE_CONNECTION_STRING=${AZURE_STORAGE_CONNECTION_STRING:-}" \
+        "AZURE_STORAGE_CONNECTION_STRING=secretref:azure-storage-conn" \
         "BLOB_CONTAINER=${BLOB_CONTAINER:-experiments}" \
       --command "bash" \
       --args "scripts/entrypoint_grid.sh" \
-      2>&1 | tee /tmp/job_create.log
+      2>&1 | tee "$JOB_CREATE_LOG"
     # Se falhou por auth, tenta com admin explícito
-    if grep -q "UNAUTHORIZED\|authentication" /tmp/job_create.log 2>/dev/null; then
+    if grep -q "UNAUTHORIZED\|authentication" "$JOB_CREATE_LOG" 2>/dev/null; then
       echo "  Tentando com credenciais admin explícitas..."
       REGISTRY_PASS2=$(az acr credential show --name "$REGISTRY_NAME" --query "passwords[1].value" -o tsv)
       az containerapp job create \
@@ -189,15 +200,18 @@ else
         --registry-password "$REGISTRY_PASS2" \
         --cpu 2 \
         --memory 4Gi \
+        --secrets \
+          "azure-openai-api-key=$AZURE_OPENAI_API_KEY" \
+          "azure-storage-conn=${AZURE_STORAGE_CONNECTION_STRING:-}" \
         --env-vars \
-          "AZURE_OPENAI_API_KEY=$AZURE_OPENAI_API_KEY" \
+          "AZURE_OPENAI_API_KEY=secretref:azure-openai-api-key" \
           "AZURE_OPENAI_ENDPOINT=$AZURE_OPENAI_ENDPOINT" \
           "CLASSIFIER_MODEL=$CLASSIFIER_MODEL" \
           "PRIORITIZER_MODEL=$PRIORITIZER_MODEL" \
           "GRID_WORKERS=$GRID_WORKERS" \
           "GRID_RESUME=$GRID_RESUME" \
           "GRID_N=$GRID_N" \
-          "AZURE_STORAGE_CONNECTION_STRING=${AZURE_STORAGE_CONNECTION_STRING:-}" \
+          "AZURE_STORAGE_CONNECTION_STRING=secretref:azure-storage-conn" \
           "BLOB_CONTAINER=${BLOB_CONTAINER:-experiments}" \
         --command "bash" \
         --args "scripts/entrypoint_grid.sh"

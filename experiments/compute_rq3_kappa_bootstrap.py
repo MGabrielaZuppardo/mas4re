@@ -31,6 +31,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import numpy as np
 
+from experiments.bootstrap_ci import paired_bootstrap_ci
 from experiments.compute_stats import (
     _find_latest_csv,
     fleiss_kappa,
@@ -78,29 +79,14 @@ def bootstrap_delta_kappa(
         boot_pl = [matrix_pl[i] for i in idx]
         deltas[b] = fleiss_kappa(boot_pl) - fleiss_kappa(boot_tc)
 
-    ci_low, ci_high = np.percentile(deltas, [2.5, 97.5])
-    bonf_pct = [100 * ALPHA_BONF / 2, 100 * (1 - ALPHA_BONF / 2)]
-    ci_bonf_low, ci_bonf_high = np.percentile(deltas, bonf_pct)
-    # Fraction of resamples on the opposite side of 0 from the observed
-    # delta (two-sided) -- a bootstrap-based analogue to a p-value.
-    if observed_delta >= 0:
-        p_boot = float(np.mean(deltas <= 0)) * 2
-    else:
-        p_boot = float(np.mean(deltas >= 0)) * 2
-    p_boot = min(p_boot, 1.0)
+    ci_result = paired_bootstrap_ci(observed_delta, deltas, ALPHA, N_COMPARISONS)
 
     return {
         "n_aligned": n,
         "kappa_two_call": round(float(observed_kappa_tc), 4),
         "kappa_pipeline": round(float(observed_kappa_pl), 4),
         "delta_kappa": round(float(observed_delta), 4),
-        "ci95_low": round(float(ci_low), 4),
-        "ci95_high": round(float(ci_high), 4),
-        "ci_includes_zero": bool(ci_low <= 0 <= ci_high),
-        "ci_bonferroni_low": round(float(ci_bonf_low), 4),
-        "ci_bonferroni_high": round(float(ci_bonf_high), 4),
-        "ci_bonferroni_includes_zero": bool(ci_bonf_low <= 0 <= ci_bonf_high),
-        "p_bootstrap_two_sided": round(p_boot, 4),
+        **ci_result,
     }
 
 

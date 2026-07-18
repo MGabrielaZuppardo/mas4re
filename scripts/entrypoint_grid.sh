@@ -17,8 +17,10 @@ if [[ -n "$N" ]]; then
 fi
 
 echo "Iniciando: $CMD"
+set +e
 $CMD
 EXIT_CODE=$?
+set -e
 
 if [[ -n "${AZURE_STORAGE_CONNECTION_STRING:-}" ]]; then
   echo "Enviando resultados para blob storage..."

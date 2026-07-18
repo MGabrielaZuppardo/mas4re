@@ -18,7 +18,8 @@ What is kept identical to the pipeline:
   - Prompt templates (build_classification_messages / build_prioritization_messages)
   - Same parser logic (regex JSON extraction + _normalize_nfr_category)
   - Same concurrency (ThreadPoolExecutor, max_workers=3)
-  - Same retry policy (tenacity, 3 attempts, 30–240s backoff)
+  - Same retry policy (tenacity, 3 attempts, capped exponential backoff via
+    settings.retry_wait_* — see agents/base.py::llm_retry)
   - Same LLM and temperature
 
 EXPERIMENTAL ROLE
@@ -42,22 +43,19 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from tenacity import (
-    retry,
-    retry_if_exception_type,
-    stop_after_attempt,
-    wait_exponential,
-)
 from tqdm import tqdm
 
-from agents.base import BaseAgent
-from domain.enums import Lang, MoSCoWPriority, NFRCategory, RequirementType
+from agents.base import BaseAgent, llm_retry, rank_by_priority
+from config.settings import settings
+from domain.enums import Lang, MoSCoWPriority, RequirementType
 from domain.models import (
     BaselineOutput,
     PipelineState,
     PrioritizedRequirement,
     Requirement,
 )
+from domain.nfr_normalization import NFR_ONLY_CODES, normalize_nfr_category
+from evaluation.failure_detectors import DetectionContext, default_chain
 from llm.factory import build_llm
 from prompts.v1.classification import build_classification_messages
 from prompts.v1.prioritization import build_prioritization_messages
@@ -67,81 +65,14 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-# ── NFR category normalisation (mirrored from ClassificationAgent) ────────────
+# Same uncertainty threshold the prioritization prompt assumes (see
+# prompts/v1/prioritization.py / agents/classifier.py).
+_CONFIDENCE_THRESHOLD = 0.70
 
-_VALID_CODES: frozenset[str] = frozenset(c.value for c in NFRCategory)
-_NFR_ONLY_CODES: frozenset[str] = _VALID_CODES - frozenset(t.value for t in RequirementType)
-
-_PROSE_TO_CODE: dict[str, str] = {
-    # Português
-    "disponibilidade": "A",
-    "tolerância a falhas": "FT",
-    "tolerancia a falhas": "FT",
-    "tolerância": "FT",
-    "aparência": "LF",
-    "aparencia": "LF",
-    "estética": "LF",
-    "estetica": "LF",
-    "look and feel": "LF",
-    "manutenibilidade": "MN",
-    "manutenção": "MN",
-    "manutencao": "MN",
-    "flexibilidade": "MN",
-    "documentação": "MN",
-    "suporte": "MN",
-    "operacional": "O",
-    "operacionalidade": "O",
-    "tempo de market": "O",
-    "formato de dados": "O",
-    "desempenho": "PE",
-    "tempo de resposta": "PE",
-    "portabilidade": "PO",
-    "compatibilidade": "PO",
-    "globalização": "PO",
-    "internacionalização": "PO",
-    "escalabilidade": "SC",
-    "segurança": "SE",
-    "seguranca": "SE",
-    "usabilidade": "US",
-    "acessibilidade": "US",
-    # English
-    "availability": "A",
-    "fault tolerance": "FT",
-    "reliability": "FT",
-    "reliabilidade": "FT",
-    "confiabilidade": "FT",
-    "maintainability": "MN",
-    "flexibility": "MN",
-    "documentation": "MN",
-    "operational": "O",
-    "time to market": "O",
-    "data format": "O",
-    "performance": "PE",
-    "response time": "PE",
-    "portability": "PO",
-    "compatibility": "PO",
-    "internationalization": "PO",
-    "globalization": "PO",
-    "scalability": "SC",
-    "security": "SE",
-    "usability": "US",
-    "accessibility": "US",
-}
-
-
-def _normalize_nfr_category(raw: str | None) -> str | None:
-    if raw is None:
-        return None
-    upper = raw.strip().upper()
-    if upper in _VALID_CODES:
-        return upper
-    lower = raw.strip().lower()
-    if lower in _PROSE_TO_CODE:
-        code = _PROSE_TO_CODE[lower]
-        logger.warning("nfr_category prosa mapeada | raw=%r -> %s", raw, code)
-        return code
-    logger.warning("nfr_category nao reconhecida, descartada | raw=%r", raw)
-    return None
+# Own chain instance: this agent doesn't route through BaseAgent._run_batch
+# (keeps its tqdm progress loop), so it can't reuse the module-private
+# instance in agents/base.py.
+_DETECTOR_CHAIN = default_chain()
 
 
 # ── Intermediate results: plain dataclasses, NOT Pydantic models ──────────────
@@ -208,9 +139,12 @@ class TwoCallBaselineAgent(BaseAgent[Requirement, PrioritizedRequirement]):
             state.run_id,
             state.n_requirements,
         )
-        prioritized = self._run_batch(state.raw_requirements, max_workers=3)
+        prioritized = self._run_batch_with_progress(
+            state.raw_requirements, max_workers=settings.max_workers
+        )
         state.prioritized_requirements = prioritized
         state.model_used = self.model
+        self._persist_failure_records(state)
         logger.info(
             "Two-call-baseline concluído | run_id=%s | processados=%d",
             state.run_id,
@@ -218,12 +152,7 @@ class TwoCallBaselineAgent(BaseAgent[Requirement, PrioritizedRequirement]):
         )
         return state
 
-    @retry(
-        retry=retry_if_exception_type(Exception),
-        wait=wait_exponential(multiplier=30, min=30, max=240),
-        stop=stop_after_attempt(3),
-        reraise=True,
-    )
+    @llm_retry
     def _process_single(self, requirement: Requirement) -> PrioritizedRequirement:
         """Two sequential LLM calls with no typed state between them."""
         req_text = (
@@ -270,14 +199,34 @@ class TwoCallBaselineAgent(BaseAgent[Requirement, PrioritizedRequirement]):
         )
         return PrioritizedRequirement.from_baseline(requirement, output)
 
+    def _detection_context(
+        self,
+        item: Requirement,
+        output: PrioritizedRequirement | None,
+        stage: str,
+        parsed_ok: bool,
+    ) -> DetectionContext | None:
+        return DetectionContext(
+            requirement_id=item.id,
+            stage=stage,
+            requirement_text=item.text,
+            parsed_ok=parsed_ok,
+            confidence=output.confidence if output is not None else None,
+            predicted_category=output.nfr_category if output is not None else None,
+            known_categories=set(NFR_ONLY_CODES),
+            justification=output.justification if output is not None else "",
+            confidence_threshold=_CONFIDENCE_THRESHOLD,
+        )
+
     # ── Batch execution ───────────────────────────────────────────────────────
 
-    def _run_batch(
+    def _run_batch_with_progress(
         self,
         requirements: list[Requirement],
         max_workers: int = 3,
     ) -> list[PrioritizedRequirement]:
         results: dict[str, PrioritizedRequirement] = {}
+        self._failure_records = []
         n = len(requirements)
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = {
@@ -294,25 +243,29 @@ class TwoCallBaselineAgent(BaseAgent[Requirement, PrioritizedRequirement]):
             ) as pbar:
                 for future in pbar:
                     req = futures[future]
+                    result: PrioritizedRequirement | None = None
+                    parsed_ok = True
                     try:
                         result = future.result()
                         results[req.id] = result
                         nfr = result.nfr_category or "  -"
+                        priority = result.priority.value if result.priority is not None else "?"
                         pbar.set_postfix(
                             type=result.requirement_type.value,
                             nfr=nfr,
-                            priority=result.priority.value,
+                            priority=priority,
                             conf=f"{result.confidence:.2f}",
                         )
                     except Exception as e:
+                        parsed_ok = False
                         logger.error("Falha ao processar | id=%s | erro=%s", req.id, e)
                         pbar.set_postfix(status="ERRO")
+                    ctx = self._detection_context(req, result, "two_call_baseline", parsed_ok)
+                    if ctx is not None:
+                        self._failure_records.extend(_DETECTOR_CHAIN.run(ctx))
 
         ordered = [results[r.id] for r in requirements if r.id in results]
-        ordered.sort(key=lambda r: r.priority_score or 0.0, reverse=True)
-        for rank, req in enumerate(ordered, start=1):
-            req.priority_rank = rank
-        return ordered
+        return rank_by_priority(ordered)
 
     # ── Parsers ───────────────────────────────────────────────────────────────
 
@@ -325,17 +278,17 @@ class TwoCallBaselineAgent(BaseAgent[Requirement, PrioritizedRequirement]):
             data = json.loads(match.group())
 
             raw_type = str(data.get("requirement_type", "")).strip().upper()
-            if raw_type in _NFR_ONLY_CODES:
+            if raw_type in NFR_ONLY_CODES:
                 logger.warning(
                     "Schema fix: requirement_type=%r interpretado como NF | req_id=%s",
                     raw_type,
                     req_id,
                 )
                 req_type = RequirementType.NON_FUNCTIONAL
-                inferred_nfr = _normalize_nfr_category(data.get("nfr_category") or raw_type)
+                inferred_nfr = normalize_nfr_category(data.get("nfr_category") or raw_type)
             else:
                 req_type = RequirementType(raw_type)
-                inferred_nfr = _normalize_nfr_category(data.get("nfr_category"))
+                inferred_nfr = normalize_nfr_category(data.get("nfr_category"))
 
             return _ClassificationResult(
                 requirement_type=req_type,

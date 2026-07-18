@@ -197,25 +197,24 @@ class TestExperimentRunnerTrace:
         traces_dir = tmp_path / "traces"
 
         reqs = _make_reqs(n)
-        with patch("experiments.runner._TRACE_DIR", traces_dir):
-            with patch("agents.baseline.build_llm") as mock_build:
-                mock_build.return_value = MagicMock(
-                    invoke=MagicMock(return_value=_baseline_llm_response())
-                )
-                with patch("experiments.runner.PromiseAdapter") as mock_adapter:
-                    mock_adapter.return_value.load_sample.return_value = reqs
-                    mock_adapter.return_value.load.return_value = reqs
+        with patch("agents.baseline.build_llm") as mock_build:
+            mock_build.return_value = MagicMock(
+                invoke=MagicMock(return_value=_baseline_llm_response())
+            )
+            with patch("experiments.runner.PromiseAdapter") as mock_adapter:
+                mock_adapter.return_value.load_sample.return_value = reqs
+                mock_adapter.return_value.load.return_value = reqs
 
-                    strat = BaselineStrategy(model="stub")
-                    cfg = RunConfig(
-                        strategy_name="baseline",
-                        model="stub",
-                        dataset_path="fake.csv",
-                        lang="pt",
-                        n_samples=n,
-                    )
-                    runner = ExperimentRunner(out_dir=str(results_dir))
-                    result = runner.execute(strat, cfg)
+                strat = BaselineStrategy(model="stub")
+                cfg = RunConfig(
+                    strategy_name="baseline",
+                    model="stub",
+                    dataset_path="fake.csv",
+                    lang="pt",
+                    n_samples=n,
+                )
+                runner = ExperimentRunner(out_dir=str(results_dir), trace_dir=str(traces_dir))
+                result = runner.execute(strat, cfg)
         return result, results_dir, traces_dir
 
     def test_run_result_has_run_id(self, tmp_path: Path) -> None:

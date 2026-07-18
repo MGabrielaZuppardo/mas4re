@@ -34,19 +34,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from config.logging import configure_logging
 from domain.enums import Lang
 from experiments.runner import ExperimentRunner, RunConfig
 from experiments.strategy import TwoCallBaselineStrategy
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
-    datefmt="%H:%M:%S",
-    handlers=[
-        logging.StreamHandler(sys.stdout),
-        logging.FileHandler("experiments/ablation_grid.log", encoding="utf-8"),
-    ],
-)
 logger = logging.getLogger(__name__)
 
 # ── Grid configuration ─────────────────────────────────────────────────────────
@@ -303,4 +295,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    configure_logging(log_file="experiments/ablation_grid.log")
     main()

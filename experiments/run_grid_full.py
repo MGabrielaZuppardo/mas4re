@@ -27,19 +27,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from config.logging import configure_logging
 from domain.enums import Lang
 from experiments.runner import ExperimentRunner, RunConfig
 from experiments.strategy import BaselineStrategy, PipelineStrategy
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
-    datefmt="%H:%M:%S",
-    handlers=[
-        logging.StreamHandler(sys.stdout),
-        logging.FileHandler("experiments/grid_full.log", encoding="utf-8"),
-    ],
-)
 logger = logging.getLogger(__name__)
 
 # ── Configuração do grid ───────────────────────────────────────────────────────
@@ -324,4 +316,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    configure_logging(log_file="experiments/grid_full.log")
     main()

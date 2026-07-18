@@ -1,9 +1,11 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
+from pydantic import ValidationError
 
 from agents.prioritizer import PrioritizationAgent
 from domain.enums import MoSCoWPriority, RequirementType
+from domain.failures import FailureMode
 from domain.models import (
     ClassificationOutput,
     ClassifiedRequirement,
@@ -109,7 +111,7 @@ class TestPrioritizationAgentUnit:
         )
         with patch.object(agent, "prioritize_batch", return_value=[]) as mock:
             agent.run(state)
-            mock.assert_called_once_with(classified_requirements, max_workers=3)
+            mock.assert_called_once_with(classified_requirements)
 
     def test_run_retorna_priorizados(self, agent, classified_requirements):
         mock_prioritized = [make_prioritized(classified_requirements[0], score=0.9)]
@@ -174,3 +176,42 @@ class TestPrioritizationAgentUnit:
 
         with pytest.raises(ConnectionError):
             agent._process_single.__wrapped__(agent, req)
+
+    def test_process_single_priority_score_invalido_propaga_validation_error(
+        self, agent, classified_requirements
+    ):
+        """Structured-but-invalid output (priority_score out of [0,1]) must NOT
+        be silently swallowed into the safe fallback like a JSON decode
+        failure — it should propagate as a ValidationError so @llm_retry
+        re-queries the LLM and, on exhaustion, DetectorChain sees
+        parsed_ok=False."""
+        req = classified_requirements[0]
+        mock_response = MagicMock()
+        mock_response.content = (
+            '{"priority": "M", "priority_score": 1.5, "priority_rank": 1, "justification": "ok"}'
+        )
+        agent._llm.invoke = MagicMock(return_value=mock_response)
+
+        with pytest.raises(ValidationError):
+            agent._process_single.__wrapped__(agent, req)
+
+    # ── failure detection (SQ3, ADR-003) ──────────────────────────────────────
+
+    def test_prioritize_batch_falha_registra_schema_invalid(self, agent, classified_requirements):
+        with patch.object(agent, "_process_single", side_effect=RuntimeError("erro")):
+            agent.prioritize_batch(classified_requirements)
+
+        modes = {r.mode for r in agent._failure_records}
+        assert FailureMode.SCHEMA_INVALID in modes
+
+    def test_run_persiste_failure_detections_no_estado(self, agent, classified_requirements):
+        state = PipelineState(
+            run_id="run-test",
+            raw_requirements=[],
+            classified_requirements=classified_requirements,
+        )
+        with patch.object(agent, "_process_single", side_effect=RuntimeError("erro")):
+            result = agent.run(state)
+
+        assert "failure_detections" in result.metrics
+        assert len(result.metrics["failure_detections"]) == len(classified_requirements)

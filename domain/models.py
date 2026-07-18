@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+import operator
 import uuid
-from datetime import datetime
-from typing import Any
+from datetime import UTC, datetime
+from typing import Annotated, Any
 
 from pydantic import BaseModel, Field, field_validator
 
 from domain.enums import MoSCoWPriority, RequirementType
+from domain.failures import FailureRecord
 
 
 class Requirement(BaseModel):
@@ -129,7 +131,7 @@ class PipelineState(BaseModel):
     """Estado compartilhado entre os agentes no pipeline LangGraph."""
 
     run_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    started_at: datetime = Field(default_factory=datetime.utcnow)
+    started_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     model_used: str = Field(default="")
 
     raw_requirements: list[Requirement] = Field(default_factory=list)
@@ -138,6 +140,30 @@ class PipelineState(BaseModel):
 
     errors: list[str] = Field(default_factory=list)
     metrics: dict[str, Any] = Field(default_factory=dict)
+
+    # ── Streaming-pipeline-only scratch fields (pipeline/graph_streaming.py) ──
+    #
+    # NOT touched by BaselineStrategy/TwoCallBaselineStrategy or the batch
+    # pipeline/graph.py — those never populate these. Deliberately kept
+    # separate from classified_requirements/prioritized_requirements above
+    # (rather than annotating those with operator.add directly) because
+    # classifier_node/prioritizer_node/cross_check_node return the *entire*
+    # mutated PipelineState object at every step; a reducer on a public field
+    # would re-add that already-accumulated value on every subsequent node's
+    # return, doubling it each time. These fields are only ever written via
+    # process_item_node's Send-dispatched branches (one small per-item append
+    # each), and _aggregate_node reads them once to compute the final,
+    # correctly-ordered/ranked values it writes into the public fields above
+    # as a plain overwrite.
+    stream_classified: Annotated[list[ClassifiedRequirement], operator.add] = Field(
+        default_factory=list, exclude=True
+    )
+    stream_prioritized: Annotated[list[PrioritizedRequirement], operator.add] = Field(
+        default_factory=list, exclude=True
+    )
+    failure_records: Annotated[list[FailureRecord], operator.add] = Field(
+        default_factory=list, exclude=True
+    )
 
     @property
     def n_requirements(self) -> int:

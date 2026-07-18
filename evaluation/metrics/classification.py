@@ -36,6 +36,7 @@ def compute_classification_metrics(
         Dicionário com as métricas calculadas.
     """
     gt_map = {r.id: r for r in ground_truth}
+    pred_map = {r.id: r for r in predictions}
     common_ids = [r.id for r in predictions if r.id in gt_map]
 
     if not common_ids:
@@ -43,7 +44,7 @@ def compute_classification_metrics(
         return {}
 
     y_true = [gt_map[i].metadata["label_type"] for i in common_ids]
-    y_pred = [next(r.requirement_type.value for r in predictions if r.id == i) for i in common_ids]
+    y_pred = [pred_map[i].requirement_type.value for i in common_ids]
 
     metrics = {
         "accuracy": round(accuracy_score(y_true, y_pred), 4),

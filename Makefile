@@ -3,7 +3,7 @@
 # Comandos para reprodutibilidade dos experimentos
 # =============================================================================
 
-.PHONY: help build test test-unit test-integ lint typecheck \
+.PHONY: help build test test-unit test-integ test-regression lint typecheck \
         up up-local down pull-models clean
 
 # ── Variáveis ────────────────────────────────────────────────────────────────
@@ -35,6 +35,9 @@ test-local: ## Roda testes unitários localmente
 test-integ-local: ## Roda testes de integração localmente (requer Ollama no host)
 	$(VENV_PY) -m pytest tests/integration -v -s
 
+test-regression: ## Roda fixtures de regressão dos scripts de bootstrap (lento, ~3-4min, não faz parte do CI)
+	$(VENV_PY) -m pytest tests/regression -v
+
 # ── Qualidade de código ─────────────────────────────────────────────────────
 lint: ## Roda ruff (lint + format check)
 	$(VENV_PY) -m ruff check .
@@ -45,7 +48,7 @@ lint-fix: ## Corrige problemas de lint automaticamente
 	$(VENV_PY) -m ruff format .
 
 typecheck: ## Roda mypy
-	$(VENV_PY) -m mypy agents config domain evaluation llm prompts
+	$(VENV_PY) -m mypy agents config domain evaluation llm prompts pipeline
 
 up: ## Sobe apenas o app (Ollama externo)
 	$(COMPOSE) up app
