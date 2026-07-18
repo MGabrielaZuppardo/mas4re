@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import json
 import math
+from datetime import datetime
 from pathlib import Path
 
 import numpy as np
@@ -77,6 +78,8 @@ def main() -> None:
     print(f"Bonferroni alpha' = {ALPHA}/{N_COMPARISONS} = {ALPHA_BONF:.4f}")
     print("=" * 72)
 
+    comparisons: list[dict] = []
+
     for model in MODELS:
         slug = model.replace(":", "-")
         for lang in LANGS:
@@ -110,6 +113,39 @@ def main() -> None:
                 f"delta={p_two - p_base:+.4f}  h={h_val:+.3f} ({effect_label(h_val)})  "
                 f"p={p_val:.4g}  sig={sig}"
             )
+
+            comparisons.append(
+                {
+                    "model": model,
+                    "lang": lang,
+                    "n_pairs": len(common),
+                    "p_base": round(float(p_base), 6),
+                    "p_two_call": round(float(p_two), 6),
+                    "delta": round(float(p_two - p_base), 6),
+                    "cohens_h": round(float(h_val), 6),
+                    "h_label": effect_label(h_val),
+                    "p_value": float(p_val),
+                    "significant": bool(p_val < ALPHA_BONF),
+                }
+            )
+
+    out_path = (
+        ABLATION_DIR / f"baseline_vs_two_call_stats_{datetime.now().strftime('%Y%m%dT%H%M%S')}.json"
+    )
+    out_path.write_text(
+        json.dumps(
+            {
+                "alpha": ALPHA,
+                "n_comparisons": N_COMPARISONS,
+                "alpha_bonferroni": ALPHA_BONF,
+                "comparisons": comparisons,
+            },
+            indent=2,
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    print(f"\nResultados salvos em: {out_path}")
 
 
 if __name__ == "__main__":
