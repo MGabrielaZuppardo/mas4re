@@ -25,3 +25,10 @@ repos:
       - id: detect-private-key
       - id: no-commit-to-branch
         args: [--branch, main, --branch, develop]
+
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: [--baseline, .secrets.baseline]
+        exclude: package.lock.json

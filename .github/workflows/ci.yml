@@ -22,6 +22,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: pyproject.toml
 
       - name: Instalar dependências
         run: pip install ".[dev]"
@@ -46,6 +48,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: pyproject.toml
 
       - name: Instalar dependências
         run: pip install ".[dev]"
@@ -60,3 +64,58 @@ jobs:
           name: coverage-report
           path: coverage.xml
           retention-days: 7
+
+  security:
+    name: Segurança — Segredos & Dependências
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gitleaks — scan de segredos
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: pyproject.toml
+
+      - name: Instalar dependências
+        run: pip install .
+
+      - name: pip-audit — vulnerabilidades de dependências
+        run: pipx run pip-audit --strict --desc
+
+  docker:
+    name: Docker — Lint & Scan de Imagem
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Hadolint — lint do Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+
+      - name: Build da imagem
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: mas4re-app:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Trivy — scan de vulnerabilidades da imagem
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: mas4re-app:ci
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+          ignore-unfixed: true

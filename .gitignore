@@ -137,7 +137,9 @@ checkpoints/
 # -----------------------------------------------------------------------------
 # Secrets e segurança
 # -----------------------------------------------------------------------------
-.secrets.baseline
+# .secrets.baseline É versionado propositalmente — é o baseline de falsos
+# positivos do hook detect-secrets (ver .pre-commit-config.yaml), não um
+# arquivo de segredos em si.
 *.pem
 *.key
 *.crt
