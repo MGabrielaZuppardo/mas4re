@@ -2,7 +2,7 @@
 
 - **Status:** Proposed
 - **Data:** 2026-05-10
-- **Autor:** Gabriela Zuppardo
+- **Autor:**
 - **SQ relacionada:** SQ1, SQ3
 
 ## Contexto

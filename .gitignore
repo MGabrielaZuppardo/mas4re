@@ -167,3 +167,8 @@ $RECYCLE.BIN/
 # Docker (manter Dockerfile, ignorar volumes locais)
 # -----------------------------------------------------------------------------
 .docker/
+
+#docs
+
+docs/sbcars_artigo.md
+docs/sbcars_cronograma.md

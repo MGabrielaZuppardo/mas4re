@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "mas4re"
 version = "0.1.0"
-description = "Multi-Agent System for Requirements Engineering — UFPE MSc Dissertation"
+description = "Multi-Agent System for Requirements Engineering"
 readme = "README.md"
 requires-python = ">=3.11"
 

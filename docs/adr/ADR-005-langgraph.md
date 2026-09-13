@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Data:** 2026-05-16
-- **Autor:** Gabriela Zuppardo
+- **Autor:**
 - **SQ relacionada:** SQ2
 
 ## Contexto
