@@ -1,6 +1,6 @@
 {
   "run_id": "baseline_ollama-llama3.1-8b_en_n100_1779302056",
-  "git_commit": "ad69563428cdf3ac7eb9f073c312ae2719603371",
+  "git_commit": "Anonymous",
   "timestamp_utc": "2026-05-20T18:43:56.851997+00:00",
   "strategy": "baseline",
   "model": "ollama/llama3.1:8b",

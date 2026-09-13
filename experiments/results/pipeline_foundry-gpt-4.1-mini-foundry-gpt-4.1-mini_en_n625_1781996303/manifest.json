@@ -1,6 +1,6 @@
 {
   "run_id": "pipeline_foundry-gpt-4.1-mini-foundry-gpt-4.1-mini_en_n625_1781996303",
-  "git_commit": "unknown",
+  "git_commit": "Anonymous",
   "timestamp_utc": "2026-06-20T23:10:34.034394+00:00",
   "strategy": "pipeline",
   "model": "foundry/gpt-4.1-mini+foundry/gpt-4.1-mini",

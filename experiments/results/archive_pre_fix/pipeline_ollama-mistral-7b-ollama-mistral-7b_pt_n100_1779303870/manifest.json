@@ -1,6 +1,6 @@
 {
   "run_id": "pipeline_ollama-mistral-7b-ollama-mistral-7b_pt_n100_1779303870",
-  "git_commit": "ad69563428cdf3ac7eb9f073c312ae2719603371",
+  "git_commit": "Anonymous",
   "timestamp_utc": "2026-05-20T19:14:06.076348+00:00",
   "strategy": "pipeline",
   "model": "ollama/mistral:7b+ollama/mistral:7b",

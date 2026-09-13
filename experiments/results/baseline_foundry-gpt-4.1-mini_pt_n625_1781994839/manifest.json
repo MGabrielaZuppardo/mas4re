@@ -1,6 +1,6 @@
 {
   "run_id": "baseline_foundry-gpt-4.1-mini_pt_n625_1781994839",
-  "git_commit": "unknown",
+  "git_commit": "Anonymous",
   "timestamp_utc": "2026-06-20T22:39:35.094702+00:00",
   "strategy": "baseline",
   "model": "foundry/gpt-4.1-mini",

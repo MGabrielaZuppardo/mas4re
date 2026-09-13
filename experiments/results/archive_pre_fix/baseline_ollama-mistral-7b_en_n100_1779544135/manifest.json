@@ -1,6 +1,6 @@
 {
   "run_id": "baseline_ollama-mistral-7b_en_n100_1779544135",
-  "git_commit": "ad69563428cdf3ac7eb9f073c312ae2719603371",
+  "git_commit": "Anonymous",
   "timestamp_utc": "2026-05-23T13:57:30.609689+00:00",
   "strategy": "baseline",
   "model": "ollama/mistral:7b",

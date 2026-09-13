@@ -1,6 +1,6 @@
 {
   "run_id": "pipeline_ollama-llama3.1-8b-ollama-llama3.1-8b_en_n100_1779302637",
-  "git_commit": "ad69563428cdf3ac7eb9f073c312ae2719603371",
+  "git_commit": "Anonymous",
   "timestamp_utc": "2026-05-20T18:54:31.091449+00:00",
   "strategy": "pipeline",
   "model": "ollama/llama3.1:8b+ollama/llama3.1:8b",

@@ -1,6 +1,6 @@
 {
   "run_id": "pipeline_ollama-qwen2.5-7b-ollama-qwen2.5-7b_pt_n625_1779494530",
-  "git_commit": "ad69563428cdf3ac7eb9f073c312ae2719603371",
+  "git_commit": "Anonymous",
   "timestamp_utc": "2026-05-23T01:00:34.024913+00:00",
   "strategy": "pipeline",
   "model": "ollama/qwen2.5:7b+ollama/qwen2.5:7b",

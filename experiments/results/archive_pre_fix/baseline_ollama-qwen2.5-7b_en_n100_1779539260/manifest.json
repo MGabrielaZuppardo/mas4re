@@ -1,6 +1,6 @@
 {
   "run_id": "baseline_ollama-qwen2.5-7b_en_n100_1779539260",
-  "git_commit": "ad69563428cdf3ac7eb9f073c312ae2719603371",
+  "git_commit": "Anonymous",
   "timestamp_utc": "2026-05-23T12:36:01.966869+00:00",
   "strategy": "baseline",
   "model": "ollama/qwen2.5:7b",
