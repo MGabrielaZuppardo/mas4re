@@ -1,0 +1,156 @@
+{
+  "rq1_pipeline_vs_baseline_mcnemar": [
+    {
+      "model": "qwen2.5:7b",
+      "lang": "pt",
+      "n": 623,
+      "pipeline_only_correct": 73,
+      "baseline_only_correct": 24,
+      "p_value": 6.404732398670512e-07,
+      "p_bonferroni": 3.842839439202307e-06,
+      "sig_bonferroni": "sig"
+    },
+    {
+      "model": "qwen2.5:7b",
+      "lang": "en",
+      "n": 623,
+      "pipeline_only_correct": 39,
+      "baseline_only_correct": 24,
+      "p_value": 0.07692583360960925,
+      "p_bonferroni": 0.4615550016576555,
+      "sig_bonferroni": "NS(Bonf)"
+    },
+    {
+      "model": "llama3.1:8b",
+      "lang": "pt",
+      "n": 623,
+      "pipeline_only_correct": 48,
+      "baseline_only_correct": 13,
+      "p_value": 7.665168380445453e-06,
+      "p_bonferroni": 4.599101028267272e-05,
+      "sig_bonferroni": "sig"
+    },
+    {
+      "model": "llama3.1:8b",
+      "lang": "en",
+      "n": 623,
+      "pipeline_only_correct": 53,
+      "baseline_only_correct": 28,
+      "p_value": 0.007275502036308492,
+      "p_bonferroni": 0.04365301221785095,
+      "sig_bonferroni": "sig"
+    },
+    {
+      "model": "mistral:7b",
+      "lang": "pt",
+      "n": 623,
+      "pipeline_only_correct": 23,
+      "baseline_only_correct": 37,
+      "p_value": 0.09246098107292373,
+      "p_bonferroni": 0.5547658864375424,
+      "sig_bonferroni": "NS(Bonf)"
+    },
+    {
+      "model": "mistral:7b",
+      "lang": "en",
+      "n": 623,
+      "pipeline_only_correct": 35,
+      "baseline_only_correct": 15,
+      "p_value": 0.006600447966810918,
+      "p_bonferroni": 0.03960268780086551,
+      "sig_bonferroni": "sig"
+    }
+  ],
+  "language_effect_mcnemar_paired": [
+    {
+      "strategy": "baseline",
+      "model": "qwen2.5:7b",
+      "n_paired": 623,
+      "pt_only_correct": 13,
+      "en_only_correct": 45,
+      "p_value": 3.011590962911926e-05,
+      "p_bonferroni": 0.00027104318666207333,
+      "sig_bonferroni": "sig"
+    },
+    {
+      "strategy": "baseline",
+      "model": "llama3.1:8b",
+      "n_paired": 623,
+      "pt_only_correct": 26,
+      "en_only_correct": 57,
+      "p_value": 0.0008775517800028651,
+      "p_bonferroni": 0.007897966020025786,
+      "sig_bonferroni": "sig"
+    },
+    {
+      "strategy": "baseline",
+      "model": "mistral:7b",
+      "n_paired": 623,
+      "pt_only_correct": 30,
+      "en_only_correct": 33,
+      "p_value": 0.8013064925040663,
+      "p_bonferroni": 1.0,
+      "sig_bonferroni": "NS(Bonf)"
+    },
+    {
+      "strategy": "pipeline",
+      "model": "qwen2.5:7b",
+      "n_paired": 623,
+      "pt_only_correct": 43,
+      "en_only_correct": 41,
+      "p_value": 0.9132023622245968,
+      "p_bonferroni": 1.0,
+      "sig_bonferroni": "NS(Bonf)"
+    },
+    {
+      "strategy": "pipeline",
+      "model": "llama3.1:8b",
+      "n_paired": 623,
+      "pt_only_correct": 21,
+      "en_only_correct": 42,
+      "p_value": 0.011141407415305074,
+      "p_bonferroni": 0.10027266673774567,
+      "sig_bonferroni": "NS(Bonf)"
+    },
+    {
+      "strategy": "pipeline",
+      "model": "mistral:7b",
+      "n_paired": 623,
+      "pt_only_correct": 16,
+      "en_only_correct": 53,
+      "p_value": 9.095063055186201e-06,
+      "p_bonferroni": 8.185556749667581e-05,
+      "sig_bonferroni": "sig"
+    },
+    {
+      "strategy": "two_call_baseline",
+      "model": "qwen2.5:7b",
+      "n_paired": 623,
+      "pt_only_correct": 42,
+      "en_only_correct": 39,
+      "p_value": 0.824313215105208,
+      "p_bonferroni": 1.0,
+      "sig_bonferroni": "NS(Bonf)"
+    },
+    {
+      "strategy": "two_call_baseline",
+      "model": "llama3.1:8b",
+      "n_paired": 623,
+      "pt_only_correct": 16,
+      "en_only_correct": 44,
+      "p_value": 0.00039404324272610154,
+      "p_bonferroni": 0.003546389184534914,
+      "sig_bonferroni": "sig"
+    },
+    {
+      "strategy": "two_call_baseline",
+      "model": "mistral:7b",
+      "n_paired": 623,
+      "pt_only_correct": 16,
+      "en_only_correct": 44,
+      "p_value": 0.00039404324272610154,
+      "p_bonferroni": 0.003546389184534914,
+      "sig_bonferroni": "sig"
+    }
+  ]
+}
