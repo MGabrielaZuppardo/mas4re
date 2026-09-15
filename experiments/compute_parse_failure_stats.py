@@ -194,6 +194,63 @@ def run_language_retained(all_runs: dict) -> list[dict]:
     return results
 
 
+def _acc(run: dict, exclude_zero_conf: bool) -> float:
+    vals = []
+    for p in run.values():
+        gt = p.get("metadata", {}).get("label_type", "").upper()
+        rt = (p.get("requirement_type") or "").upper()
+        conf = p.get("confidence")
+        if not gt or not rt:
+            continue
+        if exclude_zero_conf and conf == 0.0:
+            continue
+        vals.append(int(gt == rt))
+    return float(np.mean(vals)) if vals else 0.0
+
+
+def run_rq2_retained(all_runs: dict) -> list[dict]:
+    """Delta_p (two-call - baseline) e Delta_s (pipeline - two-call), Tabela 9,
+    excluindo vs. retendo falhas de parsing. Isola a politica de exclusao como
+    unica variavel, usando a mesma logica de alinhamento em ambos os casos."""
+    print(f"\n{'=' * 72}")
+    print("RQ2 (Tabela 9) — Delta_p / Delta_s, excluído vs. retido")
+    print("=" * 72)
+
+    results = []
+    for model in MODELS:
+        for lang in LANGS:
+            base = all_runs.get(("baseline", model, lang), {})
+            two = all_runs.get(("two_call_baseline", model, lang), {})
+            pipe = all_runs.get(("pipeline", model, lang), {})
+            if not base or not two or not pipe:
+                continue
+
+            ba_x, tw_x, pi_x = _acc(base, True), _acc(two, True), _acc(pipe, True)
+            ba_r, tw_r, pi_r = _acc(base, False), _acc(two, False), _acc(pipe, False)
+            dp_x, ds_x = tw_x - ba_x, pi_x - tw_x
+            dp_r, ds_r = tw_r - ba_r, pi_r - tw_r
+            changed = abs(dp_x - dp_r) > 0.0005 or abs(ds_x - ds_r) > 0.0005
+
+            results.append(
+                {
+                    "model": model,
+                    "lang": lang,
+                    "delta_p_excluded": round(dp_x, 6),
+                    "delta_p_retained": round(dp_r, 6),
+                    "delta_s_excluded": round(ds_x, 6),
+                    "delta_s_retained": round(ds_r, 6),
+                    "changed": changed,
+                }
+            )
+            print(
+                f"  {model:<14} {lang.upper()}  "
+                f"Δp: excl={dp_x:+.4f} ret={dp_r:+.4f}   "
+                f"Δs: excl={ds_x:+.4f} ret={ds_r:+.4f}"
+                f"{'  <- CHANGED' if changed else ''}"
+            )
+    return results
+
+
 def run_metric_deltas(all_runs: dict) -> list[dict]:
     print(f"\n{'=' * 72}")
     print("Acc/F1/MCC — excluído (artigo) vs. retido, condições com falhas de parsing")
@@ -228,11 +285,13 @@ def main() -> None:
     print(f"Condições carregadas: {len(all_runs)}/18")
 
     rq1 = run_rq1_retained(all_runs)
+    rq2 = run_rq2_retained(all_runs)
     language = run_language_retained(all_runs)
     metric_deltas = run_metric_deltas(all_runs)
 
     output = {
         "rq1_pipeline_vs_baseline_retained": rq1,
+        "rq2_delta_p_delta_s_retained": rq2,
         "language_effect_retained": language,
         "metric_deltas_excluded_vs_retained": metric_deltas,
     }
