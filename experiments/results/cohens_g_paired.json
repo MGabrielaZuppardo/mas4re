@@ -1,0 +1,132 @@
+{
+  "rq1_table4_cohens_g": [
+    {
+      "model": "qwen2.5:7b",
+      "lang": "pt",
+      "n_pairs": 623,
+      "n_discordant": 97,
+      "pipe_only_correct": 73,
+      "base_only_correct": 24,
+      "cohens_g": 0.2526,
+      "magnitude": "large"
+    },
+    {
+      "model": "qwen2.5:7b",
+      "lang": "en",
+      "n_pairs": 623,
+      "n_discordant": 63,
+      "pipe_only_correct": 39,
+      "base_only_correct": 24,
+      "cohens_g": 0.119,
+      "magnitude": "small"
+    },
+    {
+      "model": "llama3.1:8b",
+      "lang": "pt",
+      "n_pairs": 623,
+      "n_discordant": 61,
+      "pipe_only_correct": 48,
+      "base_only_correct": 13,
+      "cohens_g": 0.2869,
+      "magnitude": "large"
+    },
+    {
+      "model": "llama3.1:8b",
+      "lang": "en",
+      "n_pairs": 623,
+      "n_discordant": 81,
+      "pipe_only_correct": 53,
+      "base_only_correct": 28,
+      "cohens_g": 0.1543,
+      "magnitude": "medium"
+    },
+    {
+      "model": "mistral:7b",
+      "lang": "pt",
+      "n_pairs": 623,
+      "n_discordant": 60,
+      "pipe_only_correct": 23,
+      "base_only_correct": 37,
+      "cohens_g": -0.1167,
+      "magnitude": "small"
+    },
+    {
+      "model": "mistral:7b",
+      "lang": "en",
+      "n_pairs": 623,
+      "n_discordant": 50,
+      "pipe_only_correct": 35,
+      "base_only_correct": 15,
+      "cohens_g": 0.2,
+      "magnitude": "medium"
+    }
+  ],
+  "delta_state_table9_cohens_g": [
+    {
+      "model": "qwen2.5:7b",
+      "lang": "pt",
+      "n_pairs": 623,
+      "n_discordant": 15,
+      "pipe_only_correct": 8,
+      "two_call_only_correct": 7,
+      "cohens_g": 0.0333,
+      "magnitude": "negligible",
+      "low_power_warning": true
+    },
+    {
+      "model": "qwen2.5:7b",
+      "lang": "en",
+      "n_pairs": 623,
+      "n_discordant": 4,
+      "pipe_only_correct": 3,
+      "two_call_only_correct": 1,
+      "cohens_g": 0.25,
+      "magnitude": "large",
+      "low_power_warning": true
+    },
+    {
+      "model": "llama3.1:8b",
+      "lang": "pt",
+      "n_pairs": 623,
+      "n_discordant": 10,
+      "pipe_only_correct": 8,
+      "two_call_only_correct": 2,
+      "cohens_g": 0.3,
+      "magnitude": "large",
+      "low_power_warning": true
+    },
+    {
+      "model": "llama3.1:8b",
+      "lang": "en",
+      "n_pairs": 623,
+      "n_discordant": 7,
+      "pipe_only_correct": 3,
+      "two_call_only_correct": 4,
+      "cohens_g": -0.0714,
+      "magnitude": "small",
+      "low_power_warning": true
+    },
+    {
+      "model": "mistral:7b",
+      "lang": "pt",
+      "n_pairs": 623,
+      "n_discordant": 4,
+      "pipe_only_correct": 1,
+      "two_call_only_correct": 3,
+      "cohens_g": -0.25,
+      "magnitude": "large",
+      "low_power_warning": true
+    },
+    {
+      "model": "mistral:7b",
+      "lang": "en",
+      "n_pairs": 623,
+      "n_discordant": 7,
+      "pipe_only_correct": 7,
+      "two_call_only_correct": 0,
+      "cohens_g": 0.5,
+      "magnitude": "large",
+      "low_power_warning": true
+    }
+  ]
+}
