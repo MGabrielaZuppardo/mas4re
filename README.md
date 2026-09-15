@@ -15,7 +15,9 @@ The pipeline runs fully locally via [Ollama](https://ollama.com) — no external
         ↓
   PipelineState           ← typed Pydantic state shared across agents
         ↓
-  PrioritizationAgent     ← assigns MoSCoW priority + confidence-aware routing
+  PrioritizationAgent     ← assigns MoSCoW priority (confidence-aware routing
+                             specified but not wired into this call path — see
+                             agents/prioritizer.py)
         ↓
 [Output: structured backlog + trace JSONL]
 ```
