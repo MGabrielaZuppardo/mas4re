@@ -1,0 +1,240 @@
+{
+  "rq1_pipeline_vs_baseline_retained": [
+    {
+      "model": "qwen2.5:7b",
+      "lang": "pt",
+      "n": 623,
+      "baseline_acc": 0.733547,
+      "pipeline_acc": 0.812199,
+      "cohens_h": 0.188359,
+      "p_value": 6.518158312465129e-07,
+      "p_bonferroni": 3.910894987479077e-06,
+      "sig_bonferroni": "sig"
+    },
+    {
+      "model": "qwen2.5:7b",
+      "lang": "en",
+      "n": 623,
+      "baseline_acc": 0.784912,
+      "pipeline_acc": 0.808989,
+      "cohens_h": 0.059877,
+      "p_value": 0.05878172135535886,
+      "p_bonferroni": 0.3526903281321532,
+      "sig_bonferroni": "NS(Bonf)"
+    },
+    {
+      "model": "llama3.1:8b",
+      "lang": "pt",
+      "n": 623,
+      "baseline_acc": 0.640449,
+      "pipeline_acc": 0.696629,
+      "cohens_h": 0.119442,
+      "p_value": 7.419293713577049e-06,
+      "p_bonferroni": 4.4515762281462293e-05,
+      "sig_bonferroni": "sig"
+    },
+    {
+      "model": "llama3.1:8b",
+      "lang": "en",
+      "n": 623,
+      "baseline_acc": 0.690209,
+      "pipeline_acc": 0.730337,
+      "cohens_h": 0.088507,
+      "p_value": 0.005473203572488287,
+      "p_bonferroni": 0.03283922143492972,
+      "sig_bonferroni": "sig"
+    },
+    {
+      "model": "mistral:7b",
+      "lang": "pt",
+      "n": 623,
+      "baseline_acc": 0.601926,
+      "pipeline_acc": 0.579454,
+      "cohens_h": -0.045706,
+      "p_value": 0.07070114486598297,
+      "p_bonferroni": 0.42420686919589784,
+      "sig_bonferroni": "NS(Bonf)"
+    },
+    {
+      "model": "mistral:7b",
+      "lang": "en",
+      "n": 623,
+      "baseline_acc": 0.606742,
+      "pipeline_acc": 0.638844,
+      "cohens_h": 0.066248,
+      "p_value": 0.004677734981047266,
+      "p_bonferroni": 0.028066409886283596,
+      "sig_bonferroni": "sig"
+    }
+  ],
+  "language_effect_retained": [
+    {
+      "strategy": "baseline",
+      "model": "qwen2.5:7b",
+      "pt_acc": 0.733547,
+      "en_acc": 0.784912,
+      "cohens_h": -0.120289,
+      "p_value": 0.03405925501886175,
+      "p_bonferroni": 0.30653329516975575,
+      "sig_bonferroni": "NS(Bonf)"
+    },
+    {
+      "strategy": "baseline",
+      "model": "llama3.1:8b",
+      "pt_acc": 0.640449,
+      "en_acc": 0.690209,
+      "cohens_h": -0.105517,
+      "p_value": 0.06284575684994705,
+      "p_bonferroni": 0.5656118116495235,
+      "sig_bonferroni": "NS(Bonf)"
+    },
+    {
+      "strategy": "baseline",
+      "model": "mistral:7b",
+      "pt_acc": 0.601926,
+      "en_acc": 0.606742,
+      "cohens_h": -0.009848,
+      "p_value": 0.8621475217174759,
+      "p_bonferroni": 1.0,
+      "sig_bonferroni": "NS(Bonf)"
+    },
+    {
+      "strategy": "pipeline",
+      "model": "qwen2.5:7b",
+      "pt_acc": 0.812199,
+      "en_acc": 0.808989,
+      "cohens_h": 0.008193,
+      "p_value": 0.8851630605924204,
+      "p_bonferroni": 1.0,
+      "sig_bonferroni": "NS(Bonf)"
+    },
+    {
+      "strategy": "pipeline",
+      "model": "llama3.1:8b",
+      "pt_acc": 0.696629,
+      "en_acc": 0.730337,
+      "cohens_h": -0.074582,
+      "p_value": 0.1884488153776327,
+      "p_bonferroni": 1.0,
+      "sig_bonferroni": "NS(Bonf)"
+    },
+    {
+      "strategy": "pipeline",
+      "model": "mistral:7b",
+      "pt_acc": 0.579454,
+      "en_acc": 0.638844,
+      "cohens_h": -0.121802,
+      "p_value": 0.031773549761255876,
+      "p_bonferroni": 0.2859619478513029,
+      "sig_bonferroni": "NS(Bonf)"
+    },
+    {
+      "strategy": "two_call_baseline",
+      "model": "qwen2.5:7b",
+      "pt_acc": 0.810594,
+      "en_acc": 0.805778,
+      "cohens_h": 0.012231,
+      "p_value": 0.82925657086753,
+      "p_bonferroni": 1.0,
+      "sig_bonferroni": "NS(Bonf)"
+    },
+    {
+      "strategy": "two_call_baseline",
+      "model": "llama3.1:8b",
+      "pt_acc": 0.686998,
+      "en_acc": 0.731942,
+      "cohens_h": -0.09906,
+      "p_value": 0.08074589047096078,
+      "p_bonferroni": 0.7267130142386471,
+      "sig_bonferroni": "NS(Bonf)"
+    },
+    {
+      "strategy": "two_call_baseline",
+      "model": "mistral:7b",
+      "pt_acc": 0.582665,
+      "en_acc": 0.627608,
+      "cohens_h": -0.09198,
+      "p_value": 0.10480435921105258,
+      "p_bonferroni": 0.9432392328994732,
+      "sig_bonferroni": "NS(Bonf)"
+    }
+  ],
+  "metric_deltas_excluded_vs_retained": [
+    {
+      "strategy": "baseline",
+      "model": "llama3.1:8b",
+      "lang": "en",
+      "n_total": 623,
+      "n_excluded": 33,
+      "excluded": {
+        "acc": 0.7288135593220338,
+        "f1_macro": 0.7247139241096945,
+        "mcc": 0.5584671714928626
+      },
+      "retained": {
+        "acc": 0.6902086677367576,
+        "f1_macro": 0.6860149629842405,
+        "mcc": 0.511442385418566
+      },
+      "delta_acc": -0.038604891585276246,
+      "delta_f1_macro": -0.03869896112545401
+    },
+    {
+      "strategy": "pipeline",
+      "model": "qwen2.5:7b",
+      "lang": "pt",
+      "n_total": 623,
+      "n_excluded": 2,
+      "excluded": {
+        "acc": 0.8148148148148148,
+        "f1_macro": 0.8131852033996291,
+        "mcc": 0.6394331921935149
+      },
+      "retained": {
+        "acc": 0.812199036918138,
+        "f1_macro": 0.8105570932907099,
+        "mcc": 0.6350150096930098
+      },
+      "delta_acc": -0.002615777896676774,
+      "delta_f1_macro": -0.0026281101089191683
+    },
+    {
+      "strategy": "pipeline",
+      "model": "mistral:7b",
+      "lang": "en",
+      "n_total": 623,
+      "n_excluded": 1,
+      "excluded": {
+        "acc": 0.6382636655948553,
+        "f1_macro": 0.6284674381376383,
+        "mcc": 0.4404251621922977
+      },
+      "retained": {
+        "acc": 0.6388443017656501,
+        "f1_macro": 0.6288966840955722,
+        "mcc": 0.44089721488085676
+      },
+      "delta_acc": 0.000580636170794846,
+      "delta_f1_macro": 0.0004292459579339214
+    },
+    {
+      "strategy": "two_call_baseline",
+      "model": "mistral:7b",
+      "lang": "en",
+      "n_total": 623,
+      "n_excluded": 2,
+      "excluded": {
+        "acc": 0.6264090177133655,
+        "f1_macro": 0.6149784068072006,
+        "mcc": 0.42510156735654037
+      },
+      "retained": {
+        "acc": 0.6276083467094703,
+        "f1_macro": 0.6158491207926686,
+        "mcc": 0.42603669354143425
+      },
+      "delta_acc": 0.0011993289961047537,
+      "delta_f1_macro": 0.0008707139854680079
+    }
+  ]
+}
