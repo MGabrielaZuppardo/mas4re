@@ -3,15 +3,15 @@
     {
       "model": "qwen2.5:7b",
       "lang": "pt",
-      "n": 623,
-      "baseline_acc": 0.733547,
-      "pipeline_acc": 0.812199,
-      "delta_acc": 0.078652,
-      "cohens_h": 0.188359,
+      "n": 621,
+      "baseline_acc": 0.7343,
+      "pipeline_acc": 0.814815,
+      "delta_acc": 0.080515,
+      "cohens_h": 0.193372,
       "magnitude": "negligible",
-      "p_value": 6.518158312465129e-07,
+      "p_value": 3.3412791127020037e-07,
       "sig": "***",
-      "p_bonferroni": 3.910894987479077e-06,
+      "p_bonferroni": 2.004767467621202e-06,
       "sig_bonferroni": "sig"
     },
     {
@@ -45,16 +45,16 @@
     {
       "model": "llama3.1:8b",
       "lang": "en",
-      "n": 623,
-      "baseline_acc": 0.690209,
-      "pipeline_acc": 0.730337,
-      "delta_acc": 0.040128,
-      "cohens_h": 0.088507,
+      "n": 590,
+      "baseline_acc": 0.728814,
+      "pipeline_acc": 0.723729,
+      "delta_acc": -0.005085,
+      "cohens_h": -0.011404,
       "magnitude": "negligible",
-      "p_value": 0.005473203572488287,
-      "sig": "**",
-      "p_bonferroni": 0.03283922143492972,
-      "sig_bonferroni": "sig"
+      "p_value": 0.6802795473344503,
+      "sig": "ns",
+      "p_bonferroni": 1.0,
+      "sig_bonferroni": "NS(Bonf)"
     },
     {
       "model": "mistral:7b",
@@ -73,11 +73,11 @@
     {
       "model": "mistral:7b",
       "lang": "en",
-      "n": 623,
-      "baseline_acc": 0.606742,
-      "pipeline_acc": 0.638844,
-      "delta_acc": 0.032103,
-      "cohens_h": 0.066248,
+      "n": 622,
+      "baseline_acc": 0.606109,
+      "pipeline_acc": 0.638264,
+      "delta_acc": 0.032154,
+      "cohens_h": 0.066334,
       "magnitude": "negligible",
       "p_value": 0.004677734981047266,
       "sig": "**",
@@ -103,14 +103,14 @@
       "strategy": "baseline",
       "model": "llama3.1:8b",
       "pt_acc": 0.640449,
-      "en_acc": 0.690209,
-      "delta_pt_minus_en": -0.049759,
-      "cohens_h": -0.105517,
+      "en_acc": 0.728814,
+      "delta_pt_minus_en": -0.088364,
+      "cohens_h": -0.190594,
       "magnitude": "negligible",
-      "p_value": 0.06284575684994705,
-      "sig": "ns",
-      "p_bonferroni": 0.5656118116495235,
-      "sig_bonferroni": "NS(Bonf)"
+      "p_value": 0.0009479708523298001,
+      "sig": "***",
+      "p_bonferroni": 0.0085317376709682,
+      "sig_bonferroni": "sig"
     },
     {
       "strategy": "baseline",
@@ -128,12 +128,12 @@
     {
       "strategy": "pipeline",
       "model": "qwen2.5:7b",
-      "pt_acc": 0.812199,
+      "pt_acc": 0.814815,
       "en_acc": 0.808989,
-      "delta_pt_minus_en": 0.00321,
-      "cohens_h": 0.008193,
+      "delta_pt_minus_en": 0.005826,
+      "cohens_h": 0.014909,
       "magnitude": "negligible",
-      "p_value": 0.8851630605924204,
+      "p_value": 0.7927919604352501,
       "sig": "ns",
       "p_bonferroni": 1.0,
       "sig_bonferroni": "NS(Bonf)"
@@ -155,13 +155,13 @@
       "strategy": "pipeline",
       "model": "mistral:7b",
       "pt_acc": 0.579454,
-      "en_acc": 0.638844,
-      "delta_pt_minus_en": -0.05939,
-      "cohens_h": -0.121802,
+      "en_acc": 0.638264,
+      "delta_pt_minus_en": -0.058809,
+      "cohens_h": -0.120594,
       "magnitude": "negligible",
-      "p_value": 0.031773549761255876,
+      "p_value": 0.0335787877870963,
       "sig": "*",
-      "p_bonferroni": 0.2859619478513029,
+      "p_bonferroni": 0.30220909008386665,
       "sig_bonferroni": "NS(Bonf)"
     },
     {
@@ -194,13 +194,13 @@
       "strategy": "two_call_baseline",
       "model": "mistral:7b",
       "pt_acc": 0.582665,
-      "en_acc": 0.627608,
-      "delta_pt_minus_en": -0.044944,
-      "cohens_h": -0.09198,
+      "en_acc": 0.626409,
+      "delta_pt_minus_en": -0.043744,
+      "cohens_h": -0.0895,
       "magnitude": "negligible",
-      "p_value": 0.10480435921105258,
+      "p_value": 0.11479558327958614,
       "sig": "ns",
-      "p_bonferroni": 0.9432392328994732,
+      "p_bonferroni": 1.0,
       "sig_bonferroni": "NS(Bonf)"
     }
   ],
@@ -272,8 +272,8 @@
         },
         "llama3.1:8b": {
           "M": 560,
-          "C": 9,
           "S": 53,
+          "C": 9,
           "W": 1
         },
         "mistral:7b": {
@@ -292,16 +292,16 @@
       "interpretation": "slight",
       "distributions": {
         "qwen2.5:7b": {
-          "M": 230,
           "S": 366,
+          "M": 230,
           "C": 25,
           "W": 2
         },
         "llama3.1:8b": {
           "M": 540,
+          "W": 1,
           "S": 75,
-          "C": 7,
-          "W": 1
+          "C": 7
         },
         "mistral:7b": {
           "M": 501,
@@ -327,8 +327,8 @@
         },
         "llama3.1:8b": {
           "M": 544,
-          "C": 6,
           "S": 72,
+          "C": 6,
           "W": 1
         },
         "mistral:7b": {
@@ -347,21 +347,21 @@
       "interpretation": "fair",
       "distributions": {
         "qwen2.5:7b": {
-          "M": 212,
           "S": 394,
+          "M": 212,
           "C": 16,
           "W": 1
         },
         "llama3.1:8b": {
           "M": 465,
-          "S": 155,
-          "C": 3
+          "C": 3,
+          "S": 155
         },
         "mistral:7b": {
           "M": 506,
           "S": 113,
-          "C": 3,
-          "W": 1
+          "W": 1,
+          "C": 3
         }
       }
     }
