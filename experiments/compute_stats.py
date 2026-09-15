@@ -147,6 +147,15 @@ def correct_binary(pred: dict) -> int | None:
     return int(gt == rt)
 
 
+def is_parse_failure(pred: dict) -> bool:
+    """Uniform exclusion policy stated at the start of §6: confidence == 0.0
+    marks a parse-failure fallback from the shared JSON-extraction layer, not
+    a genuine model prediction. Applied identically to every condition (38
+    outputs across 4/18 conditions) before computing accuracy/F1/MCC and the
+    paired/unpaired significance tests below."""
+    return pred.get("confidence") == 0.0
+
+
 def cohens_h(p1: float, p2: float) -> float:
     """Cohen's h = 2·arcsin(√p1) − 2·arcsin(√p2)  (Cohen, 1988)."""
 
@@ -234,6 +243,8 @@ def run_rq1(all_runs: dict) -> list[dict]:
                 for t in common
                 if correct_binary(base_run[t]) is not None
                 and correct_binary(pipe_run[t]) is not None
+                and not is_parse_failure(base_run[t])
+                and not is_parse_failure(pipe_run[t])
             ]
             if not pairs:
                 print(f"  {model:<14} {lang.upper()}  SKIP (sem dados)")
@@ -297,10 +308,14 @@ def run_rq2_language(all_runs: dict) -> list[dict]:
             pt_run = all_runs.get((strategy, model, "pt"), {})
             en_run = all_runs.get((strategy, model, "en"), {})
             pt_scores = [
-                correct_binary(v) for v in pt_run.values() if correct_binary(v) is not None
+                correct_binary(v)
+                for v in pt_run.values()
+                if correct_binary(v) is not None and not is_parse_failure(v)
             ]
             en_scores = [
-                correct_binary(v) for v in en_run.values() if correct_binary(v) is not None
+                correct_binary(v)
+                for v in en_run.values()
+                if correct_binary(v) is not None and not is_parse_failure(v)
             ]
             if not pt_scores or not en_scores:
                 print(f"  {strategy:<10} {model:<14}  SKIP (sem dados)")
