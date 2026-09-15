@@ -8,7 +8,12 @@
       "pipe_only_correct": 73,
       "base_only_correct": 24,
       "cohens_g": 0.2526,
-      "magnitude": "large"
+      "cohens_g_ci95": [
+        0.1546,
+        0.3346
+      ],
+      "magnitude": "large",
+      "verdict": "efeito_nao_negligivel_confirmado"
     },
     {
       "model": "qwen2.5:7b",
@@ -18,7 +23,12 @@
       "pipe_only_correct": 39,
       "base_only_correct": 24,
       "cohens_g": 0.119,
-      "magnitude": "small"
+      "cohens_g_ci95": [
+        -0.012,
+        0.2385
+      ],
+      "magnitude": "small",
+      "verdict": "nao_estimavel_com_confianca"
     },
     {
       "model": "llama3.1:8b",
@@ -28,7 +38,12 @@
       "pipe_only_correct": 48,
       "base_only_correct": 13,
       "cohens_g": 0.2869,
-      "magnitude": "large"
+      "cohens_g_ci95": [
+        0.1632,
+        0.3814
+      ],
+      "magnitude": "large",
+      "verdict": "efeito_nao_negligivel_confirmado"
     },
     {
       "model": "llama3.1:8b",
@@ -38,7 +53,12 @@
       "pipe_only_correct": 53,
       "base_only_correct": 28,
       "cohens_g": 0.1543,
-      "magnitude": "medium"
+      "cohens_g_ci95": [
+        0.0404,
+        0.2566
+      ],
+      "magnitude": "medium",
+      "verdict": "nao_estimavel_com_confianca"
     },
     {
       "model": "mistral:7b",
@@ -48,7 +68,12 @@
       "pipe_only_correct": 23,
       "base_only_correct": 37,
       "cohens_g": -0.1167,
-      "magnitude": "small"
+      "cohens_g_ci95": [
+        -0.2393,
+        0.0179
+      ],
+      "magnitude": "small",
+      "verdict": "nao_estimavel_com_confianca"
     },
     {
       "model": "mistral:7b",
@@ -58,7 +83,12 @@
       "pipe_only_correct": 35,
       "base_only_correct": 15,
       "cohens_g": 0.2,
-      "magnitude": "medium"
+      "cohens_g_ci95": [
+        0.0539,
+        0.3214
+      ],
+      "magnitude": "medium",
+      "verdict": "efeito_nao_negligivel_confirmado"
     }
   ],
   "delta_state_table9_cohens_g": [
@@ -70,8 +100,12 @@
       "pipe_only_correct": 8,
       "two_call_only_correct": 7,
       "cohens_g": 0.0333,
+      "cohens_g_ci95": [
+        -0.2341,
+        0.2873
+      ],
       "magnitude": "negligible",
-      "low_power_warning": true
+      "verdict": "nao_estimavel_com_confianca"
     },
     {
       "model": "qwen2.5:7b",
@@ -81,8 +115,12 @@
       "pipe_only_correct": 3,
       "two_call_only_correct": 1,
       "cohens_g": 0.25,
+      "cohens_g_ci95": [
+        -0.3059,
+        0.4937
+      ],
       "magnitude": "large",
-      "low_power_warning": true
+      "verdict": "nao_estimavel_com_confianca"
     },
     {
       "model": "llama3.1:8b",
@@ -92,8 +130,12 @@
       "pipe_only_correct": 8,
       "two_call_only_correct": 2,
       "cohens_g": 0.3,
+      "cohens_g_ci95": [
+        -0.0561,
+        0.4748
+      ],
       "magnitude": "large",
-      "low_power_warning": true
+      "verdict": "nao_estimavel_com_confianca"
     },
     {
       "model": "llama3.1:8b",
@@ -103,8 +145,12 @@
       "pipe_only_correct": 3,
       "two_call_only_correct": 4,
       "cohens_g": -0.0714,
+      "cohens_g_ci95": [
+        -0.401,
+        0.3159
+      ],
       "magnitude": "small",
-      "low_power_warning": true
+      "verdict": "nao_estimavel_com_confianca"
     },
     {
       "model": "mistral:7b",
@@ -114,8 +160,12 @@
       "pipe_only_correct": 1,
       "two_call_only_correct": 3,
       "cohens_g": -0.25,
+      "cohens_g_ci95": [
+        -0.4937,
+        0.3059
+      ],
       "magnitude": "large",
-      "low_power_warning": true
+      "verdict": "nao_estimavel_com_confianca"
     },
     {
       "model": "mistral:7b",
@@ -125,8 +175,12 @@
       "pipe_only_correct": 7,
       "two_call_only_correct": 0,
       "cohens_g": 0.5,
+      "cohens_g_ci95": [
+        0.0904,
+        0.5
+      ],
       "magnitude": "large",
-      "low_power_warning": true
+      "verdict": "efeito_nao_negligivel_confirmado"
     }
   ]
 }

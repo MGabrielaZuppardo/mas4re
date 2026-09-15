@@ -15,6 +15,16 @@ informação sobre qual arquitetura é melhor).
 Thresholds (Cohen, 1988): |g| < 0.05 negligible | < 0.15 small |
                            < 0.25 medium | >= 0.25 large
 
+Além do ponto estimado, calcula o IC 95% exato (Clopper-Pearson) sobre a
+proporção de pares discordantes e o converte para IC de g. Um IC estreito
+o bastante para caber inteiro numa única faixa de magnitude sustenta essa
+leitura com confiança; um IC que atravessa múltiplas faixas (ex.: de
+"negligible" até "large") significa que o n de pares discordantes não é
+suficiente para afirmar a magnitude do efeito com confiança — nesse caso
+o veredito correto é "não estimável com confiança neste desenho", não
+"negligible" (que é uma leitura tão arbitrária quanto qualquer outra
+dentro do IC).
+
 Uso (a partir de D:/mas4re):
     python experiments/compute_cohens_g.py
 """
@@ -24,6 +34,8 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
+
+from scipy.stats import binomtest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -75,6 +87,42 @@ def g_magnitude(g: float) -> str:
     return "large"
 
 
+def cohens_g_ci(b_disc: int, c_disc: int, confidence: float = 0.95) -> tuple[float, float]:
+    """IC exato (Clopper-Pearson) de g = P - 0.5, via binomtest.proportion_ci
+    sobre P = b_disc / (b_disc + c_disc)."""
+    n_disc = b_disc + c_disc
+    if n_disc == 0:
+        return (0.0, 0.0)
+    result = binomtest(b_disc, n_disc, 0.5, alternative="two-sided")
+    ci = result.proportion_ci(confidence_level=confidence, method="exact")
+    return (ci.low - 0.5, ci.high - 0.5)
+
+
+NEGLIGIBLE_BAND = 0.05
+
+
+def estimability_verdict(ci_low: float, ci_high: float) -> str:
+    """O que importa para a alegação do artigo ("Δstate é negligible") não é
+    se o IC cabe numa única sub-faixa fina de Cohen, mas se ele permite ou
+    não excluir a hipótese de efeito negligible (|g| < 0.05).
+
+    - Se o IC fica inteiro fora de [-0.05, +0.05] (mesmo sinal dos dois
+      lados, |g|>=0.05 nos dois extremos): "negligible" está descartado com
+      confiança — o efeito é real, magnitude aproximada dada pelo ponto.
+    - Se o IC fica inteiro dentro de [-0.05, +0.05]: "negligible" confirmado
+      com confiança (raro, exige n_discordant grande).
+    - Caso contrário (o IC cruza a fronteira de 0.05 de qualquer lado):
+      não dá para confirmar nem descartar "negligible" com confiança neste
+      n de pares discordantes — é a zona onde afirmar "negligible" é uma
+      leitura arbitrária dentre as compatíveis com o IC.
+    """
+    if ci_high < -NEGLIGIBLE_BAND or ci_low > NEGLIGIBLE_BAND:
+        return "efeito_nao_negligivel_confirmado"
+    if -NEGLIGIBLE_BAND <= ci_low and ci_high <= NEGLIGIBLE_BAND:
+        return "negligible_confirmado"
+    return "nao_estimavel_com_confianca"
+
+
 def main() -> None:
     csv_path = _find_latest_csv()
     run_meta = load_csv(csv_path)
@@ -92,6 +140,8 @@ def main() -> None:
             b_disc, c_disc, n_pairs = discordant_counts(pipe_run, base_run)
             n_disc = b_disc + c_disc
             g = cohens_g(b_disc, c_disc)
+            ci_low, ci_high = cohens_g_ci(b_disc, c_disc)
+            verdict = estimability_verdict(ci_low, ci_high)
             rq1.append(
                 {
                     "model": model,
@@ -101,12 +151,15 @@ def main() -> None:
                     "pipe_only_correct": b_disc,
                     "base_only_correct": c_disc,
                     "cohens_g": round(g, 4),
+                    "cohens_g_ci95": [round(ci_low, 4), round(ci_high, 4)],
                     "magnitude": g_magnitude(g),
+                    "verdict": verdict,
                 }
             )
             print(
                 f"  {model:<14} {lang.upper()}  n_disc={n_disc:>3}  "
-                f"(pipe={b_disc}, base={c_disc})  g={g:+.4f}  [{g_magnitude(g)}]"
+                f"(pipe={b_disc}, base={c_disc})  g={g:+.4f} [{ci_low:+.3f},{ci_high:+.3f}]  "
+                f"[{g_magnitude(g)}]  {verdict}"
             )
 
     print(f"\n{'=' * 88}")
@@ -121,6 +174,8 @@ def main() -> None:
             b_disc, c_disc, n_pairs = discordant_counts(pipe_run, two_run)
             n_disc = b_disc + c_disc
             g = cohens_g(b_disc, c_disc)
+            ci_low, ci_high = cohens_g_ci(b_disc, c_disc)
+            verdict = estimability_verdict(ci_low, ci_high)
             table9.append(
                 {
                     "model": model,
@@ -130,14 +185,15 @@ def main() -> None:
                     "pipe_only_correct": b_disc,
                     "two_call_only_correct": c_disc,
                     "cohens_g": round(g, 4),
+                    "cohens_g_ci95": [round(ci_low, 4), round(ci_high, 4)],
                     "magnitude": g_magnitude(g),
-                    "low_power_warning": n_disc < 20,
+                    "verdict": verdict,
                 }
             )
             print(
                 f"  {model:<14} {lang.upper()}  n_disc={n_disc:>3}  "
-                f"(pipe={b_disc}, 2call={c_disc})  g={g:+.4f}  [{g_magnitude(g)}]"
-                f"{'  <- n_disc<20, instavel' if n_disc < 20 else ''}"
+                f"(pipe={b_disc}, 2call={c_disc})  g={g:+.4f} [{ci_low:+.3f},{ci_high:+.3f}]  "
+                f"[{g_magnitude(g)}]  {verdict}"
             )
 
     output = {"rq1_table4_cohens_g": rq1, "delta_state_table9_cohens_g": table9}
