@@ -43,6 +43,14 @@ If NF, assign EXACTLY one of the codes below for "nfr_category" \
 {categories}"""
 
 
+def default_nfr_categories(lang: Lang) -> list[tuple[str, str]]:
+    """The PROMISE NFR+ default taxonomy used when an agent has no
+    dataset-provided nfr_categories -- same fallback build_nfr_block uses,
+    exposed so callers that need the raw (code, description) pairs (e.g.
+    agents/tools.py's taxonomy-lookup tool) don't duplicate it."""
+    return _PROMISE_CATEGORIES_PT if lang is Lang.PT else _PROMISE_CATEGORIES_EN
+
+
 def build_nfr_block(
     nfr_categories: list[tuple[str, str]] | None,
     lang: Lang,

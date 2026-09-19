@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import json
+from collections.abc import Mapping
+
 from domain.enums import Lang
 from prompts.v1._shared import build_nfr_block
 
@@ -69,10 +72,97 @@ Classify the following software requirement:
 """
 
 
+# ── Self-critique prompts (ADR-011, Madaan et al. 2023 Self-Refine) ────────────
+
+CLASSIFICATION_CRITIQUE_SYSTEM_PROMPT_PT = """\
+Você é um revisor especialista em Engenharia de Requisitos. Sua tarefa é revisar uma \
+classificação funcional/não-funcional já feita por outro especialista e decidir se ela precisa \
+de correção.
+
+Responda SEMPRE em JSON válido, sem markdown:
+{{
+  "needs_revision": true | false,
+  "issue": "<o que está errado, ou string vazia se não precisar de revisão>",
+  "revised_output": {{
+    "requirement_type": "F" | "NF",
+    "nfr_category": "<categoria>" | null,
+    "confidence": <float 0.0-1.0>,
+    "justification": "<texto>"
+  }} | null
+}}
+
+Se "needs_revision" for false, "revised_output" deve ser null.
+"""
+
+CLASSIFICATION_CRITIQUE_SYSTEM_PROMPT_EN = """\
+You are a Requirements Engineering expert reviewer. Your task is to review a \
+functional/non-functional classification already made by another expert and decide whether it \
+needs correction.
+
+Always respond with valid JSON, no markdown:
+{{
+  "needs_revision": true | false,
+  "issue": "<what is wrong, or empty string if no revision is needed>",
+  "revised_output": {{
+    "requirement_type": "F" | "NF",
+    "nfr_category": "<category>" | null,
+    "confidence": <float 0.0-1.0>,
+    "justification": "<text>"
+  }} | null
+}}
+
+If "needs_revision" is false, "revised_output" must be null.
+"""
+
+CLASSIFICATION_CRITIQUE_USER_PROMPT_PT = """\
+Requisito: \"\"\"{requirement_text}\"\"\"
+
+Classificação a revisar:
+{original_answer_json}
+"""
+
+CLASSIFICATION_CRITIQUE_USER_PROMPT_EN = """\
+Requirement: \"\"\"{requirement_text}\"\"\"
+
+Classification to review:
+{original_answer_json}
+"""
+
+
+def build_classification_critique_messages(
+    requirement_text: str,
+    original_answer: Mapping[str, object],
+    lang: Lang = Lang.PT,
+) -> list[dict[str, str]]:
+    """Constrói mensagens para a rodada de autocrítica (Self-Refine).
+
+    original_answer: os campos de ClassificationOutput já gerados
+    (requirement_type/nfr_category/confidence/justification), como dict.
+    """
+    is_pt = lang is Lang.PT
+    system = (
+        CLASSIFICATION_CRITIQUE_SYSTEM_PROMPT_PT
+        if is_pt
+        else CLASSIFICATION_CRITIQUE_SYSTEM_PROMPT_EN
+    )
+    template = (
+        CLASSIFICATION_CRITIQUE_USER_PROMPT_PT if is_pt else CLASSIFICATION_CRITIQUE_USER_PROMPT_EN
+    )
+    user = template.format(
+        requirement_text=requirement_text,
+        original_answer_json=json.dumps(original_answer, ensure_ascii=False),
+    )
+    return [
+        {"role": "system", "content": system},
+        {"role": "user", "content": user},
+    ]
+
+
 def build_classification_messages(
     requirement_text: str,
     lang: Lang = Lang.PT,
     nfr_categories: list[tuple[str, str]] | None = None,
+    few_shot_block: str = "",
 ) -> list[dict[str, str]]:
     """Constrói mensagens para a chamada LLM do classificador.
 
@@ -81,6 +171,9 @@ def build_classification_messages(
         lang: Lang.PT (português) ou Lang.EN (inglês).
         nfr_categories: Lista de (código, descrição) das categorias NFR do dataset.
                         None = sem taxonomia estruturada (prompt genérico).
+        few_shot_block: Bloco opcional de exemplos já processados no lote
+                        (memória episódica, ADR-011), prefixado à mensagem
+                        de usuário. Vazio por padrão (sem memória).
     """
     nfr_block = build_nfr_block(nfr_categories, lang)
 
@@ -92,7 +185,7 @@ def build_classification_messages(
     user_template = (
         CLASSIFICATION_USER_PROMPT_PT if lang is Lang.PT else CLASSIFICATION_USER_PROMPT_EN
     )
-    user = user_template.format(requirement_text=requirement_text)
+    user = few_shot_block + user_template.format(requirement_text=requirement_text)
 
     return [
         {"role": "system", "content": system},

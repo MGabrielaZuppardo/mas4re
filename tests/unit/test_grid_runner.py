@@ -55,7 +55,7 @@ def _baseline_llm_response() -> MagicMock:
 
 
 def _classify_llm_response() -> MagicMock:
-    mock = MagicMock()
+    mock = MagicMock(tool_calls=[])
     mock.content = json.dumps(
         {
             "requirement_type": "F",
@@ -157,6 +157,7 @@ class TestPipelineStrategyTrace:
             mock_cls.return_value = MagicMock(
                 invoke=MagicMock(return_value=_classify_llm_response())
             )
+            mock_cls.return_value.bind_tools.return_value = mock_cls.return_value
             mock_pri.return_value = MagicMock(
                 invoke=MagicMock(return_value=_prioritize_llm_response())
             )

@@ -5,6 +5,7 @@ import logging
 from typing import TYPE_CHECKING
 
 from agents.base import BaseAgent, llm_retry, rank_by_priority
+from agents.memory import EpisodicMemory, MemoryItem
 from domain.enums import Lang, MoSCoWPriority
 
 if TYPE_CHECKING:
@@ -18,7 +19,13 @@ from domain.models import (
 from evaluation.failure_detectors import DetectionContext
 from llm.factory import build_llm
 from llm.json_parser import coerce_str, extract_first_json
-from prompts.v1.prioritization import build_prioritization_messages
+from prompts.v1.prioritization import (
+    build_prioritization_critique_messages,
+    build_prioritization_messages,
+)
+
+_FEW_SHOT_HEADER_PT = "Exemplos já priorizados neste lote (referência de estilo/consistência):\n"
+_FEW_SHOT_HEADER_EN = "Examples already prioritized in this batch (style/consistency reference):\n"
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +77,11 @@ class PrioritizationAgent(BaseAgent[ClassifiedRequirement, PrioritizedRequiremen
         requirements: list[ClassifiedRequirement],
         max_workers: int | None = None,
     ) -> list[PrioritizedRequirement]:
-        """Prioriza requisitos em paralelo e aplica ranking global."""
+        """Prioriza requisitos e aplica ranking global.
+
+        Fresh memory per batch (ADR-011) -- scoped to this call.
+        """
+        self._memory = EpisodicMemory()
         ordered = self._run_batch(requirements, stage="prioritize", max_workers=max_workers)
         return rank_by_priority(ordered)
 
@@ -92,6 +103,55 @@ class PrioritizationAgent(BaseAgent[ClassifiedRequirement, PrioritizedRequiremen
             justification=output.priority_justification if output is not None else "",
         )
 
+    def _render_few_shot_block(self, requirement_text: str) -> str:
+        """CoALA episodic-memory read (ADR-011) -- see
+        ClassificationAgent._render_few_shot_block for the identical pattern."""
+        if self._memory is None:
+            return ""
+        similar: list[MemoryItem] = self._memory.retrieve_similar(requirement_text)
+        if not similar:
+            return ""
+        header = _FEW_SHOT_HEADER_PT if self._lang is Lang.PT else _FEW_SHOT_HEADER_EN
+        lines = [header]
+        lines.extend(
+            f'- "{item.text}" -> {item.output_summary} ({item.justification})\n' for item in similar
+        )
+        return "".join(lines) + "\n"
+
+    def _critique(
+        self, requirement_text: str, output: PrioritizationOutput
+    ) -> PrioritizationOutput:
+        """Self-Refine round (Madaan et al., 2023) -- see
+        ClassificationAgent._critique for the identical failure-handling
+        philosophy: degrade to the original output rather than fail the item."""
+        original = {
+            "priority": output.priority.value,
+            "priority_score": output.priority_score,
+            "priority_rank": output.priority_rank,
+            "justification": output.justification,
+        }
+        messages = build_prioritization_critique_messages(requirement_text, original, self._lang)
+        response = self._llm.invoke(messages)
+        try:
+            data = json.loads(extract_first_json(str(response.content)))
+        except Exception as e:
+            logger.warning("Autocrítica: parse falhou, mantendo original | erro=%s", e)
+            return output
+        if not data.get("needs_revision") or not data.get("revised_output"):
+            return output
+        revised = data["revised_output"]
+        try:
+            return PrioritizationOutput(
+                requirement_id=output.requirement_id,
+                priority=MoSCoWPriority(revised["priority"]),
+                priority_score=float(revised.get("priority_score", output.priority_score)),
+                priority_rank=int(revised.get("priority_rank", output.priority_rank)),
+                justification=coerce_str(revised.get("justification", output.justification)),
+            )
+        except Exception as e:
+            logger.warning("Autocrítica: revised_output inválido, mantendo original | erro=%s", e)
+            return output
+
     @llm_retry
     def _process_single(self, requirement: ClassifiedRequirement) -> PrioritizedRequirement:
         """Prioriza um requisito com retry/backoff."""
@@ -100,14 +160,25 @@ class PrioritizationAgent(BaseAgent[ClassifiedRequirement, PrioritizedRequiremen
             if self._lang is Lang.EN and requirement.text_en
             else requirement.text
         )
+        few_shot = self._render_few_shot_block(req_text)
         messages = build_prioritization_messages(
             requirement_text=req_text,
             requirement_type=requirement.requirement_type.value,
             nfr_category=requirement.nfr_category,
             lang=self._lang,
+            few_shot_block=few_shot,
         )
         response = self._llm.invoke(messages)
         output = self._parse_response(str(response.content), requirement.id)
+        output = self._critique(req_text, output)
+
+        if self._memory is not None:
+            self._memory.add(
+                requirement.id,
+                req_text,
+                output_summary=output.priority.value,
+                justification=output.justification,
+            )
         return PrioritizedRequirement.from_classified(requirement, output)
 
     def _parse_response(self, content: str, req_id: str) -> PrioritizationOutput:

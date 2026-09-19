@@ -33,10 +33,24 @@ def _user_content(messages: list[dict]) -> str:
 
 
 def _index_from_content(content: str) -> int:
+    """Index of the *current* item's REQ marker in a user message.
+
+    Since ADR-011, the batch (PipelineStrategy) path prepends a memory
+    few-shot block referencing earlier items' text -- so a message can
+    contain more than one REQ marker. The current item's own text is
+    always the one appended last (few-shot examples come first), so the
+    rightmost marker in the content is the right one, not the first.
+    """
+    best_index = -1
+    best_pos = -1
     for i in range(_N):
-        if f"REQ{i:02d}" in content:
-            return i
-    raise AssertionError(f"no REQ marker found in {content!r}")
+        pos = content.rfind(f"REQ{i:02d}")
+        if pos > best_pos:
+            best_pos = pos
+            best_index = i
+    if best_index == -1:
+        raise AssertionError(f"no REQ marker found in {content!r}")
+    return best_index
 
 
 def _classify_side_effect(messages: list[dict]) -> MagicMock:
@@ -50,7 +64,7 @@ def _classify_side_effect(messages: list[dict]) -> MagicMock:
         "confidence": confidence,
         "justification": f"reasoning about REQ{i:02d}",
     }
-    return MagicMock(content=json.dumps(payload))
+    return MagicMock(content=json.dumps(payload), tool_calls=[])
 
 
 def _prioritize_side_effect(messages: list[dict]) -> MagicMock:
@@ -70,6 +84,7 @@ def _prioritize_side_effect(messages: list[dict]) -> MagicMock:
 def mocked_llms():
     classify_llm = MagicMock()
     classify_llm.invoke.side_effect = _classify_side_effect
+    classify_llm.bind_tools.return_value = classify_llm
     prioritize_llm = MagicMock()
     prioritize_llm.invoke.side_effect = _prioritize_side_effect
     with (
@@ -118,6 +133,7 @@ def test_streaming_failure_isolation_matches_batch(mocked_llms, requirements) ->
 
     classify_llm = MagicMock()
     classify_llm.invoke.side_effect = flaky_classify
+    classify_llm.bind_tools.return_value = classify_llm
     prioritize_llm = MagicMock()
     prioritize_llm.invoke.side_effect = _prioritize_side_effect
 

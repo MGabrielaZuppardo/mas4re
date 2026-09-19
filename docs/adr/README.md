@@ -14,8 +14,8 @@ mudanças posteriores entram via novo ADR que marca o anterior como `Superseded 
 | 006 | [Logging estruturado](ADR-006-logging.md)             | Proposed | YYYY-MM-DD | infra |
 | 007 | [Idiomas EN/PT](ADR-007-idiomas.md)                   | Proposed | YYYY-MM-DD | infra |
 | 008 | [Credenciais condicionais](ADR-008-credenciais.md)    | Proposed | YYYY-MM-DD | infra |
-| 009 | [Stubs documentados](ADR-009-stubs-documentados.md)   | Proposed | YYYY-MM-DD | infra |
-| 010 | [Elicitor: anota vs modifica](ADR-010-elicitor.md)    | Proposed | YYYY-MM-DD | SQ1/SQ3 |
+| 009 | [Estratégia de coordenação condicional](ADR-009-estrategia-coordenacao-condicional.md) | Accepted | 2026-09-14 | SQ2 |
+| 011 | [Agentes agentic: memória, planejamento, ferramentas](ADR-011-agentes-agentic-memoria-planejamento-ferramentas.md) | Accepted | 2026-09-14 | SQ2 |
 
 ## Convenções
 - **Nome do arquivo:** `ADR-NNN-slug-kebab-case.md`

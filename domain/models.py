@@ -12,7 +12,7 @@ from domain.failures import FailureRecord
 
 
 class Requirement(BaseModel):
-    """Requisito de software bruto- entrada do dataset ou do Elicitor"""
+    """Requisito de software bruto — entrada do dataset."""
 
     id: str = Field(default_factory=lambda: str(uuid.uuid4())[:8])
     text: str = Field(..., min_length=5)
@@ -140,6 +140,7 @@ class PipelineState(BaseModel):
 
     errors: list[str] = Field(default_factory=list)
     metrics: dict[str, Any] = Field(default_factory=dict)
+    retry_counts: dict[str, int] = Field(default_factory=dict)
 
     # ── Streaming-pipeline-only scratch fields (pipeline/graph_streaming.py) ──
     #

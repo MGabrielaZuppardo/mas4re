@@ -28,7 +28,8 @@ _PRIORITIZER_JSON = (
 
 def _mock_llm(content: str) -> MagicMock:
     llm = MagicMock()
-    llm.invoke.return_value = MagicMock(content=content)
+    llm.invoke.return_value = MagicMock(content=content, tool_calls=[])
+    llm.bind_tools.return_value = llm
     return llm
 
 

@@ -15,6 +15,9 @@ from domain.models import (
     Requirement,
 )
 
+_NO_REVISION = MagicMock()
+_NO_REVISION.content = '{"needs_revision": false, "issue": "", "revised_output": null}'
+
 
 @pytest.fixture
 def agent():
@@ -160,14 +163,14 @@ class TestPrioritizationAgentUnit:
 
     def test_process_single_chama_llm(self, agent, classified_requirements):
         req = classified_requirements[0]
-        mock_response = MagicMock()
-        mock_response.content = (
+        primary_response = MagicMock()
+        primary_response.content = (
             '{"priority": "M", "priority_score": 0.95, "priority_rank": 1, "justification": "ok"}'
         )
-        agent._llm.invoke = MagicMock(return_value=mock_response)
+        agent._llm.invoke = MagicMock(side_effect=[primary_response, _NO_REVISION])
 
         result = agent._process_single(req)
-        agent._llm.invoke.assert_called_once()
+        assert agent._llm.invoke.call_count == 2  # geração + autocrítica (ADR-011)
         assert result.id == req.id
 
     def test_process_single_falha_propaga(self, agent, classified_requirements):
@@ -215,3 +218,81 @@ class TestPrioritizationAgentUnit:
 
         assert "failure_detections" in result.metrics
         assert len(result.metrics["failure_detections"]) == len(classified_requirements)
+
+
+class TestPrioritizationAgentAgentic:
+    """ADR-011: memory, self-critique (Self-Refine). No tool-use here --
+    the prioritizer doesn't handle NFR taxonomy directly, it just receives
+    the category the classifier already assigned."""
+
+    def test_critique_sem_revisao_mantem_saida_original(self, agent, classified_requirements):
+        req = classified_requirements[0]
+        primary = MagicMock()
+        primary.content = (
+            '{"priority": "M", "priority_score": 0.9, "priority_rank": 1, "justification": "ok"}'
+        )
+        agent._llm.invoke = MagicMock(side_effect=[primary, _NO_REVISION])
+
+        result = agent._process_single(req)
+
+        assert result.priority == MoSCoWPriority.MUST_HAVE
+        assert result.priority_score == 0.9
+
+    def test_critique_com_revisao_usa_saida_revisada(self, agent, classified_requirements):
+        req = classified_requirements[0]
+        primary = MagicMock()
+        primary.content = '{"priority": "C", "priority_score": 0.5, "priority_rank": 1, "justification": "duvidoso"}'  # noqa: E501
+        revision = MagicMock()
+        revision.content = (
+            '{"needs_revision": true, "issue": "subestimado", "revised_output": '
+            '{"priority": "M", "priority_score": 1.0, "priority_rank": 1, '
+            '"justification": "na verdade eh critico"}}'
+        )
+        agent._llm.invoke = MagicMock(side_effect=[primary, revision])
+
+        result = agent._process_single(req)
+
+        assert result.priority == MoSCoWPriority.MUST_HAVE
+        assert result.priority_score == 1.0
+
+    def test_memoria_injeta_few_shot_no_item_seguinte(self, agent, classified_requirements):
+        response = MagicMock()
+        response.content = (
+            '{"priority": "M", "priority_score": 0.9, "priority_rank": 1, "justification": "ok"}'
+        )
+        agent._llm.invoke = MagicMock(side_effect=lambda messages: response)
+
+        agent.prioritize_batch(classified_requirements[:2])
+
+        # 2 items x (geração + autocrítica) = 4 chamadas
+        assert agent._llm.invoke.call_count == 4
+        second_item_generation_messages = agent._llm.invoke.call_args_list[2].args[0]
+        user_content = next(
+            m["content"] for m in second_item_generation_messages if m["role"] == "user"
+        )
+        assert "autenticar usuários" in user_content  # texto do primeiro item, via memória
+
+    def test_batch_maior_que_warmup_congela_memoria_apos_warmup(self, agent):
+        reqs = [
+            ClassifiedRequirement.from_requirement(
+                Requirement(id=f"req-{i:02d}", text=f"O sistema deve fazer a coisa numero {i}"),
+                ClassificationOutput(
+                    requirement_id=f"req-{i:02d}",
+                    requirement_type=RequirementType.FUNCTIONAL,
+                    confidence=0.9,
+                    justification="ok",
+                ),
+            )
+            for i in range(12)
+        ]
+        response = MagicMock()
+        response.content = (
+            '{"priority": "M", "priority_score": 0.9, "priority_rank": 1, "justification": "ok"}'
+        )
+        agent._llm.invoke = MagicMock(side_effect=lambda messages: response)
+
+        results = agent.prioritize_batch(reqs)
+
+        assert len(results) == 12
+        assert agent._memory.frozen is True
+        assert len(agent._memory._items) == 10

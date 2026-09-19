@@ -90,8 +90,8 @@ compilado com LangGraph 1.1.6".
 ## Referências
 - `pipeline/{graph,state}.py`, `pipeline/nodes/{classifier,prioritizer}_node.py`
 - ADRs relacionados: ADR-002 (DI por construtor), ADR-003 (taxonomia
-  de falhas / cross-check), ADR-004 (Strategy + Runner), ADR-010
-  (Elicitor)
+  de falhas / cross-check), ADR-004 (Strategy + Runner), ADR-009
+  (estratégia de coordenação condicional)
 
 ## Nota de Atualização — 2026-07-12
 
@@ -106,10 +106,15 @@ Fase 2 avançou parcialmente e em direção diferente da planejada:
   `classifier → prioritizer → cross_check → END`, três nós — o grafo já não
   é mais só o de Fase 1. Ver nota de atualização em ADR-003 para o detalhe
   completo (inclui também o religamento do `DetectorChain`).
-- O `elicitor_node` (ADR-010) **não foi apenas adiado — foi descartado**:
-  `pipeline/nodes/elicitor_node.py` documenta explicitamente que o
-  elicitor "foi escopado para fora do MAS4RE v1 (SBCARS 2026)", virando
-  item de trabalho futuro (§7.3), não uma extensão de Fase 2 pendente.
+- Uma aresta condicional pós-`cross_check` **foi implementada** (2026-09-14,
+  ADR-009): `pipeline/graph.py::build_mediated_pipeline_graph` reenvia o
+  lote ao classifier quando há conflito, até 2 passagens. É a Condição B da
+  dissertação em andamento — coexiste com o grafo fixo de Fase 1
+  (`build_pipeline_graph`), não o substitui.
+- O elicitor como nó inicial de Fase 2 foi descartado e, nesta mesma data,
+  removido do repositório por completo (`pipeline/nodes/elicitor_node.py`
+  não existe mais) — a dissertação em andamento foca só em
+  classificação/priorização, elicitação não faz parte do escopo.
 - A citação "compilado com LangGraph 1.1.6" reflete a versão instalada
   (`pip show langgraph` confirma 1.1.6), mas `pyproject.toml` pina
   apenas `langgraph>=0.2.0` — constraint bem mais solta que a versão

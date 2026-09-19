@@ -1,12 +1,22 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
+from langchain_core.messages import ToolMessage
 from pydantic import ValidationError
 
 from agents.classifier import ClassificationAgent
 from domain.enums import NFRCategory, RequirementType
 from domain.failures import FailureMode
 from domain.models import ClassificationOutput, ClassifiedRequirement, PipelineState, Requirement
+
+_NO_REVISION = MagicMock()
+_NO_REVISION.content = '{"needs_revision": false, "issue": "", "revised_output": null}'
+
+
+def _primary_response(content: str) -> MagicMock:
+    resp = MagicMock(tool_calls=[])
+    resp.content = content
+    return resp
 
 
 @pytest.fixture
@@ -107,19 +117,20 @@ class TestClassificationAgentUnit:
 
     def test_process_single_chama_llm(self, agent):
         req = Requirement(id="req-01", text="O sistema deve logar eventos")
-        mock_response = MagicMock()
-        mock_response.content = (
-            '{"requirement_type": "F", "confidence": 0.9, "justification": "funcional"}'
+        agent._llm_with_tools.invoke = MagicMock(
+            return_value=_primary_response(
+                '{"requirement_type": "F", "confidence": 0.9, "justification": "funcional"}'
+            )
         )
-        agent._llm.invoke = MagicMock(return_value=mock_response)
+        agent._llm.invoke = MagicMock(return_value=_NO_REVISION)
 
         result = agent._process_single(req)
-        agent._llm.invoke.assert_called_once()
+        agent._llm_with_tools.invoke.assert_called_once()
         assert result.id == "req-01"
 
     def test_process_single_falha_propaga(self, agent):
         req = Requirement(id="req-01", text="texto")
-        agent._llm.invoke = MagicMock(side_effect=ConnectionError("sem conexão"))
+        agent._llm_with_tools.invoke = MagicMock(side_effect=ConnectionError("sem conexão"))
 
         with pytest.raises(ConnectionError):
             agent._process_single.__wrapped__(agent, req)
@@ -130,11 +141,11 @@ class TestClassificationAgentUnit:
         it should propagate as a ValidationError so @llm_retry re-queries the
         LLM and, on exhaustion, DetectorChain sees parsed_ok=False."""
         req = Requirement(id="req-01", text="texto")
-        mock_response = MagicMock()
-        mock_response.content = (
-            '{"requirement_type": "F", "confidence": 1.4, "justification": "ok"}'
+        agent._llm_with_tools.invoke = MagicMock(
+            return_value=_primary_response(
+                '{"requirement_type": "F", "confidence": 1.4, "justification": "ok"}'
+            )
         )
-        agent._llm.invoke = MagicMock(return_value=mock_response)
 
         with pytest.raises(ValidationError):
             agent._process_single.__wrapped__(agent, req)
@@ -167,3 +178,105 @@ class TestClassificationAgentUnit:
 
         modes = {r.mode for r in agent._failure_records}
         assert FailureMode.SCHEMA_INVALID in modes
+
+
+class TestClassificationAgentAgentic:
+    """ADR-011: memory, tool-use (ReAct), self-critique (Self-Refine)."""
+
+    def test_critique_sem_revisao_mantem_saida_original(self, agent):
+        req = Requirement(id="req-01", text="texto")
+        agent._llm_with_tools.invoke = MagicMock(
+            return_value=_primary_response(
+                '{"requirement_type": "F", "confidence": 0.9, "justification": "ok"}'
+            )
+        )
+        agent._llm.invoke = MagicMock(return_value=_NO_REVISION)
+
+        result = agent._process_single(req)
+
+        assert result.requirement_type == RequirementType.FUNCTIONAL
+        assert result.confidence == 0.9
+
+    def test_critique_com_revisao_usa_saida_revisada(self, agent):
+        req = Requirement(id="req-01", text="texto")
+        agent._llm_with_tools.invoke = MagicMock(
+            return_value=_primary_response(
+                '{"requirement_type": "F", "confidence": 0.5, "justification": "duvidoso"}'
+            )
+        )
+        revision = MagicMock()
+        revision.content = (
+            '{"needs_revision": true, "issue": "categoria errada", "revised_output": '
+            '{"requirement_type": "NF", "nfr_category": "SE", "confidence": 0.95, '
+            '"justification": "na verdade eh seguranca"}}'
+        )
+        agent._llm.invoke = MagicMock(return_value=revision)
+
+        result = agent._process_single(req)
+
+        assert result.requirement_type == RequirementType.NON_FUNCTIONAL
+        assert result.nfr_category == NFRCategory.SECURITY
+        assert result.confidence == 0.95
+
+    def test_tool_chamada_usa_observacao_no_fechamento(self, agent):
+        req = Requirement(id="req-01", text="O sistema deve criptografar dados em repouso")
+        tool_call_response = MagicMock(
+            tool_calls=[
+                {"name": "lookup_nfr_taxonomy", "args": {"category_code": "SE"}, "id": "call-1"}
+            ]
+        )
+        tool_call_response.content = ""
+        agent._llm_with_tools.invoke = MagicMock(return_value=tool_call_response)
+
+        final_response = _primary_response(
+            '{"requirement_type": "NF", "nfr_category": "SE", "confidence": 0.95,'
+            ' "justification": "confirmado via taxonomia"}'
+        )
+        agent._llm.invoke = MagicMock(side_effect=[final_response, _NO_REVISION])
+
+        result = agent._process_single(req)
+
+        assert agent._llm.invoke.call_count == 2
+        assert result.nfr_category == NFRCategory.SECURITY
+        followup_messages = agent._llm.invoke.call_args_list[0].args[0]
+        tool_messages = [m for m in followup_messages if isinstance(m, ToolMessage)]
+        assert len(tool_messages) == 1
+        assert "SE" in tool_messages[0].content
+
+    def test_memoria_injeta_few_shot_no_item_seguinte(self, agent):
+        reqs = [
+            Requirement(id="req-01", text="O sistema deve criptografar dados sensiveis"),
+            Requirement(id="req-02", text="O sistema deve criptografar backups tambem"),
+        ]
+        agent._llm_with_tools.invoke = MagicMock(
+            side_effect=lambda messages: _primary_response(
+                '{"requirement_type": "NF", "nfr_category": "SE", "confidence": 0.9,'
+                ' "justification": "seguranca"}'
+            )
+        )
+        agent._llm.invoke = MagicMock(return_value=_NO_REVISION)
+
+        agent.classify_batch(reqs)
+
+        assert agent._llm_with_tools.invoke.call_count == 2
+        second_call_messages = agent._llm_with_tools.invoke.call_args_list[1].args[0]
+        user_content = next(m["content"] for m in second_call_messages if m["role"] == "user")
+        assert "criptografar dados sensiveis" in user_content
+
+    def test_batch_maior_que_warmup_congela_memoria_apos_warmup(self, agent):
+        reqs = [
+            Requirement(id=f"req-{i:02d}", text=f"O sistema deve fazer a coisa numero {i}")
+            for i in range(12)
+        ]
+        agent._llm_with_tools.invoke = MagicMock(
+            side_effect=lambda messages: _primary_response(
+                '{"requirement_type": "F", "confidence": 0.9, "justification": "ok"}'
+            )
+        )
+        agent._llm.invoke = MagicMock(return_value=_NO_REVISION)
+
+        results = agent.classify_batch(reqs)
+
+        assert len(results) == 12
+        assert agent._memory.frozen is True
+        assert len(agent._memory._items) == 10  # only warm-up items recorded
