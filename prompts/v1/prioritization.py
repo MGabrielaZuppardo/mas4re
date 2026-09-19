@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import json
+from collections.abc import Mapping
+
 from domain.enums import Lang
 
 PRIORITIZATION_SYSTEM_PROMPT_PT = """\
@@ -92,12 +95,97 @@ _UNCERTAINTY_FLAG_PT = " (INCERTA — a classificação pode estar incorreta)"
 _UNCERTAINTY_FLAG_EN = " (UNCERTAIN — classification may be incorrect)"
 
 
+# ── Self-critique prompts (ADR-011, Madaan et al. 2023 Self-Refine) ────────────
+
+PRIORITIZATION_CRITIQUE_SYSTEM_PROMPT_PT = """\
+Você é um revisor especialista em Engenharia de Requisitos. Sua tarefa é revisar uma \
+priorização MoSCoW já feita por outro especialista e decidir se ela precisa de correção.
+
+Responda SEMPRE em JSON válido, sem markdown:
+{{
+  "needs_revision": true | false,
+  "issue": "<o que está errado, ou string vazia se não precisar de revisão>",
+  "revised_output": {{
+    "priority": "M" | "S" | "C" | "W",
+    "priority_score": <float 0.0-1.0>,
+    "priority_rank": 1,
+    "justification": "<texto>"
+  }} | null
+}}
+
+Se "needs_revision" for false, "revised_output" deve ser null.
+"""
+
+PRIORITIZATION_CRITIQUE_SYSTEM_PROMPT_EN = """\
+You are a Requirements Engineering expert reviewer. Your task is to review a MoSCoW \
+prioritization already made by another expert and decide whether it needs correction.
+
+Always respond with valid JSON, no markdown:
+{{
+  "needs_revision": true | false,
+  "issue": "<what is wrong, or empty string if no revision is needed>",
+  "revised_output": {{
+    "priority": "M" | "S" | "C" | "W",
+    "priority_score": <float 0.0-1.0>,
+    "priority_rank": 1,
+    "justification": "<text>"
+  }} | null
+}}
+
+If "needs_revision" is false, "revised_output" must be null.
+"""
+
+PRIORITIZATION_CRITIQUE_USER_PROMPT_PT = """\
+Requisito: \"\"\"{requirement_text}\"\"\"
+
+Priorização a revisar:
+{original_answer_json}
+"""
+
+PRIORITIZATION_CRITIQUE_USER_PROMPT_EN = """\
+Requirement: \"\"\"{requirement_text}\"\"\"
+
+Prioritization to review:
+{original_answer_json}
+"""
+
+
+def build_prioritization_critique_messages(
+    requirement_text: str,
+    original_answer: Mapping[str, object],
+    lang: Lang = Lang.PT,
+) -> list[dict[str, str]]:
+    """Constrói mensagens para a rodada de autocrítica (Self-Refine).
+
+    original_answer: os campos de PrioritizationOutput já gerados
+    (priority/priority_score/priority_rank/justification), como dict.
+    """
+    is_pt = lang is Lang.PT
+    system = (
+        PRIORITIZATION_CRITIQUE_SYSTEM_PROMPT_PT
+        if is_pt
+        else PRIORITIZATION_CRITIQUE_SYSTEM_PROMPT_EN
+    )
+    template = (
+        PRIORITIZATION_CRITIQUE_USER_PROMPT_PT if is_pt else PRIORITIZATION_CRITIQUE_USER_PROMPT_EN
+    )
+    user = template.format(
+        requirement_text=requirement_text,
+        original_answer_json=json.dumps(original_answer, ensure_ascii=False),
+    )
+    return [
+        {"role": "system", "content": system},
+        {"role": "user", "content": user},
+    ]
+
+
 def build_prioritization_messages(
     requirement_text: str,
     requirement_type: str,
     nfr_category: str | None = None,
     confidence: float = 1.0,
     lang: Lang = Lang.PT,
+    few_shot_block: str = "",
 ) -> list[dict[str, str]]:
     """Constrói mensagens para a chamada LLM do agente de priorização.
 
@@ -108,6 +196,8 @@ def build_prioritization_messages(
         confidence: Confiança do ClassificationAgent (0.0–1.0). Abaixo de
             0.70 sinaliza classificação incerta ao modelo prioritizador.
         lang: Lang.PT (português) ou Lang.EN (inglês).
+        few_shot_block: Bloco opcional de exemplos já processados no lote
+                        (memória episódica, ADR-011). Vazio por padrão.
     """
     is_pt = lang is Lang.PT
     system = PRIORITIZATION_SYSTEM_PROMPT_PT if is_pt else PRIORITIZATION_SYSTEM_PROMPT_EN
@@ -122,7 +212,7 @@ def build_prioritization_messages(
         (_UNCERTAINTY_FLAG_PT if is_pt else _UNCERTAINTY_FLAG_EN) if confidence < 0.70 else ""
     )
 
-    user = template.format(
+    user = few_shot_block + template.format(
         requirement_text=requirement_text,
         requirement_type=requirement_type,
         nfr_category_line=nfr_line,

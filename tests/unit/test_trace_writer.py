@@ -230,8 +230,10 @@ class TestCallAndTrace:
         with patch("agents.classifier.build_llm") as mock_build:
             mock_llm = MagicMock()
             mock_llm.invoke.return_value = MagicMock(
-                content='{"requirement_type":"F","confidence":0.9,"justification":"ok"}'
+                content='{"requirement_type":"F","confidence":0.9,"justification":"ok"}',
+                tool_calls=[],
             )
+            mock_llm.bind_tools.return_value = mock_llm
             mock_build.return_value = mock_llm
 
             with TraceWriter(output_dir=tmp_path, run_id="batch") as tw:

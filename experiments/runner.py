@@ -140,6 +140,8 @@ class ExperimentRunner:
             metrics["inter_agent_conflicts"] = state.metrics["inter_agent_conflicts"]
         if "failure_detections" in state.metrics:
             metrics["failure_detections"] = state.metrics["failure_detections"]
+        if "mediation" in state.metrics:
+            metrics["mediation"] = state.metrics["mediation"]
         return metrics
 
     def execute(self, strategy: OrchestrationStrategy, config: RunConfig) -> RunResult:

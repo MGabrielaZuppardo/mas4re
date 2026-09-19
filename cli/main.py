@@ -10,7 +10,7 @@ from rich.table import Table
 from config.settings import settings
 from domain.enums import Lang
 from experiments.runner import ExperimentRunner, RunConfig
-from experiments.strategy import BaselineStrategy, PipelineStrategy
+from experiments.strategy import BaselineStrategy, MediatedPipelineStrategy, PipelineStrategy
 
 app = typer.Typer(
     add_completion=False,
@@ -21,7 +21,7 @@ console = Console()
 
 @app.command()
 def run(
-    strategy: str = typer.Option(..., help="baseline | pipeline"),
+    strategy: str = typer.Option(..., help="baseline | pipeline | pipeline_mediated"),
     model: str = typer.Option(settings.classifier_model, help="Model for baseline / classifier."),
     pri_model: str = typer.Option(
         settings.prioritizer_model, help="Prioritizer model (pipeline only)."
@@ -35,7 +35,7 @@ def run(
     """Run one strategy under a frozen config and persist artifacts."""
     lang_enum = Lang(lang)
     if strategy == "baseline":
-        strat: BaselineStrategy | PipelineStrategy = BaselineStrategy(
+        strat: BaselineStrategy | PipelineStrategy | MediatedPipelineStrategy = BaselineStrategy(
             model=model, temperature=temperature, lang=lang_enum
         )
         run_model = model
@@ -47,8 +47,16 @@ def run(
             lang=lang_enum,
         )
         run_model = f"{model}+{pri_model}"
+    elif strategy == "pipeline_mediated":
+        strat = MediatedPipelineStrategy(
+            classifier_model=model,
+            prioritizer_model=pri_model,
+            temperature=temperature,
+            lang=lang_enum,
+        )
+        run_model = f"{model}+{pri_model}"
     else:
-        raise typer.BadParameter("strategy must be 'baseline' or 'pipeline'")
+        raise typer.BadParameter("strategy must be 'baseline', 'pipeline' or 'pipeline_mediated'")
 
     config = RunConfig(
         strategy_name=strategy,

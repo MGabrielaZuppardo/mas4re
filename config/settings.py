@@ -1,5 +1,9 @@
-from pydantic import Field
+from pathlib import Path
+
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 
 class Settings(BaseSettings):
@@ -43,7 +47,12 @@ class Settings(BaseSettings):
     retry_wait_max: float = Field(default=30.0)
 
     promise_dataset_path: str = Field(default="datasets/data/promise_nfr/promise_nfr_pt.csv")
-    nfric_dataset_path: str = Field(default="datasets/data/nfric/")
+
+    @field_validator("promise_dataset_path")
+    @classmethod
+    def _anchor_to_project_root(cls, value: str) -> str:
+        path = Path(value)
+        return str(path if path.is_absolute() else PROJECT_ROOT / path)
 
 
 settings = Settings()
