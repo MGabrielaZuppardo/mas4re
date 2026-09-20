@@ -232,11 +232,12 @@ class TestClassificationAgentAgentic:
             '{"requirement_type": "NF", "nfr_category": "SE", "confidence": 0.95,'
             ' "justification": "confirmado via taxonomia"}'
         )
-        agent._llm.invoke = MagicMock(side_effect=[final_response, _NO_REVISION])
+        agent._llm.invoke = MagicMock(return_value=final_response)
 
         result = agent._process_single(req)
 
-        assert agent._llm.invoke.call_count == 2
+        # only the post-tool closing call: confident + consistent, so no critique
+        assert agent._llm.invoke.call_count == 1
         assert result.nfr_category == NFRCategory.SECURITY
         followup_messages = agent._llm.invoke.call_args_list[0].args[0]
         tool_messages = [m for m in followup_messages if isinstance(m, ToolMessage)]
@@ -280,3 +281,77 @@ class TestClassificationAgentAgentic:
         assert len(results) == 12
         assert agent._memory.frozen is True
         assert len(agent._memory._items) == 10  # only warm-up items recorded
+
+
+class TestClassificationAgentCritiqueTrigger:
+    """Critique fires only on a fault signal (Bass et al.: detect, then recover)."""
+
+    @staticmethod
+    def _answer(agent, content: str) -> None:
+        agent._llm_with_tools.invoke = MagicMock(return_value=_primary_response(content))
+        agent._llm.invoke = MagicMock(return_value=_NO_REVISION)
+
+    def test_critica_nao_roda_quando_confiante_e_consistente(self, agent):
+        self._answer(agent, '{"requirement_type": "F", "confidence": 0.9, "justification": "ok"}')
+
+        agent._process_single(Requirement(id="req-01", text="texto"))
+
+        agent._llm.invoke.assert_not_called()
+
+    def test_critica_roda_com_baixa_confianca(self, agent):
+        self._answer(agent, '{"requirement_type": "F", "confidence": 0.5, "justification": "?"}')
+
+        agent._process_single(Requirement(id="req-01", text="texto"))
+
+        assert agent._llm.invoke.call_count == 1
+
+    def test_critica_roda_quando_nf_sem_categoria(self, agent):
+        self._answer(agent, '{"requirement_type": "NF", "confidence": 0.95, "justification": "?"}')
+
+        agent._process_single(Requirement(id="req-01", text="texto"))
+
+        assert agent._llm.invoke.call_count == 1
+
+    def test_critica_roda_quando_f_com_categoria(self, agent):
+        self._answer(
+            agent,
+            '{"requirement_type": "F", "nfr_category": "SE", "confidence": 0.95,'
+            ' "justification": "?"}',
+        )
+
+        agent._process_single(Requirement(id="req-01", text="texto"))
+
+        assert agent._llm.invoke.call_count == 1
+
+    def test_critico_recebe_taxonomia_e_criterio_como_padrao_externo(self, agent):
+        self._answer(agent, '{"requirement_type": "F", "confidence": 0.5, "justification": "?"}')
+
+        agent._process_single(Requirement(id="req-01", text="texto"))
+
+        messages = agent._llm.invoke.call_args.args[0]
+        system = next(m["content"] for m in messages if m["role"] == "system")
+        assert "PE:" in system and "SE:" in system  # taxonomia injetada
+        assert "Funcional (F)" in system  # critério F/NF
+        assert "{{" not in system  # o template é de fato formatado
+
+    def test_saida_sinalizada_nao_entra_na_memoria(self, agent):
+        reqs = [
+            Requirement(id="req-01", text="O sistema deve criptografar dados sensiveis"),
+            Requirement(id="req-02", text="O sistema deve exportar relatorios mensais"),
+        ]
+        responses = iter(
+            [
+                _primary_response(
+                    '{"requirement_type": "F", "confidence": 0.4, "justification": "?"}'
+                ),
+                _primary_response(
+                    '{"requirement_type": "F", "confidence": 0.9, "justification": "ok"}'
+                ),
+            ]
+        )
+        agent._llm_with_tools.invoke = MagicMock(side_effect=lambda messages: next(responses))
+        agent._llm.invoke = MagicMock(return_value=_NO_REVISION)
+
+        agent.classify_batch(reqs)
+
+        assert [item.requirement_id for item, _ in agent._memory._items] == ["req-02"]
