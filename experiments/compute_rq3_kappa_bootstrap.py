@@ -17,7 +17,7 @@ Usage (from D:/mas4re):
 
 Output:
     Console table + rq3_kappa_bootstrap_<timestamp>.json in
-    experiments/results/.
+    experiments/results/archive_pre_adr011_20260920/ (the historical runs it analyses).
 """
 
 from __future__ import annotations
@@ -39,6 +39,7 @@ from experiments.compute_stats import (
     load_csv,
     load_two_call_runs,
 )
+from experiments.paths import HISTORICAL_RESULTS_DIR
 
 MODELS = ["qwen2.5:7b", "llama3.1:8b", "mistral:7b"]
 LANGS = ["pt", "en"]
@@ -145,7 +146,7 @@ def main() -> None:
     )
     print("=" * 88)
 
-    out_dir = Path("experiments/results")
+    out_dir = HISTORICAL_RESULTS_DIR
     out_path = out_dir / f"rq3_kappa_bootstrap_{datetime.now().strftime('%Y%m%dT%H%M%S')}.json"
     out_path.write_text(
         json.dumps(

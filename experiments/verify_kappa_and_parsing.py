@@ -17,9 +17,12 @@ from collections import Counter
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 from compute_stats import fleiss_kappa, landis_koch, load_all_runs, load_csv
 
-RESULTS_DIR = Path("experiments/results")
+from experiments.paths import HISTORICAL_RESULTS_DIR
+
+RESULTS_DIR = HISTORICAL_RESULTS_DIR
 MODELS = ["qwen2.5:7b", "llama3.1:8b", "mistral:7b"]
 LANGS = ["pt", "en"]
 VALID_PRIORITIES = {"M", "S", "C", "W"}
@@ -43,7 +46,7 @@ def load_two_call_runs() -> dict[tuple, dict]:
 
 
 def main() -> None:
-    csv_path = Path("experiments/results/grid_summary_nfull_20260524T184454.csv")
+    csv_path = RESULTS_DIR / "grid_summary_nfull_20260524T184454.csv"
     run_meta = load_csv(csv_path)
     all_runs = load_all_runs(run_meta)
     all_runs.update(load_two_call_runs())
