@@ -1,0 +1,124 @@
+{
+  "manifest": {
+    "script": "diagnose_prioritizer_variants",
+    "git_commit": "d61bb9a4135317ed21f821a53527683193eee61b",
+    "timestamp_utc": "2026-09-20T20:48:16.988419+00:00",
+    "information_regime": "zero_shot",
+    "python": "3.13.3",
+    "libraries": {
+      "numpy": "2.4.4",
+      "scikit-learn": "1.8.0",
+      "pandas": "3.0.2",
+      "scipy": "1.17.1",
+      "langgraph": "1.1.9"
+    },
+    "dataset": "D:\\mas4re\\datasets\\data\\promise_nfr\\promise_nfr_pt.csv",
+    "dataset_md5": "ea0ec6f6b7c45225819aebbae40b8cff",
+    "parameters": {
+      "classifier_model": "ollama/qwen2.5:7b",
+      "prioritizer_model": "ollama/llama3.1:8b",
+      "n": 30,
+      "seed": 42,
+      "variants": [
+        "pre_adr011",
+        "no_critique"
+      ]
+    }
+  },
+  "results": {
+    "pre_adr011": {
+      "prioritized": 30,
+      "distribution": {
+        "M": 0.8333,
+        "S": 0.1667,
+        "C": 0.0,
+        "W": 0.0
+      },
+      "must_share": 0.8333,
+      "over_0.80": true,
+      "over_0.60": true,
+      "cross_check_conflicts": 0,
+      "elapsed_seconds": 103.8,
+      "critique": {},
+      "category_and_priority": [
+        "F:M",
+        "F:M",
+        "US:S",
+        "PE:M",
+        "MN:M",
+        "F:M",
+        "F:M",
+        "PE:M",
+        "F:M",
+        "F:M",
+        "F:M",
+        "LF:S",
+        "SE:M",
+        "LF:M",
+        "LF:M",
+        "PE:M",
+        "LF:S",
+        "F:M",
+        "LF:M",
+        "LF:S",
+        "F:M",
+        "LF:M",
+        "SC:M",
+        "LF:S",
+        "SE:M",
+        "F:M",
+        "MN:M",
+        "LF:M",
+        "SE:M",
+        "F:M"
+      ]
+    },
+    "no_critique": {
+      "prioritized": 30,
+      "distribution": {
+        "M": 0.6333,
+        "S": 0.3667,
+        "C": 0.0,
+        "W": 0.0
+      },
+      "must_share": 0.6333,
+      "over_0.80": false,
+      "over_0.60": true,
+      "cross_check_conflicts": 0,
+      "elapsed_seconds": 105.6,
+      "critique": {},
+      "category_and_priority": [
+        "F:M",
+        "F:M",
+        "US:S",
+        "PE:M",
+        "MN:S",
+        "F:M",
+        "F:M",
+        "PE:M",
+        "F:M",
+        "F:M",
+        "F:M",
+        "LF:S",
+        "SE:M",
+        "LF:M",
+        "LF:S",
+        "PE:M",
+        "LF:S",
+        "F:M",
+        "LF:S",
+        "LF:S",
+        "F:S",
+        "LF:M",
+        "SC:M",
+        "LF:S",
+        "SE:M",
+        "F:M",
+        "MN:M",
+        "LF:S",
+        "SE:M",
+        "F:S"
+      ]
+    }
+  }
+}

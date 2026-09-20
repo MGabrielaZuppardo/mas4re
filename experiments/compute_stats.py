@@ -23,12 +23,16 @@ import sys
 from collections import Counter
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 import numpy as np
 from scipy import stats
 
+from experiments.paths import HISTORICAL_RESULTS_DIR
+
 # ── Configuração ──────────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).parent.parent
-RESULTS_DIR = BASE_DIR / "experiments" / "results"
+RESULTS_DIR = BASE_DIR / HISTORICAL_RESULTS_DIR
 OUTPUT_PATH = RESULTS_DIR / "statistical_results.json"
 
 MODELS = ["qwen2.5:7b", "llama3.1:8b", "mistral:7b"]

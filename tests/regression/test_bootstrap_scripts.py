@@ -1,7 +1,8 @@
 """Regression fixtures for the RQ2/RQ3 bootstrap scripts.
 
 Slow (~1-2 min each, ~3-4 min total) and data-dependent (needs the real
-run artifacts already committed under experiments/results/), so this lives
+run artifacts already committed under
+experiments/results/archive_pre_adr011_20260920/), so this lives
 outside tests/unit and is NOT part of the default CI unit-tests job or
 `make test` -- run explicitly via `make test-regression` before touching
 compute_ablation_bootstrap.py / compute_rq3_kappa_bootstrap.py /
@@ -20,6 +21,8 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+
+from experiments.paths import HISTORICAL_RESULTS_DIR
 
 REPO_ROOT = Path(__file__).parent.parent.parent
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
@@ -52,7 +55,7 @@ def _run_script_and_load_new_json(script: str, output_dir: Path, glob_pattern: s
 def test_ablation_bootstrap_matches_golden_output() -> None:
     actual = _run_script_and_load_new_json(
         "experiments/compute_ablation_bootstrap.py",
-        REPO_ROOT / "experiments" / "results" / "ablation_20260601T232947",
+        REPO_ROOT / HISTORICAL_RESULTS_DIR / "ablation_20260601T232947",
         "ablation_bootstrap_*.json",
     )
     expected = json.loads((FIXTURES_DIR / "ablation_bootstrap_expected.json").read_text())
@@ -62,7 +65,7 @@ def test_ablation_bootstrap_matches_golden_output() -> None:
 def test_rq3_kappa_bootstrap_matches_golden_output() -> None:
     actual = _run_script_and_load_new_json(
         "experiments/compute_rq3_kappa_bootstrap.py",
-        REPO_ROOT / "experiments" / "results",
+        REPO_ROOT / HISTORICAL_RESULTS_DIR,
         "rq3_kappa_bootstrap_*.json",
     )
     expected = json.loads((FIXTURES_DIR / "rq3_kappa_bootstrap_expected.json").read_text())

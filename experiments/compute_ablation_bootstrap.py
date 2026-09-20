@@ -30,8 +30,9 @@ import numpy as np
 from sklearn.metrics import f1_score
 
 from experiments.bootstrap_ci import paired_bootstrap_ci
+from experiments.paths import HISTORICAL_RESULTS_DIR
 
-RESULTS_DIR = Path("experiments/results")
+RESULTS_DIR = HISTORICAL_RESULTS_DIR
 ABLATION_DIR = RESULTS_DIR / "ablation_20260601T232947"
 
 MODELS = ["qwen2.5:7b", "llama3.1:8b", "mistral:7b"]

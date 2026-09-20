@@ -18,13 +18,18 @@ from __future__ import annotations
 
 import json
 import math
+import sys
 from datetime import datetime
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import numpy as np
 from scipy import stats
 
-RESULTS_DIR = Path("experiments/results")
+from experiments.paths import HISTORICAL_RESULTS_DIR
+
+RESULTS_DIR = HISTORICAL_RESULTS_DIR
 ABLATION_DIR = RESULTS_DIR / "ablation_20260601T232947"
 
 MODELS = ["qwen2.5:7b", "llama3.1:8b", "mistral:7b"]

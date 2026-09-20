@@ -1,0 +1,241 @@
+{
+  "manifest": {
+    "script": "analyze_error_signals",
+    "git_commit": "d61bb9a4135317ed21f821a53527683193eee61b",
+    "timestamp_utc": "2026-09-20T20:24:23.316431+00:00",
+    "information_regime": "zero_shot",
+    "python": "3.13.3",
+    "libraries": {
+      "numpy": "2.4.4",
+      "scikit-learn": "1.8.0",
+      "pandas": "3.0.2",
+      "scipy": "1.17.1",
+      "langgraph": "1.1.9"
+    },
+    "dataset": "D:\\mas4re\\datasets\\data\\promise_nfr\\promise_nfr_pt.csv",
+    "dataset_md5": "ea0ec6f6b7c45225819aebbae40b8cff",
+    "parameters": {
+      "strategy": "pipeline",
+      "n": 625,
+      "runs_loaded": 9
+    }
+  },
+  "results": {
+    "n_items": 5623,
+    "signals": {
+      "confidence < 0.70": {
+        "n": 5623,
+        "flagged": 1,
+        "flagged_share": 0.00017784101013693757,
+        "error_rate_flagged": 0.0,
+        "error_rate_unflagged": 0.2575595873354678,
+        "base_error_rate": 0.2575137826782856,
+        "errors_captured": 0.0
+      },
+      "confidence < 0.90": {
+        "n": 5623,
+        "flagged": 68,
+        "flagged_share": 0.012093188689311755,
+        "error_rate_flagged": 0.14705882352941177,
+        "error_rate_unflagged": 0.2588658865886589,
+        "base_error_rate": 0.2575137826782856,
+        "errors_captured": 0.006906077348066298
+      },
+      "structural inconsistency": {
+        "n": 5623,
+        "flagged": 26,
+        "flagged_share": 0.004623866263560377,
+        "error_rate_flagged": 0.19230769230769232,
+        "error_rate_unflagged": 0.2578166875111667,
+        "base_error_rate": 0.2575137826782856,
+        "errors_captured": 0.003453038674033149
+      },
+      "cross_check conflict": {
+        "n": 5623,
+        "flagged": 9,
+        "flagged_share": 0.0016005690912324383,
+        "error_rate_flagged": 0.1111111111111111,
+        "error_rate_unflagged": 0.25774848592803706,
+        "base_error_rate": 0.2575137826782856,
+        "errors_captured": 0.0006906077348066298
+      },
+      "any internal signal": {
+        "n": 5623,
+        "flagged": 36,
+        "flagged_share": 0.006402276364929753,
+        "error_rate_flagged": 0.16666666666666666,
+        "error_rate_unflagged": 0.25809915876141043,
+        "base_error_rate": 0.2575137826782856,
+        "errors_captured": 0.004143646408839779
+      }
+    },
+    "model_disagreement": {
+      "en": {
+        "models": [
+          "foundry/gpt-4.1-mini",
+          "llama3.1:8b",
+          "mistral:7b",
+          "qwen2.5:7b"
+        ],
+        "common_items": 623,
+        "reference_reports": [
+          {
+            "reference": "foundry/gpt-4.1-mini",
+            "flagged": 199,
+            "flagged_share": 0.31942215088282505,
+            "error_rate_disagree": 0.1507537688442211,
+            "error_rate_unanimous": 0.1509433962264151,
+            "errors_captured": 0.3191489361702128
+          },
+          {
+            "reference": "llama3.1:8b",
+            "flagged": 199,
+            "flagged_share": 0.31942215088282505,
+            "error_rate_disagree": 0.5226130653266332,
+            "error_rate_unanimous": 0.1509433962264151,
+            "errors_captured": 0.6190476190476191
+          },
+          {
+            "reference": "mistral:7b",
+            "flagged": 199,
+            "flagged_share": 0.31942215088282505,
+            "error_rate_disagree": 0.8090452261306532,
+            "error_rate_unanimous": 0.1509433962264151,
+            "errors_captured": 0.7155555555555555
+          },
+          {
+            "reference": "qwen2.5:7b",
+            "flagged": 199,
+            "flagged_share": 0.31942215088282505,
+            "error_rate_disagree": 0.27638190954773867,
+            "error_rate_unanimous": 0.1509433962264151,
+            "errors_captured": 0.46218487394957986
+          }
+        ],
+        "majority_vote_accuracy": 0.8186195826645265
+      },
+      "pt": {
+        "models": [
+          "foundry/gpt-4.1-mini",
+          "llama3.1:8b",
+          "mistral:7b",
+          "qwen2.5:7b"
+        ],
+        "common_items": 621,
+        "reference_reports": [
+          {
+            "reference": "foundry/gpt-4.1-mini",
+            "flagged": 250,
+            "flagged_share": 0.4025764895330113,
+            "error_rate_disagree": 0.108,
+            "error_rate_unanimous": 0.13746630727762804,
+            "errors_captured": 0.34615384615384615
+          },
+          {
+            "reference": "llama3.1:8b",
+            "flagged": 250,
+            "flagged_share": 0.4025764895330113,
+            "error_rate_disagree": 0.544,
+            "error_rate_unanimous": 0.13746630727762804,
+            "errors_captured": 0.7272727272727273
+          },
+          {
+            "reference": "mistral:7b",
+            "flagged": 250,
+            "flagged_share": 0.4025764895330113,
+            "error_rate_disagree": 0.836,
+            "error_rate_unanimous": 0.13746630727762804,
+            "errors_captured": 0.8038461538461539
+          },
+          {
+            "reference": "qwen2.5:7b",
+            "flagged": 250,
+            "flagged_share": 0.4025764895330113,
+            "error_rate_disagree": 0.256,
+            "error_rate_unanimous": 0.13746630727762804,
+            "errors_captured": 0.5565217391304348
+          }
+        ],
+        "majority_vote_accuracy": 0.8293075684380032
+      }
+    },
+    "accuracy_intervals": [
+      {
+        "model": "foundry/gpt-4.1-mini",
+        "lang": "en",
+        "n": 625,
+        "accuracy": 0.848,
+        "ci95_low": 0.8177325179282866,
+        "ci95_high": 0.8740156106942474
+      },
+      {
+        "model": "foundry/gpt-4.1-mini",
+        "lang": "pt",
+        "n": 625,
+        "accuracy": 0.8736,
+        "ci95_low": 0.8452449956908225,
+        "ci95_high": 0.8973903515890015
+      },
+      {
+        "model": "llama3.1:8b",
+        "lang": "en",
+        "n": 625,
+        "accuracy": 0.7296,
+        "ci95_low": 0.6934529264682332,
+        "ci95_high": 0.7629418158643353
+      },
+      {
+        "model": "llama3.1:8b",
+        "lang": "pt",
+        "n": 625,
+        "accuracy": 0.696,
+        "ci95_low": 0.6588303865048326,
+        "ci95_high": 0.7307748813400428
+      },
+      {
+        "model": "mistral:7b",
+        "lang": "en",
+        "n": 625,
+        "accuracy": 0.6384,
+        "ci95_low": 0.5999918707434687,
+        "ci95_high": 0.6751171551225045
+      },
+      {
+        "model": "mistral:7b",
+        "lang": "pt",
+        "n": 625,
+        "accuracy": 0.5792,
+        "ci95_low": 0.5401264381845434,
+        "ci95_high": 0.6173058945364471
+      },
+      {
+        "model": "qwen2.5:7b",
+        "lang": "en",
+        "n": 625,
+        "accuracy": 0.808,
+        "ci95_low": 0.7752757952447531,
+        "ci95_high": 0.8369610542257655
+      },
+      {
+        "model": "qwen2.5:7b",
+        "lang": "pt",
+        "n": 623,
+        "accuracy": 0.8138041733547352,
+        "ci95_low": 0.7813469172833601,
+        "ci95_high": 0.8424151304173669
+      },
+      {
+        "model": "llama3.1:8b",
+        "lang": null,
+        "n": 625,
+        "accuracy": 0.696,
+        "ci95_low": 0.6588303865048326,
+        "ci95_high": 0.7307748813400428
+      }
+    ],
+    "sample_size_for_half_width": {
+      "0.10": 44,
+      "0.05": 174
+    }
+  }
+}

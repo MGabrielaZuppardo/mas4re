@@ -159,6 +159,40 @@ python experiments/compute_stats.py            # RQ1 (Wilcoxon), RQ2 (Mann-Whitn
 python experiments/compute_ablation_stats.py   # RQ3 ablation (Δ_p and Δ_s)
 ```
 
+### Analysis and diagnostics
+
+Every script below is run from the repository root, writes a JSON with a manifest (git commit,
+dataset hash, library versions, parameters and `information_regime`) to
+`experiments/results/analysis/`, and can be re-run to reproduce the reported numbers.
+
+Historical analysis, no LLM calls (reads the archived full-dataset runs, `--generation historical`):
+
+```bash
+python -m experiments.analyze_error_signals        # which signals predict F/NF errors
+python -m experiments.analyze_coordination_power   # cross_check conflicts and Must share per run
+python -m experiments.analyze_verifier_oracle      # classical verifier (hybrid, exploratory)
+```
+
+Diagnostics that call the LLM (keep other Ollama work idle while they run):
+
+```bash
+python -m experiments.diagnose_classifier_variants   # pre-ADR-011 / current / no critique / no memory
+python -m experiments.diagnose_prioritizer_variants  # Must-Have inflation by component
+python -m experiments.diagnose_retry_determinism     # does a blind retry reproduce pass 1?
+```
+
+### Result generations
+
+`experiments/results/` is for **new** runs (agents from ADR-011 onward). Everything produced before
+ADR-011 and the critique fix, including the runs behind the submitted paper, lives in
+`experiments/results/archive_pre_adr011_20260920/` (see its `ARCHIVE.md`). The statistics scripts
+(`compute_stats.py`, `compute_*_bootstrap.py`, ...) read that archive through
+`experiments/paths.py`, and the analysis scripts take `--generation historical|active` so runs
+from different generations are never analysed together by accident.
+
+`information_regime` is `zero_shot` for everything except `analyze_verifier_oracle`, which trains
+on labelled data and is stamped `hybrid_exploratory` so it is never mixed with zero-shot results.
+
 ---
 
 ## Docker
