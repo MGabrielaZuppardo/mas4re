@@ -1,0 +1,115 @@
+{
+  "manifest": {
+    "script": "analyze_verifier_oracle",
+    "git_commit": "d61bb9a4135317ed21f821a53527683193eee61b",
+    "timestamp_utc": "2026-09-20T20:24:46.512696+00:00",
+    "information_regime": "hybrid_exploratory",
+    "python": "3.13.3",
+    "libraries": {
+      "numpy": "2.4.4",
+      "scikit-learn": "1.8.0",
+      "pandas": "3.0.2",
+      "scipy": "1.17.1",
+      "langgraph": "1.1.9"
+    },
+    "dataset": "D:\\mas4re\\datasets\\data\\promise_nfr\\promise_nfr_pt.csv",
+    "dataset_md5": "ea0ec6f6b7c45225819aebbae40b8cff",
+    "parameters": {
+      "strategy": "pipeline",
+      "n": 625,
+      "min_confidence": 0.85,
+      "n_splits": 5,
+      "runs_loaded": 9
+    }
+  },
+  "results": {
+    "verifier": {
+      "accuracy": 0.6528,
+      "f1_macro": 0.5395127748068924,
+      "majority_class_share": 0.592,
+      "projects": 15
+    },
+    "per_run": {
+      "foundry/gpt-4.1-mini/en": {
+        "n": 625,
+        "llm_accuracy": 0.8496,
+        "disagreement_rate": 0.4512,
+        "llm_error_rate_when_disagree": 0.2801418439716312,
+        "llm_errors_captured": 0.8404255319148937,
+        "confident_disagreements": 50,
+        "llm_error_rate_when_confident": 0.58,
+        "accuracy_gain_if_verifier_overrides": 0.012800000000000034
+      },
+      "llama3.1:8b/en": {
+        "n": 625,
+        "llm_accuracy": 0.7312,
+        "disagreement_rate": 0.5728,
+        "llm_error_rate_when_disagree": 0.4301675977653631,
+        "llm_errors_captured": 0.9166666666666666,
+        "confident_disagreements": 82,
+        "llm_error_rate_when_confident": 0.7317073170731707,
+        "accuracy_gain_if_verifier_overrides": 0.060800000000000076
+      },
+      "mistral:7b/en": {
+        "n": 625,
+        "llm_accuracy": 0.64,
+        "disagreement_rate": 0.6672,
+        "llm_error_rate_when_disagree": 0.5083932853717026,
+        "llm_errors_captured": 0.9422222222222222,
+        "confident_disagreements": 115,
+        "llm_error_rate_when_confident": 0.808695652173913,
+        "accuracy_gain_if_verifier_overrides": 0.11360000000000003
+      },
+      "qwen2.5:7b/en": {
+        "n": 625,
+        "llm_accuracy": 0.8096,
+        "disagreement_rate": 0.4592,
+        "llm_error_rate_when_disagree": 0.32752613240418116,
+        "llm_errors_captured": 0.7899159663865546,
+        "confident_disagreements": 59,
+        "llm_error_rate_when_confident": 0.6949152542372882,
+        "accuracy_gain_if_verifier_overrides": 0.036800000000000055
+      },
+      "foundry/gpt-4.1-mini/pt": {
+        "n": 625,
+        "llm_accuracy": 0.8752,
+        "disagreement_rate": 0.416,
+        "llm_error_rate_when_disagree": 0.23076923076923078,
+        "llm_errors_captured": 0.7692307692307693,
+        "confident_disagreements": 44,
+        "llm_error_rate_when_confident": 0.5454545454545454,
+        "accuracy_gain_if_verifier_overrides": 0.006400000000000072
+      },
+      "llama3.1:8b/pt": {
+        "n": 625,
+        "llm_accuracy": 0.6976,
+        "disagreement_rate": 0.6096,
+        "llm_error_rate_when_disagree": 0.46194225721784776,
+        "llm_errors_captured": 0.9312169312169312,
+        "confident_disagreements": 91,
+        "llm_error_rate_when_confident": 0.7582417582417582,
+        "accuracy_gain_if_verifier_overrides": 0.07520000000000004
+      },
+      "mistral:7b/pt": {
+        "n": 625,
+        "llm_accuracy": 0.5808,
+        "disagreement_rate": 0.7136,
+        "llm_error_rate_when_disagree": 0.5493273542600897,
+        "llm_errors_captured": 0.9351145038167938,
+        "confident_disagreements": 126,
+        "llm_error_rate_when_confident": 0.8333333333333334,
+        "accuracy_gain_if_verifier_overrides": 0.13439999999999996
+      },
+      "qwen2.5:7b/pt": {
+        "n": 623,
+        "llm_accuracy": 0.8154093097913323,
+        "disagreement_rate": 0.4446227929373997,
+        "llm_error_rate_when_disagree": 0.3140794223826715,
+        "llm_errors_captured": 0.7565217391304347,
+        "confident_disagreements": 54,
+        "llm_error_rate_when_confident": 0.6666666666666666,
+        "accuracy_gain_if_verifier_overrides": 0.028892455858748
+      }
+    }
+  }
+}

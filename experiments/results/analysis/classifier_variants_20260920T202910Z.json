@@ -1,0 +1,170 @@
+{
+  "manifest": {
+    "script": "diagnose_classifier_variants",
+    "git_commit": "d61bb9a4135317ed21f821a53527683193eee61b",
+    "timestamp_utc": "2026-09-20T20:29:10.596692+00:00",
+    "information_regime": "zero_shot",
+    "python": "3.13.3",
+    "libraries": {
+      "numpy": "2.4.4",
+      "scikit-learn": "1.8.0",
+      "pandas": "3.0.2",
+      "scipy": "1.17.1",
+      "langgraph": "1.1.9"
+    },
+    "dataset": "D:\\mas4re\\datasets\\data\\promise_nfr\\promise_nfr_pt.csv",
+    "dataset_md5": "ea0ec6f6b7c45225819aebbae40b8cff",
+    "parameters": {
+      "model": "ollama/qwen2.5:7b",
+      "n": 6,
+      "seed": 42,
+      "variants": [
+        "pre_adr011",
+        "current",
+        "no_critique",
+        "no_memory",
+        "always_critique"
+      ]
+    }
+  },
+  "results": {
+    "pre_adr011": {
+      "classified": 6,
+      "accuracy": 1.0,
+      "f1_macro": 1.0,
+      "predicted_f": 4,
+      "predicted_nf": 2,
+      "parse_failures": 0,
+      "mean_confidence": 0.9666666666666667,
+      "elapsed_seconds": 23.8,
+      "critique": {},
+      "truth": [
+        "F",
+        "F",
+        "NF",
+        "NF",
+        "F",
+        "F"
+      ],
+      "predictions": [
+        "F",
+        "F",
+        "NF",
+        "NF",
+        "F",
+        "F"
+      ]
+    },
+    "current": {
+      "classified": 6,
+      "accuracy": 0.8333333333333334,
+      "f1_macro": 0.8285714285714285,
+      "predicted_f": 3,
+      "predicted_nf": 3,
+      "parse_failures": 0,
+      "mean_confidence": 0.9416666666666668,
+      "elapsed_seconds": 17.0,
+      "critique": {},
+      "truth": [
+        "F",
+        "F",
+        "NF",
+        "NF",
+        "F",
+        "F"
+      ],
+      "predictions": [
+        "F",
+        "F",
+        "NF",
+        "NF",
+        "NF",
+        "F"
+      ]
+    },
+    "no_critique": {
+      "classified": 6,
+      "accuracy": 0.8333333333333334,
+      "f1_macro": 0.8285714285714285,
+      "predicted_f": 3,
+      "predicted_nf": 3,
+      "parse_failures": 0,
+      "mean_confidence": 0.9500000000000001,
+      "elapsed_seconds": 16.4,
+      "critique": {},
+      "truth": [
+        "F",
+        "F",
+        "NF",
+        "NF",
+        "F",
+        "F"
+      ],
+      "predictions": [
+        "F",
+        "F",
+        "NF",
+        "NF",
+        "NF",
+        "F"
+      ]
+    },
+    "no_memory": {
+      "classified": 6,
+      "accuracy": 1.0,
+      "f1_macro": 1.0,
+      "predicted_f": 4,
+      "predicted_nf": 2,
+      "parse_failures": 0,
+      "mean_confidence": 0.9666666666666667,
+      "elapsed_seconds": 16.4,
+      "critique": {},
+      "truth": [
+        "F",
+        "F",
+        "NF",
+        "NF",
+        "F",
+        "F"
+      ],
+      "predictions": [
+        "F",
+        "F",
+        "NF",
+        "NF",
+        "F",
+        "F"
+      ]
+    },
+    "always_critique": {
+      "classified": 6,
+      "accuracy": 0.8333333333333334,
+      "f1_macro": 0.7777777777777777,
+      "predicted_f": 5,
+      "predicted_nf": 1,
+      "parse_failures": 0,
+      "mean_confidence": 0.975,
+      "elapsed_seconds": 26.4,
+      "critique": {
+        "critique_calls": 6,
+        "flip_NF_to_F": 1
+      },
+      "truth": [
+        "F",
+        "F",
+        "NF",
+        "NF",
+        "F",
+        "F"
+      ],
+      "predictions": [
+        "F",
+        "F",
+        "NF",
+        "F",
+        "F",
+        "F"
+      ]
+    }
+  }
+}

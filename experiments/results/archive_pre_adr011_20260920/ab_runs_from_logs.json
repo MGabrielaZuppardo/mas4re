@@ -1,0 +1,344 @@
+[
+  {
+    "log": "_run_a_en_rep2.log",
+    "condition": "A",
+    "lang": "en",
+    "model_hint": null,
+    "rep": "rep2",
+    "complete": true,
+    "parse_failures_logged": 24,
+    "strategy": "pipeline",
+    "n": "full",
+    "classification": {
+      "accuracy": 0.8429,
+      "f1_macro": 0.8425,
+      "f1_weighted": 0.8441,
+      "mcc": 0.7147,
+      "n_evaluated": 624
+    },
+    "moscow": {
+      "M": 0.5176,
+      "S": 0.3942,
+      "C": 0.0849,
+      "W": 0.0032
+    },
+    "mediation": null
+  },
+  {
+    "log": "_run_a_pt_qwen.log",
+    "condition": "A",
+    "lang": "pt",
+    "model_hint": "qwen",
+    "rep": null,
+    "complete": true,
+    "parse_failures_logged": 1,
+    "strategy": "pipeline",
+    "n": "full",
+    "classification": {
+      "accuracy": 0.8064,
+      "f1_macro": 0.8049,
+      "f1_weighted": 0.808,
+      "mcc": 0.6256,
+      "n_evaluated": 625
+    },
+    "moscow": {
+      "M": 0.4,
+      "S": 0.5536,
+      "C": 0.0432,
+      "W": 0.0032
+    },
+    "mediation": null
+  },
+  {
+    "log": "_run_a_pt_rep2.log",
+    "condition": "A",
+    "lang": "pt",
+    "model_hint": null,
+    "rep": "rep2",
+    "complete": true,
+    "parse_failures_logged": 0,
+    "strategy": "pipeline",
+    "n": "full",
+    "classification": {
+      "accuracy": 0.872,
+      "f1_macro": 0.8709,
+      "f1_weighted": 0.8731,
+      "mcc": 0.7572,
+      "n_evaluated": 625
+    },
+    "moscow": {
+      "M": 0.4416,
+      "S": 0.4848,
+      "C": 0.0656,
+      "W": 0.008
+    },
+    "mediation": null
+  },
+  {
+    "log": "_run_b_en_llama.log",
+    "condition": "B",
+    "lang": "en",
+    "model_hint": "llama",
+    "rep": null,
+    "complete": true,
+    "parse_failures_logged": 0,
+    "strategy": "mediated_pipeline",
+    "n": "full",
+    "classification": {
+      "accuracy": 0.7248,
+      "f1_macro": 0.7232,
+      "f1_weighted": 0.7194,
+      "mcc": 0.5518,
+      "n_evaluated": 625
+    },
+    "moscow": {
+      "M": 0.872,
+      "S": 0.1168,
+      "C": 0.0096,
+      "W": 0.0016
+    },
+    "mediation": {
+      "n_passes": 1,
+      "n_conflicts_detected": 0,
+      "n_requirements_resent": 0,
+      "n_conflicts_resolved_after_retry": 0,
+      "conflicts_by_category": {}
+    }
+  },
+  {
+    "log": "_run_b_en_llama_rep2.log",
+    "condition": "B",
+    "lang": "en",
+    "model_hint": "llama",
+    "rep": "rep2",
+    "complete": false,
+    "parse_failures_logged": 0
+  },
+  {
+    "log": "_run_b_en_qwen.log",
+    "condition": "B",
+    "lang": "en",
+    "model_hint": "qwen",
+    "rep": null,
+    "complete": true,
+    "parse_failures_logged": 0,
+    "strategy": "mediated_pipeline",
+    "n": "full",
+    "classification": {
+      "accuracy": 0.7776,
+      "f1_macro": 0.7771,
+      "f1_weighted": 0.7791,
+      "mcc": 0.5836,
+      "n_evaluated": 625
+    },
+    "moscow": {
+      "M": 0.3264,
+      "S": 0.6272,
+      "C": 0.0432,
+      "W": 0.0032
+    },
+    "mediation": {
+      "n_passes": 1,
+      "n_conflicts_detected": 0,
+      "n_requirements_resent": 0,
+      "n_conflicts_resolved_after_retry": 0,
+      "conflicts_by_category": {}
+    }
+  },
+  {
+    "log": "_run_b_en_qwen_rep2.log",
+    "condition": "B",
+    "lang": "en",
+    "model_hint": "qwen",
+    "rep": "rep2",
+    "complete": true,
+    "parse_failures_logged": 0,
+    "strategy": "mediated_pipeline",
+    "n": "full",
+    "classification": {
+      "accuracy": 0.792,
+      "f1_macro": 0.7913,
+      "f1_weighted": 0.7935,
+      "mcc": 0.6092,
+      "n_evaluated": 625
+    },
+    "moscow": {
+      "M": 0.3504,
+      "S": 0.6064,
+      "C": 0.04,
+      "W": 0.0032
+    },
+    "mediation": {
+      "n_passes": 1,
+      "n_conflicts_detected": 0,
+      "n_requirements_resent": 0,
+      "n_conflicts_resolved_after_retry": 0,
+      "conflicts_by_category": {}
+    }
+  },
+  {
+    "log": "_run_b_en_rep2.log",
+    "condition": "B",
+    "lang": "en",
+    "model_hint": null,
+    "rep": "rep2",
+    "complete": true,
+    "parse_failures_logged": 71,
+    "strategy": "mediated_pipeline",
+    "n": "full",
+    "classification": {
+      "accuracy": 0.8438,
+      "f1_macro": 0.8433,
+      "f1_weighted": 0.845,
+      "mcc": 0.7145,
+      "n_evaluated": 621
+    },
+    "moscow": {
+      "M": 0.5121,
+      "S": 0.3768,
+      "C": 0.1095,
+      "W": 0.0016
+    },
+    "mediation": {
+      "n_passes": 2,
+      "n_conflicts_detected": 3,
+      "n_requirements_resent": 3,
+      "n_conflicts_resolved_after_retry": 2,
+      "conflicts_by_category": {
+        "FT": 1,
+        "PE": 1,
+        "A": 1
+      }
+    }
+  },
+  {
+    "log": "_run_b_pt_llama.log",
+    "condition": "B",
+    "lang": "pt",
+    "model_hint": "llama",
+    "rep": null,
+    "complete": true,
+    "parse_failures_logged": 0,
+    "strategy": "mediated_pipeline",
+    "n": "full",
+    "classification": {
+      "accuracy": 0.6864,
+      "f1_macro": 0.6821,
+      "f1_weighted": 0.6752,
+      "mcc": 0.5034,
+      "n_evaluated": 625
+    },
+    "moscow": {
+      "M": 0.8864,
+      "S": 0.0976,
+      "C": 0.0144,
+      "W": 0.0016
+    },
+    "mediation": {
+      "n_passes": 2,
+      "n_conflicts_detected": 1,
+      "n_requirements_resent": 1,
+      "n_conflicts_resolved_after_retry": 0,
+      "conflicts_by_category": {
+        "PE": 1
+      }
+    }
+  },
+  {
+    "log": "_run_b_pt_qwen.log",
+    "condition": "B",
+    "lang": "pt",
+    "model_hint": "qwen",
+    "rep": null,
+    "complete": true,
+    "parse_failures_logged": 4,
+    "strategy": "mediated_pipeline",
+    "n": "full",
+    "classification": {
+      "accuracy": 0.808,
+      "f1_macro": 0.8065,
+      "f1_weighted": 0.8096,
+      "mcc": 0.6282,
+      "n_evaluated": 625
+    },
+    "moscow": {
+      "M": 0.3936,
+      "S": 0.56,
+      "C": 0.0432,
+      "W": 0.0032
+    },
+    "mediation": {
+      "n_passes": 2,
+      "n_conflicts_detected": 2,
+      "n_requirements_resent": 2,
+      "n_conflicts_resolved_after_retry": 0,
+      "conflicts_by_category": {
+        "SE": 2
+      }
+    }
+  },
+  {
+    "log": "_run_b_pt_qwen_rep2.log",
+    "condition": "B",
+    "lang": "pt",
+    "model_hint": "qwen",
+    "rep": "rep2",
+    "complete": true,
+    "parse_failures_logged": 4,
+    "strategy": "mediated_pipeline",
+    "n": "full",
+    "classification": {
+      "accuracy": 0.808,
+      "f1_macro": 0.8065,
+      "f1_weighted": 0.8096,
+      "mcc": 0.6282,
+      "n_evaluated": 625
+    },
+    "moscow": {
+      "M": 0.3936,
+      "S": 0.56,
+      "C": 0.0432,
+      "W": 0.0032
+    },
+    "mediation": {
+      "n_passes": 2,
+      "n_conflicts_detected": 2,
+      "n_requirements_resent": 2,
+      "n_conflicts_resolved_after_retry": 0,
+      "conflicts_by_category": {
+        "SE": 2
+      }
+    }
+  },
+  {
+    "log": "_run_b_pt_rep2.log",
+    "condition": "B",
+    "lang": "pt",
+    "model_hint": null,
+    "rep": "rep2",
+    "complete": true,
+    "parse_failures_logged": 0,
+    "strategy": "mediated_pipeline",
+    "n": "full",
+    "classification": {
+      "accuracy": 0.875,
+      "f1_macro": 0.874,
+      "f1_weighted": 0.8761,
+      "mcc": 0.7634,
+      "n_evaluated": 624
+    },
+    "moscow": {
+      "M": 0.4455,
+      "S": 0.4792,
+      "C": 0.0705,
+      "W": 0.0048
+    },
+    "mediation": {
+      "n_passes": 1,
+      "n_conflicts_detected": 0,
+      "n_requirements_resent": 0,
+      "n_conflicts_resolved_after_retry": 0,
+      "conflicts_by_category": {}
+    }
+  }
+]
