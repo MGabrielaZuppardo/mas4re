@@ -121,8 +121,10 @@ def test_no_conflict_stops_after_one_pass() -> None:
         "resolved_after_retry": 0,
         "passes": 1,
     }
-    # 2 items x (primary generation + self-critique, ADR-011) = 4.
-    assert classify_llm.invoke.call_count == 4
+    # Classifier: 2 items x primary generation only -- no fault signal
+    # (confidence 0.9, type/category consistent), so no self-critique.
+    # Prioritizer: 2 items x (primary + self-critique, ADR-011) = 4.
+    assert classify_llm.invoke.call_count == 2
     assert prioritize_llm.invoke.call_count == 4
 
 
@@ -145,8 +147,9 @@ def test_conflict_resolved_after_retry() -> None:
         "passes": 2,
     }
     # Whole batch resent -> both items reclassified/reprioritized on pass 2.
-    # 2 items x (primary + self-critique) x 2 passes = 8.
-    assert classify_llm.invoke.call_count == 8
+    # Classifier: 2 items x primary only (no fault signal) x 2 passes = 4.
+    # Prioritizer: 2 items x (primary + self-critique) x 2 passes = 8.
+    assert classify_llm.invoke.call_count == 4
     assert prioritize_llm.invoke.call_count == 8
     assert state.prioritized_requirements[0].priority_rank is not None
 
@@ -194,6 +197,8 @@ def test_condition_a_graph_unaffected(fixture_priorities: list[str]) -> None:
     # cross_check_node still runs once and sets these, but nothing routes on
     # them -- Condition A is always exactly one pass regardless of conflict.
     assert state.retry_counts["_pass"] == 1
-    # 2 items x (primary generation + self-critique, ADR-011) = 4.
-    assert classify_llm.invoke.call_count == 4
+    # Classifier: 2 items x primary generation only -- no fault signal
+    # (confidence 0.9, type/category consistent), so no self-critique.
+    # Prioritizer: 2 items x (primary + self-critique, ADR-011) = 4.
+    assert classify_llm.invoke.call_count == 2
     assert prioritize_llm.invoke.call_count == 4

@@ -76,8 +76,16 @@ Classify the following software requirement:
 
 CLASSIFICATION_CRITIQUE_SYSTEM_PROMPT_PT = """\
 Você é um revisor especialista em Engenharia de Requisitos. Sua tarefa é revisar uma \
-classificação funcional/não-funcional já feita por outro especialista e decidir se ela precisa \
-de correção.
+classificação funcional/não-funcional já feita por outro especialista e decidir se ela contém \
+um erro CLARO.
+
+Critérios de referência:
+- Funcional (F): descreve o que o sistema deve FAZER (funções, comportamentos, dados, interações).
+- Não-Funcional (NF): descreve uma QUALIDADE ou RESTRIÇÃO sobre como o sistema opera.
+
+{nfr_block}
+
+Revise somente se a classificação contrariar claramente os critérios acima; na dúvida, mantenha-a.
 
 Responda SEMPRE em JSON válido, sem markdown:
 {{
@@ -97,7 +105,15 @@ Se "needs_revision" for false, "revised_output" deve ser null.
 CLASSIFICATION_CRITIQUE_SYSTEM_PROMPT_EN = """\
 You are a Requirements Engineering expert reviewer. Your task is to review a \
 functional/non-functional classification already made by another expert and decide whether it \
-needs correction.
+contains a CLEAR error.
+
+Reference criteria:
+- Functional (F): describes what the system must DO (functions, behaviors, data, interactions).
+- Non-Functional (NF): describes a QUALITY or CONSTRAINT on how the system operates.
+
+{nfr_block}
+
+Revise only if the classification clearly contradicts the criteria above; when in doubt, keep it.
 
 Always respond with valid JSON, no markdown:
 {{
@@ -133,18 +149,22 @@ def build_classification_critique_messages(
     requirement_text: str,
     original_answer: Mapping[str, object],
     lang: Lang = Lang.PT,
+    nfr_categories: list[tuple[str, str]] | None = None,
 ) -> list[dict[str, str]]:
     """Constrói mensagens para a rodada de autocrítica (Self-Refine).
 
     original_answer: os campos de ClassificationOutput já gerados
     (requirement_type/nfr_category/confidence/justification), como dict.
+    nfr_categories: taxonomia do dataset, o padrão externo contra o qual o
+        crítico julga (mesmo bloco usado no prompt de classificação).
     """
     is_pt = lang is Lang.PT
-    system = (
+    system_template = (
         CLASSIFICATION_CRITIQUE_SYSTEM_PROMPT_PT
         if is_pt
         else CLASSIFICATION_CRITIQUE_SYSTEM_PROMPT_EN
     )
+    system = system_template.format(nfr_block=build_nfr_block(nfr_categories, lang))
     template = (
         CLASSIFICATION_CRITIQUE_USER_PROMPT_PT if is_pt else CLASSIFICATION_CRITIQUE_USER_PROMPT_EN
     )

@@ -132,6 +132,14 @@ class ClassificationAgent(BaseAgent[Requirement, ClassifiedRequirement]):
         )
         return "".join(lines) + "\n"
 
+    def _needs_critique(self, output: ClassificationOutput) -> bool:
+        """Fault detection before recovery (Bass et al., 2012): the critique
+        only runs when the answer shows a signal of trouble -- low confidence
+        or a type/category inconsistency (NF without category, F with one)."""
+        is_nfr = output.requirement_type is RequirementType.NON_FUNCTIONAL
+        inconsistent = is_nfr != (output.nfr_category is not None)
+        return output.confidence < _CONFIDENCE_THRESHOLD or inconsistent
+
     def _critique(
         self, requirement_text: str, output: ClassificationOutput
     ) -> ClassificationOutput:
@@ -145,7 +153,9 @@ class ClassificationAgent(BaseAgent[Requirement, ClassifiedRequirement]):
             "confidence": output.confidence,
             "justification": output.justification,
         }
-        messages = build_classification_critique_messages(requirement_text, original, self._lang)
+        messages = build_classification_critique_messages(
+            requirement_text, original, self._lang, self._nfr_categories
+        )
         response = self._llm.invoke(messages)
         try:
             data = json.loads(extract_first_json(str(response.content)))
@@ -193,9 +203,13 @@ class ClassificationAgent(BaseAgent[Requirement, ClassifiedRequirement]):
             response = self._llm.invoke(followup)
 
         output = self._parse_response(str(response.content), requirement.id)
-        output = self._critique(requirement.text, output)
+        flagged = self._needs_critique(output)
+        if flagged:
+            output = self._critique(requirement.text, output)
 
-        if self._memory is not None:
+        # Retain only unflagged outputs: an unverified answer must not become
+        # a few-shot example that propagates its own error (CBR: retain needs revise).
+        if self._memory is not None and not flagged:
             self._memory.add(
                 requirement.id,
                 requirement.text,
