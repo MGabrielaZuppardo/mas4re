@@ -22,10 +22,10 @@ from typing import Any
 
 from agents.classifier import ClassificationAgent
 from agents.prioritizer import PrioritizationAgent
+from domain.enums import InformationRegime
 from domain.models import ClassifiedRequirement, PrioritizedRequirement
 from experiments.analysis_common import (
     DEFAULT_SEED,
-    ZERO_SHOT,
     build_analysis_manifest,
     load_promise_sample,
     write_analysis_result,
@@ -96,7 +96,7 @@ def main(argv: list[str] | None = None) -> None:
 
     manifest = build_analysis_manifest(
         "diagnose_retry_determinism",
-        ZERO_SHOT,
+        InformationRegime.ZERO_SHOT,
         {
             "classifier_model": args.clf_model,
             "prioritizer_model": args.pri_model,

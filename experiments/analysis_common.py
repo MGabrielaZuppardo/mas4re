@@ -22,14 +22,12 @@ from typing import Any
 
 from config.settings import settings
 from datasets.promise import PromiseAdapter
+from domain.enums import InformationRegime
 from domain.models import Requirement
 from evaluation.cross_agent_check import _CRITICAL_NFR, _LOW_PRIORITIES
 from experiments.paths import ACTIVE_RESULTS_DIR, HISTORICAL_RESULTS_DIR
 
 Prediction = dict[str, Any]
-
-ZERO_SHOT = "zero_shot"
-HYBRID_EXPLORATORY = "hybrid_exploratory"
 
 ANALYSIS_DIR = ACTIVE_RESULTS_DIR / "analysis"
 FULL_DATASET_N = 625
@@ -37,6 +35,10 @@ DEFAULT_SEED = 42
 _ENCODINGS = ("utf-8", "cp1252")
 PARSE_FAILURE_PREFIX = "Parse falhou"
 _TRACKED_LIBRARIES = ("numpy", "scikit-learn", "pandas", "scipy", "langgraph")
+
+
+class MixedInformationRegimeError(ValueError):
+    """Raised when one analysis would combine runs from different information regimes."""
 
 
 @dataclass(frozen=True)
@@ -48,6 +50,7 @@ class RunData:
     predictions: list[Prediction]
     metrics: dict[str, Any]
     path: str
+    information_regime: InformationRegime = InformationRegime.ZERO_SHOT
 
 
 def read_json(path: str | Path) -> Any:
@@ -93,9 +96,22 @@ GENERATIONS: dict[str, tuple[RunSource, ...]] = {
 }
 
 
+def ensure_single_regime(runs: list[RunData]) -> None:
+    regimes = sorted({run.information_regime.value for run in runs})
+    if len(regimes) > 1:
+        raise MixedInformationRegimeError(
+            f"Refusing to analyse runs from different information regimes together: {regimes}"
+        )
+
+
 def load_full_runs(
-    strategy: str | None = None, n: int = FULL_DATASET_N, generation: str = HISTORICAL
+    strategy: str | None = None,
+    n: int = FULL_DATASET_N,
+    generation: str = HISTORICAL,
+    allow_mixed_regimes: bool = False,
 ) -> list[RunData]:
+    """Runs of one generation. Manifests without `information_regime` (all runs before it
+    existed) are zero-shot by definition."""
     runs: list[RunData] = []
     for source in GENERATIONS[generation]:
         for path in source.result_files():
@@ -113,8 +129,13 @@ def load_full_runs(
                     predictions=data["predictions"],
                     metrics=data.get("metrics", {}),
                     path=Path(path).as_posix(),
+                    information_regime=InformationRegime(
+                        manifest.get("information_regime", InformationRegime.ZERO_SHOT)
+                    ),
                 )
             )
+    if not allow_mixed_regimes:
+        ensure_single_regime(runs)
     return runs
 
 
@@ -199,13 +220,13 @@ def _library_versions() -> dict[str, str]:
 
 
 def build_analysis_manifest(
-    script: str, information_regime: str, parameters: dict[str, Any]
+    script: str, information_regime: InformationRegime, parameters: dict[str, Any]
 ) -> dict[str, Any]:
     return {
         "script": script,
         "git_commit": _git_commit(),
         "timestamp_utc": datetime.now(UTC).isoformat(),
-        "information_regime": information_regime,
+        "information_regime": information_regime.value,
         "python": sys.version.split()[0],
         "libraries": _library_versions(),
         "dataset": settings.promise_dataset_path,

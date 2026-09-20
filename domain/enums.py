@@ -8,6 +8,18 @@ class Lang(StrEnum):
     EN = "en"
 
 
+class InformationRegime(StrEnum):
+    """What a run may use besides the requirement text and the dataset schema.
+
+    ZERO_SHOT:          taxonomy and criteria only, no labelled examples and no trained models.
+    HYBRID_EXPLORATORY: uses labelled data (retrieved examples or a trained verifier). Its
+                        results must never be mixed with ZERO_SHOT ones.
+    """
+
+    ZERO_SHOT = "zero_shot"
+    HYBRID_EXPLORATORY = "hybrid_exploratory"
+
+
 class RequirementType(StrEnum):
     FUNCTIONAL = "F"
     NON_FUNCTIONAL = "NF"

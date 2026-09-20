@@ -20,11 +20,11 @@ from collections import Counter
 from collections.abc import Callable
 from typing import Any
 
+from domain.enums import InformationRegime
 from experiments.analysis_common import (
     FULL_DATASET_N,
     GENERATIONS,
     HISTORICAL,
-    ZERO_SHOT,
     Prediction,
     RunData,
     build_analysis_manifest,
@@ -212,7 +212,7 @@ def main(argv: list[str] | None = None) -> None:
 
     manifest = build_analysis_manifest(
         "analyze_error_signals",
-        ZERO_SHOT,
+        InformationRegime.ZERO_SHOT,
         {
             "strategy": args.strategy,
             "n": args.n,

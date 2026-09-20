@@ -28,6 +28,7 @@ from sklearn.metrics import accuracy_score, f1_score
 
 from agents.base import llm_retry
 from agents.classifier import ClassificationAgent
+from domain.enums import InformationRegime
 from domain.models import (
     ClassificationOutput,
     ClassifiedRequirement,
@@ -36,7 +37,6 @@ from domain.models import (
 from experiments.analysis_common import (
     DEFAULT_SEED,
     PARSE_FAILURE_PREFIX,
-    ZERO_SHOT,
     build_analysis_manifest,
     load_promise_sample,
     write_analysis_result,
@@ -171,7 +171,7 @@ def main(argv: list[str] | None = None) -> None:
 
     manifest = build_analysis_manifest(
         "diagnose_classifier_variants",
-        ZERO_SHOT,
+        InformationRegime.ZERO_SHOT,
         {"model": args.model, "n": args.n, "seed": args.seed, "variants": args.variants},
     )
     print(f"\nwritten: {write_analysis_result('classifier_variants', manifest, results)}")

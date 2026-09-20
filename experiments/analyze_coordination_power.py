@@ -19,11 +19,11 @@ from __future__ import annotations
 import argparse
 from typing import Any
 
+from domain.enums import InformationRegime
 from experiments.analysis_common import (
     FULL_DATASET_N,
     GENERATIONS,
     HISTORICAL,
-    ZERO_SHOT,
     Prediction,
     RunData,
     build_analysis_manifest,
@@ -110,7 +110,7 @@ def main(argv: list[str] | None = None) -> None:
 
     manifest = build_analysis_manifest(
         "analyze_coordination_power",
-        ZERO_SHOT,
+        InformationRegime.ZERO_SHOT,
         {
             "n": args.n,
             "generation": args.generation,
