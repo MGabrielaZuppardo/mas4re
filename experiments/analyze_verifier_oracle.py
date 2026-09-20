@@ -31,11 +31,11 @@ from sklearn.pipeline import make_pipeline
 
 from config.settings import settings
 from datasets.promise import PromiseAdapter
+from domain.enums import InformationRegime
 from experiments.analysis_common import (
     FULL_DATASET_N,
     GENERATIONS,
     HISTORICAL,
-    HYBRID_EXPLORATORY,
     build_analysis_manifest,
     format_percent,
     is_parse_failure,
@@ -154,7 +154,7 @@ def main(argv: list[str] | None = None) -> None:
 
     manifest = build_analysis_manifest(
         "analyze_verifier_oracle",
-        HYBRID_EXPLORATORY,
+        InformationRegime.HYBRID_EXPLORATORY,
         {
             "strategy": args.strategy,
             "n": args.n,

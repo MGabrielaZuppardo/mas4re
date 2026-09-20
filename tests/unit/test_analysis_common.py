@@ -3,9 +3,9 @@ from pathlib import Path
 
 import pytest
 
+from domain.enums import InformationRegime
 from experiments.analysis_common import (
-    HYBRID_EXPLORATORY,
-    ZERO_SHOT,
+    MixedInformationRegimeError,
     build_analysis_manifest,
     has_inter_agent_conflict,
     has_structural_inconsistency,
@@ -46,11 +46,14 @@ def _write_run(
     timestamp="2026-01-01T00:00:00+00:00",
     preds=None,
     base="experiments/results",
+    information_regime=None,
 ) -> None:
     run_dir = root / base / name
     run_dir.mkdir(parents=True)
     results = {"config": {"strategy": strategy, "n": n}, "predictions": preds or [], "metrics": {}}
     manifest = {"model": model, "lang": lang, "timestamp_utc": timestamp}
+    if information_regime is not None:
+        manifest["information_regime"] = information_regime
     (run_dir / "results.json").write_text(json.dumps(results), encoding="utf-8")
     (run_dir / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
 
@@ -190,9 +193,51 @@ class TestLoadFullRuns:
         assert sorted(Path(r.path).parent.name for r in runs) == ["legacy", "old"]
 
 
+class TestInformationRegimeGuard:
+    def test_manifest_antigo_sem_regime_e_zero_shot(self, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)
+        _write_run(tmp_path, "old")
+
+        runs = load_full_runs(generation="active")
+
+        assert runs[0].information_regime is InformationRegime.ZERO_SHOT
+
+    def test_le_o_regime_registrado_no_manifest(self, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)
+        _write_run(tmp_path, "hybrid", information_regime="hybrid_exploratory")
+
+        runs = load_full_runs(generation="active")
+
+        assert runs[0].information_regime is InformationRegime.HYBRID_EXPLORATORY
+
+    def test_recusa_misturar_regimes(self, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)
+        _write_run(tmp_path, "zero", information_regime="zero_shot")
+        _write_run(tmp_path, "hybrid", information_regime="hybrid_exploratory")
+
+        with pytest.raises(MixedInformationRegimeError, match="hybrid_exploratory"):
+            load_full_runs(generation="active")
+
+    def test_permite_misturar_quando_pedido_explicitamente(self, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)
+        _write_run(tmp_path, "zero", information_regime="zero_shot")
+        _write_run(tmp_path, "hybrid", information_regime="hybrid_exploratory")
+
+        runs = load_full_runs(generation="active", allow_mixed_regimes=True)
+
+        assert len(runs) == 2
+
+    def test_regime_desconhecido_no_manifest_e_recusado(self, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)
+        _write_run(tmp_path, "bad", information_regime="few_shot")
+
+        with pytest.raises(ValueError):
+            load_full_runs(generation="active")
+
+
 class TestManifestAndOutput:
     def test_manifest_registra_regime_e_parametros(self):
-        manifest = build_analysis_manifest("s", ZERO_SHOT, {"n": 15})
+        manifest = build_analysis_manifest("s", InformationRegime.ZERO_SHOT, {"n": 15})
 
         assert manifest["information_regime"] == "zero_shot"
         assert manifest["parameters"] == {"n": 15}
@@ -200,11 +245,8 @@ class TestManifestAndOutput:
             manifest
         )
 
-    def test_regime_hibrido_e_distinto_do_zero_shot(self):
-        assert HYBRID_EXPLORATORY != ZERO_SHOT
-
     def test_write_analysis_result_grava_manifest_e_resultados(self, tmp_path):
-        manifest = build_analysis_manifest("s", ZERO_SHOT, {})
+        manifest = build_analysis_manifest("s", InformationRegime.ZERO_SHOT, {})
 
         path = write_analysis_result("demo", manifest, {"x": 1}, out_dir=tmp_path / "out")
 

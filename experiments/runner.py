@@ -12,7 +12,16 @@ from pathlib import Path
 from typing import Any, cast
 
 from datasets.promise import PromiseAdapter
+from domain.enums import InformationRegime
 from domain.models import ClassifiedRequirement, PipelineState
+from evaluation.backlog import (
+    BACKLOG_FILENAME,
+    DEFAULT_DELIMITER,
+    FAILED_FILENAME,
+    build_backlog,
+    write_backlog_csv,
+    write_failed_csv,
+)
 from evaluation.metrics.classification import (
     compute_classification_metrics,
     compute_subcategory_metrics,
@@ -66,6 +75,10 @@ class RunConfig:
     seed: int = 42
     temperature: float = 0.0
     prompt_version: str = "v1"
+    information_regime: InformationRegime = InformationRegime.ZERO_SHOT
+
+    def __post_init__(self) -> None:
+        self.information_regime = InformationRegime(self.information_regime)
 
 
 @dataclass
@@ -76,6 +89,8 @@ class RunResult:
     run_id: str = ""
     manifest: dict[str, Any] = field(default_factory=dict)
     metrics: dict[str, Any] = field(default_factory=dict)
+    backlog_path: Path | None = None
+    failed_path: Path | None = None
 
 
 class ExperimentRunner:
@@ -83,17 +98,27 @@ class ExperimentRunner:
     manifest. Same runner for every architecture so SQ2 comparisons are
     controlled.
 
-    Each run produces three artifacts in experiments/results/{run_id}/:
+    Each run produces these artifacts in experiments/results/{run_id}/:
         manifest.json  — frozen parameters + git commit + dataset hash
         results.json   — quality metrics + full predictions
-        trace.jsonl    — per-requirement latency + parse outcome (TraceWriter)
+        backlog.csv    — classification + priority of every processed requirement
+        failed.csv     — requirements the agents could not process (only if there are any)
+        trace.jsonl    — per-requirement latency + parse outcome (TraceWriter, in trace_dir)
     """
 
-    def __init__(self, out_dir: str = "experiments/results", trace_dir: str | None = None) -> None:
+    def __init__(
+        self,
+        out_dir: str = "experiments/results",
+        trace_dir: str | None = None,
+        backlog_delimiter: str = DEFAULT_DELIMITER,
+        include_ground_truth: bool = True,
+    ) -> None:
         self._out = Path(out_dir)
         self._out.mkdir(parents=True, exist_ok=True)
         self._trace_dir = Path(trace_dir) if trace_dir is not None else _TRACE_DIR
         self._trace_dir.mkdir(parents=True, exist_ok=True)
+        self._backlog_delimiter = backlog_delimiter
+        self._include_ground_truth = include_ground_truth
 
     def _build_manifest(
         self,
@@ -113,6 +138,7 @@ class ExperimentRunner:
             "seed": config.seed,
             "temperature": config.temperature,
             "prompt_version": config.prompt_version,
+            "information_regime": config.information_regime.value,
             "dataset": config.dataset_path,
             "dataset_n": n_loaded,
             "dataset_md5": _file_md5(Path(config.dataset_path)),
@@ -184,6 +210,19 @@ class ExperimentRunner:
         predictions = [r.model_dump(mode="json") for r in state.prioritized_requirements] or [
             r.model_dump(mode="json") for r in state.classified_requirements
         ]
+        backlog = build_backlog(state, run_id)
+        backlog_path = write_backlog_csv(
+            backlog.rows,
+            run_path / BACKLOG_FILENAME,
+            self._backlog_delimiter,
+            self._include_ground_truth,
+        )
+        failed_path = write_failed_csv(
+            backlog.failed,
+            run_path / FAILED_FILENAME,
+            self._backlog_delimiter,
+            self._include_ground_truth,
+        )
         results = {
             "run_id": run_id,
             "config": {
@@ -192,9 +231,13 @@ class ExperimentRunner:
                 "lang": config.lang,
                 "seed": config.seed,
                 "n": len(requirements),
+                "information_regime": config.information_regime.value,
             },
             "metrics": metrics,
             "n_predictions": len(predictions),
+            "n_failed": len(backlog.failed),
+            "backlog_path": str(backlog_path),
+            "failed_path": str(failed_path) if failed_path else None,
             "predictions": predictions,
         }
         (run_path / "results.json").write_text(
@@ -214,4 +257,6 @@ class ExperimentRunner:
             run_id=run_id,
             manifest=manifest,
             metrics=metrics,
+            backlog_path=backlog_path,
+            failed_path=failed_path,
         )

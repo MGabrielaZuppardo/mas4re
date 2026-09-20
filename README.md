@@ -134,11 +134,30 @@ python scripts/run_baseline.py --full --model claude-haiku-4-5 --lang en --no-ta
 Each run produces files under `experiments/results/{run_id}/`:
 
 ```
-manifest.json   — frozen parameters (model, seed, temperature, dataset hash, git commit)
+manifest.json   — frozen parameters (model, seed, temperature, dataset hash, git commit,
+                  information_regime)
 results.json    — classification metrics (F1, accuracy, MCC) + full predictions
+backlog.csv     — classification + priority of every processed requirement, best first
+failed.csv      — requirements the agents could not process, with the recorded reason
+                  (only written when there is at least one)
 ```
 
-And a trace file per requirement:
+`backlog.csv` is UTF-8 with BOM and `;`-separated, so it opens correctly in Excel with Portuguese
+locale. One row per requirement: type, NFR category, confidence and justification from the
+classifier; priority, score and justification from the prioritizer; and, when the dataset has a
+gold label, `gold_type`, `gold_category` and `type_correct`. `failed.csv` adds the stage, mode and
+evidence from `failure_detections`, plus every detection recorded for that requirement.
+
+```bash
+python -m cli.main run --strategy pipeline --n 50 --backlog-delimiter "," --no-ground-truth
+python -m cli.main backlog experiments/results/<run_id>          # rebuild it for a finished run
+```
+
+`backlog` rebuilds the CSV from a finished run's `results.json` (options `--delimiter`,
+`--no-ground-truth`, `--out`). The requirements the agents could not process are not stored there,
+so that command never writes `failed.csv`.
+
+Each run also writes a trace file per requirement:
 
 ```
 experiments/traces/{run_id}.jsonl   — per-requirement latency + parse outcome

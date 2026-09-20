@@ -26,6 +26,7 @@ from typing import Any
 from agents.base import llm_retry, rank_by_priority
 from agents.classifier import ClassificationAgent
 from agents.prioritizer import PrioritizationAgent
+from domain.enums import InformationRegime
 from domain.models import (
     ClassifiedRequirement,
     PrioritizationOutput,
@@ -36,7 +37,6 @@ from evaluation.cross_agent_check import check_requirements
 from evaluation.metrics.prioritization import compute_moscow_distribution
 from experiments.analysis_common import (
     DEFAULT_SEED,
-    ZERO_SHOT,
     build_analysis_manifest,
     load_promise_sample,
     write_analysis_result,
@@ -176,7 +176,7 @@ def main(argv: list[str] | None = None) -> None:
 
     manifest = build_analysis_manifest(
         "diagnose_prioritizer_variants",
-        ZERO_SHOT,
+        InformationRegime.ZERO_SHOT,
         {
             "classifier_model": args.clf_model,
             "prioritizer_model": args.pri_model,

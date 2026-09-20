@@ -9,6 +9,12 @@ from rich.table import Table
 
 from config.settings import settings
 from domain.enums import Lang
+from evaluation.backlog import (
+    BACKLOG_FILENAME,
+    DEFAULT_DELIMITER,
+    backlog_from_results,
+    write_backlog_csv,
+)
 from experiments.runner import ExperimentRunner, RunConfig
 from experiments.strategy import BaselineStrategy, MediatedPipelineStrategy, PipelineStrategy
 
@@ -31,8 +37,15 @@ def run(
     dataset: str = typer.Option(settings.promise_dataset_path, help="Dataset CSV path."),
     lang: str = typer.Option("pt", help="pt | en"),
     temperature: float = typer.Option(0.0, help="LLM temperature."),
+    backlog_delimiter: str = typer.Option(
+        DEFAULT_DELIMITER, help="CSV delimiter of backlog.csv / failed.csv."
+    ),
+    no_ground_truth: bool = typer.Option(
+        False, "--no-ground-truth", help="Leave the gold_* columns out of backlog.csv / failed.csv."
+    ),
 ) -> None:
     """Run one strategy under a frozen config and persist artifacts."""
+    _check_delimiter(backlog_delimiter)
     lang_enum = Lang(lang)
     if strategy == "baseline":
         strat: BaselineStrategy | PipelineStrategy | MediatedPipelineStrategy = BaselineStrategy(
@@ -67,14 +80,54 @@ def run(
         seed=seed,
         temperature=temperature,
     )
-    result = ExperimentRunner().execute(strat, config)
+    result = ExperimentRunner(
+        backlog_delimiter=backlog_delimiter, include_ground_truth=not no_ground_truth
+    ).execute(strat, config)
 
     console.print(f"[bold green]Run done[/] | strategy={strategy} | n={config.n_samples or 'full'}")
+    console.print(f"  backlog: {result.backlog_path}")
+    if result.failed_path:
+        console.print(f"  [yellow]failed requirements:[/] {result.failed_path}")
     cls = result.metrics.get("classification", {})
     if cls:
         console.print(f"  classification: {cls}")
     if "moscow_distribution" in result.metrics:
         console.print(f"  moscow: {result.metrics['moscow_distribution']}")
+
+
+def _check_delimiter(delimiter: str) -> None:
+    if len(delimiter) != 1:
+        raise typer.BadParameter(f"delimiter must be a single character, got {delimiter!r}")
+
+
+@app.command()
+def backlog(
+    run_dir: str = typer.Argument(..., help="Run directory with results.json"),
+    delimiter: str = typer.Option(DEFAULT_DELIMITER, help="CSV delimiter."),
+    no_ground_truth: bool = typer.Option(
+        False, "--no-ground-truth", help="Leave the gold_* columns out."
+    ),
+    out: str | None = typer.Option(None, help="Output CSV (default: <run_dir>/backlog.csv)."),
+) -> None:
+    """Rebuild backlog.csv (classification + priority) from a finished run's results.json."""
+    _check_delimiter(delimiter)
+    results_path = Path(run_dir) / "results.json"
+    if not results_path.exists():
+        raise typer.BadParameter(f"results.json not found in {run_dir}")
+
+    results = json.loads(results_path.read_text(encoding="utf-8"))
+    rows = backlog_from_results(results).rows
+    target = write_backlog_csv(
+        rows, Path(out) if out else Path(run_dir) / BACKLOG_FILENAME, delimiter, not no_ground_truth
+    )
+
+    console.print(f"[bold green]Backlog written[/] | {len(rows)} requirements | {target}")
+    n_missing = results.get("config", {}).get("n", len(rows)) - len(rows)
+    if n_missing > 0:
+        console.print(
+            f"  [yellow]{n_missing} requirements have no output[/] (results.json does not "
+            "store which ones)."
+        )
 
 
 @app.command(name="eval")
