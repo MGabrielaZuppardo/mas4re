@@ -1,34 +1,33 @@
 """
-Testes de integração do PrioritizationAgent contra PROMISE NFR+.
-Requer Ollama rodando localmente com llama3.1:8b.
+Testes de integração do PrioritizationAgent contra datasets anotados.
+Requer Ollama rodando localmente com llama3.1:8b (ver tests/integration/conftest.py).
 """
 
 import pytest
 from scipy.stats import kendalltau
 
 from agents.prioritizer import PrioritizationAgent
-from config.settings import settings
 from domain.enums import MoSCoWPriority
 
 
 @pytest.fixture(scope="module")
-def agent():
-    return PrioritizationAgent(model=settings.prioritizer_model)
+def agent(prioritizer_model):
+    return PrioritizationAgent(model=prioritizer_model)
 
 
 @pytest.fixture(scope="module")
-def prioritized_sample(agent, promise_sample):
+def prioritized_sample(agent, classifier_model, dataset, dataset_sample):
     """Classifica amostra e prioriza — pipeline completo."""
     from agents.classifier import ClassificationAgent
 
-    classifier = ClassificationAgent(model=settings.classifier_model)
-    classified = classifier.classify_batch(promise_sample)
+    classifier = ClassificationAgent(model=classifier_model, nfr_categories=dataset.nfr_categories)
+    classified = classifier.classify_batch(dataset_sample)
     return agent.prioritize_batch(classified)
 
 
-class TestPriorizadorPromise:
-    def test_todos_priorizados(self, prioritized_sample, promise_sample):
-        assert len(prioritized_sample) == len(promise_sample)
+class TestPriorizador:
+    def test_todos_priorizados(self, prioritized_sample, dataset_sample):
+        assert len(prioritized_sample) == len(dataset_sample)
 
     def test_priority_preenchida(self, prioritized_sample):
         for req in prioritized_sample:
@@ -44,7 +43,7 @@ class TestPriorizadorPromise:
         assert sorted(ranks) == list(range(1, len(ranks) + 1))
 
     def test_justification_nao_vazia(self, prioritized_sample):
-        vazias = [r for r in prioritized_sample if not r.justification_priority]
+        vazias = [r for r in prioritized_sample if not r.priority_justification]
         taxa_vazia = len(vazias) / len(prioritized_sample)
         print(f"\nJustificativas vazias: {taxa_vazia:.2%}")
         assert taxa_vazia <= 0.10  # máx 10% sem justificativa
@@ -70,16 +69,18 @@ class TestPriorizadorPromise:
 
 
 class TestPriorizadorIdioma:
-    def test_divergencia_moscow_en_vs_pt(self, agent, promise_sample):
+    def test_divergencia_moscow_en_vs_pt(self, agent, classifier_model, dataset, dataset_sample):
         """Mede impacto do idioma na priorização MoSCoW."""
         from agents.classifier import ClassificationAgent
         from domain.models import Requirement
 
-        with_en = [r for r in promise_sample if r.text_en]
+        with_en = [r for r in dataset_sample if r.text_en]
         if len(with_en) < 3:
             pytest.skip("Poucos requisitos com texto EN.")
 
-        classifier = ClassificationAgent(model=settings.classifier_model)
+        classifier = ClassificationAgent(
+            model=classifier_model, nfr_categories=dataset.nfr_categories
+        )
 
         classified_pt = classifier.classify_batch(with_en)
         reqs_en = [
