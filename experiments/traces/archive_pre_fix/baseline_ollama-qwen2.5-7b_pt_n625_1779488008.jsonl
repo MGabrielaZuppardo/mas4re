@@ -1,0 +1,3 @@
+{"run_id": "baseline_ollama-qwen2.5-7b_pt_n625_1779488008", "stage": "baseline", "requirement_id": "70c68521", "model": "ollama/qwen2.5:7b", "latency_ms": 90106.69, "parsed_ok": false, "failure_modes": [], "timestamp": "2026-05-22 22:14:58.260710+00:00"}
+{"run_id": "baseline_ollama-qwen2.5-7b_pt_n625_1779488008", "stage": "baseline", "requirement_id": "dc7c024e", "model": "ollama/qwen2.5:7b", "latency_ms": 90108.58, "parsed_ok": false, "failure_modes": [], "timestamp": "2026-05-22 22:14:58.263950+00:00"}
+{"run_id": "baseline_ollama-qwen2.5-7b_pt_n625_1779488008", "stage": "baseline", "requirement_id": "b7f96f47", "model": "ollama/qwen2.5:7b", "latency_ms": 90117.68, "parsed_ok": false, "failure_modes": [], "timestamp": "2026-05-22 22:14:58.266509+00:00"}

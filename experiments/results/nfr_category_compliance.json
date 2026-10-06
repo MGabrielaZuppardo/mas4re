@@ -1,0 +1,101 @@
+[
+  {
+    "strategy": "baseline",
+    "model": "llama3.1:8b",
+    "lang": "en",
+    "nf_total": 182,
+    "nf_missing_category": 3,
+    "missing_category_rate": 0.0165,
+    "zero_confidence_fallbacks": 33
+  },
+  {
+    "strategy": "pipeline",
+    "model": "qwen2.5:7b",
+    "lang": "pt",
+    "nf_total": 312,
+    "nf_missing_category": 1,
+    "missing_category_rate": 0.0032,
+    "zero_confidence_fallbacks": 2
+  },
+  {
+    "strategy": "pipeline",
+    "model": "qwen2.5:7b",
+    "lang": "en",
+    "nf_total": 294,
+    "nf_missing_category": 4,
+    "missing_category_rate": 0.0136,
+    "zero_confidence_fallbacks": 0
+  },
+  {
+    "strategy": "pipeline",
+    "model": "llama3.1:8b",
+    "lang": "pt",
+    "nf_total": 192,
+    "nf_missing_category": 5,
+    "missing_category_rate": 0.026,
+    "zero_confidence_fallbacks": 0
+  },
+  {
+    "strategy": "pipeline",
+    "model": "mistral:7b",
+    "lang": "pt",
+    "nf_total": 123,
+    "nf_missing_category": 9,
+    "missing_category_rate": 0.0732,
+    "zero_confidence_fallbacks": 0
+  },
+  {
+    "strategy": "pipeline",
+    "model": "mistral:7b",
+    "lang": "en",
+    "nf_total": 152,
+    "nf_missing_category": 2,
+    "missing_category_rate": 0.0132,
+    "zero_confidence_fallbacks": 1
+  },
+  {
+    "strategy": "two_call_baseline",
+    "model": "qwen2.5:7b",
+    "lang": "pt",
+    "nf_total": 309,
+    "nf_missing_category": 1,
+    "missing_category_rate": 0.0032,
+    "zero_confidence_fallbacks": 0
+  },
+  {
+    "strategy": "two_call_baseline",
+    "model": "qwen2.5:7b",
+    "lang": "en",
+    "nf_total": 290,
+    "nf_missing_category": 1,
+    "missing_category_rate": 0.0034,
+    "zero_confidence_fallbacks": 0
+  },
+  {
+    "strategy": "two_call_baseline",
+    "model": "llama3.1:8b",
+    "lang": "pt",
+    "nf_total": 184,
+    "nf_missing_category": 2,
+    "missing_category_rate": 0.0109,
+    "zero_confidence_fallbacks": 0
+  },
+  {
+    "strategy": "two_call_baseline",
+    "model": "mistral:7b",
+    "lang": "pt",
+    "nf_total": 123,
+    "nf_missing_category": 10,
+    "missing_category_rate": 0.0813,
+    "zero_confidence_fallbacks": 0
+  },
+  {
+    "strategy": "two_call_baseline",
+    "model": "mistral:7b",
+    "lang": "en",
+    "nf_total": 145,
+    "nf_missing_category": 2,
+    "missing_category_rate": 0.0138,
+    "zero_confidence_fallbacks": 2
+  }
+]

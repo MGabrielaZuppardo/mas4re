@@ -1,0 +1,369 @@
+{
+  "rq1_pipeline_vs_baseline": [
+    {
+      "model": "qwen2.5:7b",
+      "lang": "pt",
+      "n": 621,
+      "baseline_acc": 0.7343,
+      "pipeline_acc": 0.814815,
+      "delta_acc": 0.080515,
+      "cohens_h": 0.193372,
+      "magnitude": "negligible",
+      "p_value": 3.3412791127020037e-07,
+      "sig": "***",
+      "p_bonferroni": 2.004767467621202e-06,
+      "sig_bonferroni": "sig"
+    },
+    {
+      "model": "qwen2.5:7b",
+      "lang": "en",
+      "n": 623,
+      "baseline_acc": 0.784912,
+      "pipeline_acc": 0.808989,
+      "delta_acc": 0.024077,
+      "cohens_h": 0.059877,
+      "magnitude": "negligible",
+      "p_value": 0.05878172135535886,
+      "sig": "ns",
+      "p_bonferroni": 0.3526903281321532,
+      "sig_bonferroni": "NS(Bonf)"
+    },
+    {
+      "model": "llama3.1:8b",
+      "lang": "pt",
+      "n": 623,
+      "baseline_acc": 0.640449,
+      "pipeline_acc": 0.696629,
+      "delta_acc": 0.05618,
+      "cohens_h": 0.119442,
+      "magnitude": "negligible",
+      "p_value": 7.419293713577049e-06,
+      "sig": "***",
+      "p_bonferroni": 4.4515762281462293e-05,
+      "sig_bonferroni": "sig"
+    },
+    {
+      "model": "llama3.1:8b",
+      "lang": "en",
+      "n": 590,
+      "baseline_acc": 0.728814,
+      "pipeline_acc": 0.723729,
+      "delta_acc": -0.005085,
+      "cohens_h": -0.011404,
+      "magnitude": "negligible",
+      "p_value": 0.6802795473344503,
+      "sig": "ns",
+      "p_bonferroni": 1.0,
+      "sig_bonferroni": "NS(Bonf)"
+    },
+    {
+      "model": "mistral:7b",
+      "lang": "pt",
+      "n": 623,
+      "baseline_acc": 0.601926,
+      "pipeline_acc": 0.579454,
+      "delta_acc": -0.022472,
+      "cohens_h": -0.045706,
+      "magnitude": "negligible",
+      "p_value": 0.07070114486598297,
+      "sig": "ns",
+      "p_bonferroni": 0.42420686919589784,
+      "sig_bonferroni": "NS(Bonf)"
+    },
+    {
+      "model": "mistral:7b",
+      "lang": "en",
+      "n": 622,
+      "baseline_acc": 0.606109,
+      "pipeline_acc": 0.638264,
+      "delta_acc": 0.032154,
+      "cohens_h": 0.066334,
+      "magnitude": "negligible",
+      "p_value": 0.004677734981047266,
+      "sig": "**",
+      "p_bonferroni": 0.028066409886283596,
+      "sig_bonferroni": "sig"
+    }
+  ],
+  "rq2_language_en_vs_pt": [
+    {
+      "strategy": "baseline",
+      "model": "qwen2.5:7b",
+      "pt_acc": 0.733547,
+      "en_acc": 0.784912,
+      "delta_pt_minus_en": -0.051364,
+      "cohens_h": -0.120289,
+      "magnitude": "negligible",
+      "p_value": 0.03405925501886175,
+      "sig": "*",
+      "p_bonferroni": 0.30653329516975575,
+      "sig_bonferroni": "NS(Bonf)"
+    },
+    {
+      "strategy": "baseline",
+      "model": "llama3.1:8b",
+      "pt_acc": 0.640449,
+      "en_acc": 0.728814,
+      "delta_pt_minus_en": -0.088364,
+      "cohens_h": -0.190594,
+      "magnitude": "negligible",
+      "p_value": 0.0009479708523298001,
+      "sig": "***",
+      "p_bonferroni": 0.0085317376709682,
+      "sig_bonferroni": "sig"
+    },
+    {
+      "strategy": "baseline",
+      "model": "mistral:7b",
+      "pt_acc": 0.601926,
+      "en_acc": 0.606742,
+      "delta_pt_minus_en": -0.004815,
+      "cohens_h": -0.009848,
+      "magnitude": "negligible",
+      "p_value": 0.8621475217174759,
+      "sig": "ns",
+      "p_bonferroni": 1.0,
+      "sig_bonferroni": "NS(Bonf)"
+    },
+    {
+      "strategy": "pipeline",
+      "model": "qwen2.5:7b",
+      "pt_acc": 0.814815,
+      "en_acc": 0.808989,
+      "delta_pt_minus_en": 0.005826,
+      "cohens_h": 0.014909,
+      "magnitude": "negligible",
+      "p_value": 0.7927919604352501,
+      "sig": "ns",
+      "p_bonferroni": 1.0,
+      "sig_bonferroni": "NS(Bonf)"
+    },
+    {
+      "strategy": "pipeline",
+      "model": "llama3.1:8b",
+      "pt_acc": 0.696629,
+      "en_acc": 0.730337,
+      "delta_pt_minus_en": -0.033708,
+      "cohens_h": -0.074582,
+      "magnitude": "negligible",
+      "p_value": 0.1884488153776327,
+      "sig": "ns",
+      "p_bonferroni": 1.0,
+      "sig_bonferroni": "NS(Bonf)"
+    },
+    {
+      "strategy": "pipeline",
+      "model": "mistral:7b",
+      "pt_acc": 0.579454,
+      "en_acc": 0.638264,
+      "delta_pt_minus_en": -0.058809,
+      "cohens_h": -0.120594,
+      "magnitude": "negligible",
+      "p_value": 0.0335787877870963,
+      "sig": "*",
+      "p_bonferroni": 0.30220909008386665,
+      "sig_bonferroni": "NS(Bonf)"
+    },
+    {
+      "strategy": "two_call_baseline",
+      "model": "qwen2.5:7b",
+      "pt_acc": 0.810594,
+      "en_acc": 0.805778,
+      "delta_pt_minus_en": 0.004815,
+      "cohens_h": 0.012231,
+      "magnitude": "negligible",
+      "p_value": 0.82925657086753,
+      "sig": "ns",
+      "p_bonferroni": 1.0,
+      "sig_bonferroni": "NS(Bonf)"
+    },
+    {
+      "strategy": "two_call_baseline",
+      "model": "llama3.1:8b",
+      "pt_acc": 0.686998,
+      "en_acc": 0.731942,
+      "delta_pt_minus_en": -0.044944,
+      "cohens_h": -0.09906,
+      "magnitude": "negligible",
+      "p_value": 0.08074589047096078,
+      "sig": "ns",
+      "p_bonferroni": 0.7267130142386471,
+      "sig_bonferroni": "NS(Bonf)"
+    },
+    {
+      "strategy": "two_call_baseline",
+      "model": "mistral:7b",
+      "pt_acc": 0.582665,
+      "en_acc": 0.626409,
+      "delta_pt_minus_en": -0.043744,
+      "cohens_h": -0.0895,
+      "magnitude": "negligible",
+      "p_value": 0.11479558327958614,
+      "sig": "ns",
+      "p_bonferroni": 1.0,
+      "sig_bonferroni": "NS(Bonf)"
+    }
+  ],
+  "moscow_observation": [
+    {
+      "strategy": "baseline",
+      "lang": "pt",
+      "n_aligned": 623,
+      "n_excluded_invalid_priority": 0,
+      "kappa": -0.140642,
+      "interpretation": "poor",
+      "distributions": {
+        "qwen2.5:7b": {
+          "S": 330,
+          "M": 287,
+          "C": 6
+        },
+        "llama3.1:8b": {
+          "M": 617,
+          "C": 5,
+          "S": 1
+        },
+        "mistral:7b": {
+          "M": 603,
+          "S": 19,
+          "C": 1
+        }
+      }
+    },
+    {
+      "strategy": "baseline",
+      "lang": "en",
+      "n_aligned": 623,
+      "n_excluded_invalid_priority": 0,
+      "kappa": -0.122,
+      "interpretation": "poor",
+      "distributions": {
+        "qwen2.5:7b": {
+          "S": 404,
+          "M": 209,
+          "C": 9,
+          "W": 1
+        },
+        "llama3.1:8b": {
+          "M": 563,
+          "C": 38,
+          "S": 22
+        },
+        "mistral:7b": {
+          "M": 591,
+          "S": 31,
+          "C": 1
+        }
+      }
+    },
+    {
+      "strategy": "two_call_baseline",
+      "lang": "pt",
+      "n_aligned": 623,
+      "n_excluded_invalid_priority": 0,
+      "kappa": 0.135959,
+      "interpretation": "slight",
+      "distributions": {
+        "qwen2.5:7b": {
+          "S": 333,
+          "M": 257,
+          "C": 31,
+          "W": 2
+        },
+        "llama3.1:8b": {
+          "M": 560,
+          "S": 53,
+          "C": 9,
+          "W": 1
+        },
+        "mistral:7b": {
+          "M": 536,
+          "S": 81,
+          "W": 6
+        }
+      }
+    },
+    {
+      "strategy": "two_call_baseline",
+      "lang": "en",
+      "n_aligned": 623,
+      "n_excluded_invalid_priority": 0,
+      "kappa": 0.169465,
+      "interpretation": "slight",
+      "distributions": {
+        "qwen2.5:7b": {
+          "S": 366,
+          "M": 230,
+          "C": 25,
+          "W": 2
+        },
+        "llama3.1:8b": {
+          "M": 540,
+          "W": 1,
+          "S": 75,
+          "C": 7
+        },
+        "mistral:7b": {
+          "M": 501,
+          "S": 118,
+          "C": 3,
+          "W": 1
+        }
+      }
+    },
+    {
+      "strategy": "pipeline",
+      "lang": "pt",
+      "n_aligned": 623,
+      "n_excluded_invalid_priority": 0,
+      "kappa": 0.176758,
+      "interpretation": "slight",
+      "distributions": {
+        "qwen2.5:7b": {
+          "S": 337,
+          "M": 260,
+          "C": 24,
+          "W": 2
+        },
+        "llama3.1:8b": {
+          "M": 544,
+          "S": 72,
+          "C": 6,
+          "W": 1
+        },
+        "mistral:7b": {
+          "M": 530,
+          "S": 87,
+          "W": 6
+        }
+      }
+    },
+    {
+      "strategy": "pipeline",
+      "lang": "en",
+      "n_aligned": 623,
+      "n_excluded_invalid_priority": 0,
+      "kappa": 0.238821,
+      "interpretation": "fair",
+      "distributions": {
+        "qwen2.5:7b": {
+          "S": 394,
+          "M": 212,
+          "C": 16,
+          "W": 1
+        },
+        "llama3.1:8b": {
+          "M": 465,
+          "C": 3,
+          "S": 155
+        },
+        "mistral:7b": {
+          "M": 506,
+          "S": 113,
+          "W": 1,
+          "C": 3
+        }
+      }
+    }
+  ]
+}

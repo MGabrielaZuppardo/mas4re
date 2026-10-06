@@ -1,0 +1,198 @@
+{
+  "rq1": [
+    {
+      "model": "qwen2.5:7b",
+      "lang": "pt",
+      "n": 623,
+      "baseline_acc": 0.7335473515248796,
+      "pipeline_acc": 0.8250401284109149,
+      "delta_acc": 0.0914927768860353,
+      "cohens_h": 0.22168790075087408,
+      "magnitude": "small",
+      "p_value": 1.5222686940706949e-09,
+      "sig": "***",
+      "p_bonferroni": 9.13361216442417e-09,
+      "sig_bonferroni": "sig"
+    },
+    {
+      "model": "qwen2.5:7b",
+      "lang": "en",
+      "n": 623,
+      "baseline_acc": 0.680577849117175,
+      "pipeline_acc": 0.7993579454253612,
+      "delta_acc": 0.1187800963081862,
+      "cohens_h": 0.2723899928985756,
+      "magnitude": "small",
+      "p_value": 1.718289126453117e-12,
+      "sig": "***",
+      "p_bonferroni": 1.0309734758718702e-11,
+      "sig_bonferroni": "sig"
+    },
+    {
+      "model": "llama3.1:8b",
+      "lang": "pt",
+      "n": 623,
+      "baseline_acc": 0.6356340288924559,
+      "pipeline_acc": 0.6966292134831461,
+      "delta_acc": 0.0609951845906902,
+      "cohens_h": 0.12946264534778784,
+      "magnitude": "negligible",
+      "p_value": 3.8150176726090565e-07,
+      "sig": "***",
+      "p_bonferroni": 2.289010603565434e-06,
+      "sig_bonferroni": "sig"
+    },
+    {
+      "model": "llama3.1:8b",
+      "lang": "en",
+      "n": 623,
+      "baseline_acc": 0.6725521669341894,
+      "pipeline_acc": 0.7287319422150883,
+      "delta_acc": 0.0561797752808989,
+      "cohens_h": 0.12279111185914404,
+      "magnitude": "negligible",
+      "p_value": 1.0356865370145146e-05,
+      "sig": "***",
+      "p_bonferroni": 6.214119222087088e-05,
+      "sig_bonferroni": "sig"
+    },
+    {
+      "model": "mistral:7b",
+      "lang": "pt",
+      "n": 623,
+      "baseline_acc": 0.5922953451043339,
+      "pipeline_acc": 0.550561797752809,
+      "delta_acc": -0.0417335473515249,
+      "cohens_h": -0.08435863799891652,
+      "magnitude": "negligible",
+      "p_value": 0.0016162222150599888,
+      "sig": "**",
+      "p_bonferroni": 0.009697333290359933,
+      "sig_bonferroni": "sig"
+    },
+    {
+      "model": "mistral:7b",
+      "lang": "en",
+      "n": 623,
+      "baseline_acc": 0.5874799357945425,
+      "pipeline_acc": 0.6195826645264848,
+      "delta_acc": 0.03210272873194231,
+      "cohens_h": 0.06564113091425927,
+      "magnitude": "negligible",
+      "p_value": 0.009823274507519249,
+      "sig": "**",
+      "p_bonferroni": 0.05893964704511549,
+      "sig_bonferroni": "NS(Bonf)"
+    }
+  ],
+  "rq2": [
+    {
+      "strategy": "baseline",
+      "lang": "pt",
+      "n_aligned": 623,
+      "kappa": -0.1360956070654869,
+      "interpretation": "poor"
+    },
+    {
+      "strategy": "baseline",
+      "lang": "en",
+      "n_aligned": 623,
+      "kappa": -0.1644076185349173,
+      "interpretation": "poor"
+    },
+    {
+      "strategy": "pipeline",
+      "lang": "pt",
+      "n_aligned": 623,
+      "kappa": 0.17420031633602695,
+      "interpretation": "slight"
+    },
+    {
+      "strategy": "pipeline",
+      "lang": "en",
+      "n_aligned": 623,
+      "kappa": 0.17016847050764294,
+      "interpretation": "slight"
+    }
+  ],
+  "rq3": [
+    {
+      "strategy": "baseline",
+      "model": "qwen2.5:7b",
+      "pt_acc": 0.7335473515248796,
+      "en_acc": 0.680577849117175,
+      "delta": 0.052969502407704594,
+      "cohens_h": 0.11649520718608275,
+      "magnitude": "negligible",
+      "p_value": 0.04004775407319418,
+      "sig": "*",
+      "p_bonferroni": 0.24028652443916507,
+      "sig_bonferroni": "NS(Bonf)"
+    },
+    {
+      "strategy": "baseline",
+      "model": "llama3.1:8b",
+      "pt_acc": 0.6356340288924559,
+      "en_acc": 0.6725521669341894,
+      "delta": -0.036918138041733495,
+      "cohens_h": -0.07763970135624021,
+      "magnitude": "negligible",
+      "p_value": 0.17093886260953195,
+      "sig": "ns",
+      "p_bonferroni": 1.0256331756571917,
+      "sig_bonferroni": "NS(Bonf)"
+    },
+    {
+      "strategy": "baseline",
+      "model": "mistral:7b",
+      "pt_acc": 0.5922953451043339,
+      "en_acc": 0.5874799357945425,
+      "delta": 0.0048154093097914075,
+      "cohens_h": 0.009790368511700454,
+      "magnitude": "negligible",
+      "p_value": 0.8629412973031492,
+      "sig": "ns",
+      "p_bonferroni": 5.177647783818895,
+      "sig_bonferroni": "NS(Bonf)"
+    },
+    {
+      "strategy": "pipeline",
+      "model": "qwen2.5:7b",
+      "pt_acc": 0.8250401284109149,
+      "en_acc": 0.7993579454253612,
+      "delta": 0.025682182985553692,
+      "cohens_h": 0.06579311503838126,
+      "magnitude": "negligible",
+      "p_value": 0.24604346318908066,
+      "sig": "ns",
+      "p_bonferroni": 1.476260779134484,
+      "sig_bonferroni": "NS(Bonf)"
+    },
+    {
+      "strategy": "pipeline",
+      "model": "llama3.1:8b",
+      "pt_acc": 0.6966292134831461,
+      "en_acc": 0.7287319422150883,
+      "delta": -0.0321027287319422,
+      "cohens_h": -0.07096816786759641,
+      "magnitude": "negligible",
+      "p_value": 0.21075110001918673,
+      "sig": "ns",
+      "p_bonferroni": 1.2645066001151204,
+      "sig_bonferroni": "NS(Bonf)"
+    },
+    {
+      "strategy": "pipeline",
+      "model": "mistral:7b",
+      "pt_acc": 0.550561797752809,
+      "en_acc": 0.6195826645264848,
+      "delta": -0.0690208667736758,
+      "cohens_h": -0.14020940040147534,
+      "magnitude": "negligible",
+      "p_value": 0.013461765781244407,
+      "sig": "*",
+      "p_bonferroni": 0.08077059468746645,
+      "sig_bonferroni": "NS(Bonf)"
+    }
+  ]
+}

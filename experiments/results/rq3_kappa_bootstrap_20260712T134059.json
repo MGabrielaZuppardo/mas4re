@@ -1,0 +1,36 @@
+{
+  "n_boot": 10000,
+  "seed": 42,
+  "alpha_bonferroni": 0.025,
+  "n_comparisons": 2,
+  "comparisons": [
+    {
+      "n_aligned": 623,
+      "kappa_two_call": 0.136,
+      "kappa_pipeline": 0.1768,
+      "delta_kappa": 0.0408,
+      "ci95_low": 0.0166,
+      "ci95_high": 0.0662,
+      "ci_includes_zero": false,
+      "ci_bonferroni_low": 0.0133,
+      "ci_bonferroni_high": 0.0703,
+      "ci_bonferroni_includes_zero": false,
+      "p_bootstrap_two_sided": 0.0004,
+      "lang": "pt"
+    },
+    {
+      "n_aligned": 623,
+      "kappa_two_call": 0.1695,
+      "kappa_pipeline": 0.2388,
+      "delta_kappa": 0.0694,
+      "ci95_low": 0.0365,
+      "ci95_high": 0.1034,
+      "ci_includes_zero": false,
+      "ci_bonferroni_low": 0.031,
+      "ci_bonferroni_high": 0.1083,
+      "ci_bonferroni_includes_zero": false,
+      "p_bootstrap_two_sided": 0.0,
+      "lang": "en"
+    }
+  ]
+}
