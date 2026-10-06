@@ -1,0 +1,110 @@
+[
+  {
+    "model": "qwen2.5:7b",
+    "lang": "pt",
+    "excluded": {
+      "f1_baseline": 0.733492,
+      "f1_two_call": 0.809106,
+      "f1_pipeline": 0.813185,
+      "delta_p": 0.075614,
+      "delta_s": 0.004079
+    },
+    "retained": {
+      "f1_baseline": 0.733492,
+      "f1_two_call": 0.809106,
+      "f1_pipeline": 0.810557,
+      "delta_p": 0.075614,
+      "delta_s": 0.001451
+    }
+  },
+  {
+    "model": "qwen2.5:7b",
+    "lang": "en",
+    "excluded": {
+      "f1_baseline": 0.784845,
+      "f1_two_call": 0.805128,
+      "f1_pipeline": 0.808198,
+      "delta_p": 0.020283,
+      "delta_s": 0.00307
+    },
+    "retained": {
+      "f1_baseline": 0.784845,
+      "f1_two_call": 0.805128,
+      "f1_pipeline": 0.808198,
+      "delta_p": 0.020283,
+      "delta_s": 0.00307
+    }
+  },
+  {
+    "model": "llama3.1:8b",
+    "lang": "pt",
+    "excluded": {
+      "f1_baseline": 0.630345,
+      "f1_two_call": 0.682996,
+      "f1_pipeline": 0.693595,
+      "delta_p": 0.052651,
+      "delta_s": 0.010598
+    },
+    "retained": {
+      "f1_baseline": 0.630345,
+      "f1_two_call": 0.682996,
+      "f1_pipeline": 0.693595,
+      "delta_p": 0.052651,
+      "delta_s": 0.010598
+    }
+  },
+  {
+    "model": "llama3.1:8b",
+    "lang": "en",
+    "excluded": {
+      "f1_baseline": 0.724714,
+      "f1_two_call": 0.730833,
+      "f1_pipeline": 0.729164,
+      "delta_p": 0.006119,
+      "delta_s": -0.001669
+    },
+    "retained": {
+      "f1_baseline": 0.686015,
+      "f1_two_call": 0.730833,
+      "f1_pipeline": 0.729164,
+      "delta_p": 0.044818,
+      "delta_s": -0.001669
+    }
+  },
+  {
+    "model": "mistral:7b",
+    "lang": "pt",
+    "excluded": {
+      "f1_baseline": 0.586852,
+      "f1_two_call": 0.563359,
+      "f1_pipeline": 0.56,
+      "delta_p": -0.023494,
+      "delta_s": -0.003359
+    },
+    "retained": {
+      "f1_baseline": 0.586852,
+      "f1_two_call": 0.563359,
+      "f1_pipeline": 0.56,
+      "delta_p": -0.023494,
+      "delta_s": -0.003359
+    }
+  },
+  {
+    "model": "mistral:7b",
+    "lang": "en",
+    "excluded": {
+      "f1_baseline": 0.591589,
+      "f1_two_call": 0.614978,
+      "f1_pipeline": 0.628467,
+      "delta_p": 0.023389,
+      "delta_s": 0.013489
+    },
+    "retained": {
+      "f1_baseline": 0.591589,
+      "f1_two_call": 0.615849,
+      "f1_pipeline": 0.628897,
+      "delta_p": 0.02426,
+      "delta_s": 0.013048
+    }
+  }
+]
