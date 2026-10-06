@@ -60,8 +60,8 @@ class TestBaselineAgentParsing:
         assert output.nfr_category == "SE"
         assert output.priority == MoSCoWPriority.SHOULD_HAVE
 
-    def test_parse_nfr_categoria_livre(self, agent):
-        """Dataset agnóstico: aceita categoria como string livre."""
+    def test_parse_nfr_categoria_em_prosa_vira_codigo(self, agent):
+        """Categoria em prosa é normalizada para o código PROMISE."""
         content = (
             '{"requirement_type": "NF", "nfr_category": "desempenho", "confidence": 0.80,'
             ' "classification_justification": "Qualidade de desempenho.",'
@@ -69,7 +69,7 @@ class TestBaselineAgentParsing:
             ' "priority_justification": "Importante."}'
         )
         output = agent._parse_response(content, "req-03")
-        assert output.nfr_category == "desempenho"
+        assert output.nfr_category == "PE"
 
     def test_parse_json_invalido_retorna_fallback(self, agent):
         output = agent._parse_response("resposta inválida", "req-04")
