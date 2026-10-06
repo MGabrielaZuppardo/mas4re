@@ -93,8 +93,13 @@ class ClassificationAgent(BaseAgent[Requirement, ClassifiedRequirement]):
         reraise=True,
     )
     def _process_single(self, requirement: Requirement) -> ClassifiedRequirement:
+        req_text = (
+            requirement.text_en
+            if self._lang is Lang.EN and requirement.text_en
+            else requirement.text
+        )
         messages = build_classification_messages(
-            requirement_text=requirement.text,
+            requirement_text=req_text,
             lang=self._lang,
             nfr_categories=self._nfr_categories,
         )

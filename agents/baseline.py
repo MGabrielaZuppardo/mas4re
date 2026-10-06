@@ -94,8 +94,13 @@ class BaselineAgent(BaseAgent[Requirement, PrioritizedRequirement]):
         reraise=True,
     )
     def _process_single(self, requirement: Requirement) -> PrioritizedRequirement:
+        req_text = (
+            requirement.text_en
+            if self._lang is Lang.EN and requirement.text_en
+            else requirement.text
+        )
         messages = build_baseline_messages(
-            requirement_text=requirement.text,
+            requirement_text=req_text,
             lang=self._lang,
             nfr_categories=self._nfr_categories,
         )
