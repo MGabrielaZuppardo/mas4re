@@ -1,0 +1,100 @@
+{
+  "pt": {
+    "n_aligned": 623,
+    "kappa": {
+      "pipeline_run1": 0.1768,
+      "two_call_run1": 0.136,
+      "pipeline_run2": 0.1659,
+      "two_call_run2": 0.1443
+    },
+    "contrasts": {
+      "delta_run1": 0.0408,
+      "delta_run2": 0.0217,
+      "delta_cross_a": 0.0325,
+      "delta_cross_b": 0.03,
+      "noise_pipeline": 0.0108,
+      "noise_two_call": -0.0083
+    },
+    "contrasts_ci95_bootstrap": {
+      "delta_run1": [
+        0.0168,
+        0.066
+      ],
+      "delta_run2": [
+        0.0026,
+        0.0411
+      ],
+      "delta_cross_a": [
+        0.009,
+        0.0572
+      ],
+      "delta_cross_b": [
+        0.0036,
+        0.0565
+      ],
+      "noise_pipeline": [
+        -0.0088,
+        0.0307
+      ],
+      "noise_two_call": [
+        -0.0287,
+        0.011
+      ]
+    },
+    "delta_range": [
+      0.0217,
+      0.0408
+    ],
+    "max_abs_rerun_noise": 0.0108,
+    "delta_exceeds_rerun_noise": true
+  },
+  "en": {
+    "n_aligned": 623,
+    "kappa": {
+      "pipeline_run1": 0.2388,
+      "two_call_run1": 0.1695,
+      "pipeline_run2": 0.2212,
+      "two_call_run2": 0.1422
+    },
+    "contrasts": {
+      "delta_run1": 0.0694,
+      "delta_run2": 0.079,
+      "delta_cross_a": 0.0966,
+      "delta_cross_b": 0.0518,
+      "noise_pipeline": 0.0176,
+      "noise_two_call": 0.0272
+    },
+    "contrasts_ci95_bootstrap": {
+      "delta_run1": [
+        0.0359,
+        0.1034
+      ],
+      "delta_run2": [
+        0.0479,
+        0.1105
+      ],
+      "delta_cross_a": [
+        0.0628,
+        0.1301
+      ],
+      "delta_cross_b": [
+        0.0183,
+        0.0849
+      ],
+      "noise_pipeline": [
+        -0.0024,
+        0.0382
+      ],
+      "noise_two_call": [
+        0.0092,
+        0.0456
+      ]
+    },
+    "delta_range": [
+      0.0518,
+      0.0966
+    ],
+    "max_abs_rerun_noise": 0.0272,
+    "delta_exceeds_rerun_noise": true
+  }
+}
