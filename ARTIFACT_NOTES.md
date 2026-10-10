@@ -1,7 +1,7 @@
 # Artifact notes
 
-This branch is the artifact for the paper *Beyond Accuracy: Disentangling Prompt
-Specialisation from Typed-State Quality Assurance in Multi-Agent LLM Pipelines*. It
+This branch is the artifact for the paper *Beyond Accuracy: Disentangling Decomposition
+from Typed-State Quality Assurance in Multi-Agent LLM Pipelines*. It
 holds the code that produced the reported results, the raw predictions, and the
 scripts that compute every table.
 
