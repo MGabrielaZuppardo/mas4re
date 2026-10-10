@@ -13,7 +13,7 @@ scripts that compute every table.
 | `experiments/run_*.py` | Experiment drivers (see section 4) |
 | `experiments/compute_*.py` | Analysis scripts, one per table (see section 5) |
 | `experiments/results/` | `manifest.json` + `results.json` (every prediction) per run, and the JSON outputs of the analysis scripts |
-| `tests/unit/` | Unit tests (`pytest tests/unit`) |
+| `tests/unit/` | Unit tests (`pytest tests/unit`), including the fault-injection probe and campaign |
 
 ## 2. Which runs produced which numbers
 
@@ -111,6 +111,7 @@ generate the JSON files it reads.
 | NFR-code repairs per condition (section 4.5) | `compute_nf_repair_counts.py` (reads `experiments/logs/*.filtered.log`) | `nf_repair_counts.json` |
 | Pipeline vs. two-call item-level agreement (section 6.3) | `compute_pipeline_vs_two_call_agreement.py` | `pipeline_vs_two_call_agreement.json` |
 | Translation validation, back-translation BERTScore (section 5.2) | `datasets/translation_validator.py` (generator) | `translation_validation_scores.csv`, `translation_validation_summary.json` |
+| Systematic fault-injection campaign (section 6.6) | `run_fault_injection_campaign.py` (scripted LLM, no model server) | `fault_injection_campaign.json` |
 
 The committed JSON files are the outputs the paper's numbers come from.
 
