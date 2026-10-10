@@ -60,3 +60,6 @@ comparação SQ2 com entradas idênticas.
 ## Referências
 - `agents/elicitor.py`, `prompts/v1/elicitation.py`
 - ADRs relacionados: ADR-003, ADR-005
+
+## Nota (versão do artefato)
+- O Elicitor não foi implementado nesta versão: `agents/elicitor.py`, `prompts/v1/elicitation.py` e o nó `elicitor_node` foram removidos, pois não fazem parte das arquiteturas avaliadas (baseline, two-call e pipeline). Este ADR registra apenas a decisão de projeto.
