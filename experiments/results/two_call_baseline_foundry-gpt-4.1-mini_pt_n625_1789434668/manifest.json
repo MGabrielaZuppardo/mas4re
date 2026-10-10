@@ -1,0 +1,17 @@
+{
+  "run_id": "two_call_baseline_foundry-gpt-4.1-mini_pt_n625_1789434668",
+  "git_commit": "5ec44f177eab294d7174de25aec48aacdbff7307",
+  "timestamp_utc": "2026-09-15T01:22:43.929920+00:00",
+  "strategy": "two_call_baseline",
+  "model": "foundry/gpt-4.1-mini",
+  "lang": "pt",
+  "seed": 42,
+  "temperature": 0.0,
+  "prompt_version": "v1",
+  "dataset": "datasets/data/promise_nfr/promise_nfr_pt.csv",
+  "dataset_n": 625,
+  "dataset_md5": "ea0ec6f6b7c45225819aebbae40b8cff",
+  "langgraph_version": "1.1.9",
+  "elapsed_seconds": 695.017,
+  "trace_path": "experiments\\traces\\two_call_baseline_foundry-gpt-4.1-mini_pt_n625_1789434668.jsonl"
+}
