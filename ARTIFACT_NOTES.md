@@ -80,6 +80,19 @@ Each condition takes roughly 50-70 minutes on an RTX 3050 (6 GB).
 
 All scripts read `experiments/results/` and are run from the repository root.
 
+To see the paper's result tables at once, in the paper's layout and computed from the
+committed files, run:
+
+```bash
+python experiments/print_paper_tables.py            # all tables
+python experiments/print_paper_tables.py --only kappa
+```
+
+It prints Table 4 (RQ1), Table 5 (language effect), the kappa table with the Must rate
+and the bootstrap, Table 9 (decomposition), the direct baseline vs. two-call comparison,
+the `gpt-4.1-mini` supplement and the repeat-execution variation. The scripts below
+generate the JSON files it reads.
+
 | Paper element | Script | Output |
 |---|---|---|
 | RQ1 and language-effect tests (exclusion policy) | `compute_stats.py` | `statistical_results.json` |
