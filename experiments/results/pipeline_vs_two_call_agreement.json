@@ -1,0 +1,68 @@
+{
+  "summary": {
+    "max_type_disagreement": 0.0209,
+    "max_priority_disagreement": 0.1332
+  },
+  "rows": [
+    {
+      "model": "qwen2.5:7b",
+      "lang": "pt",
+      "n": 621,
+      "same_type": 0.9791,
+      "same_category": 0.963,
+      "same_priority": 0.9646,
+      "type_disagreement": 0.0209,
+      "priority_disagreement": 0.0354
+    },
+    {
+      "model": "qwen2.5:7b",
+      "lang": "en",
+      "n": 623,
+      "same_type": 0.9936,
+      "same_category": 0.9663,
+      "same_priority": 0.947,
+      "type_disagreement": 0.0064,
+      "priority_disagreement": 0.053
+    },
+    {
+      "model": "llama3.1:8b",
+      "lang": "pt",
+      "n": 623,
+      "same_type": 0.9839,
+      "same_category": 0.9807,
+      "same_priority": 0.9695,
+      "type_disagreement": 0.0161,
+      "priority_disagreement": 0.0305
+    },
+    {
+      "model": "llama3.1:8b",
+      "lang": "en",
+      "n": 623,
+      "same_type": 0.9888,
+      "same_category": 0.9872,
+      "same_priority": 0.8668,
+      "type_disagreement": 0.0112,
+      "priority_disagreement": 0.1332
+    },
+    {
+      "model": "mistral:7b",
+      "lang": "pt",
+      "n": 623,
+      "same_type": 0.9936,
+      "same_category": 0.9856,
+      "same_priority": 0.9872,
+      "type_disagreement": 0.0064,
+      "priority_disagreement": 0.0128
+    },
+    {
+      "model": "mistral:7b",
+      "lang": "en",
+      "n": 621,
+      "same_type": 0.9887,
+      "same_category": 0.9855,
+      "same_priority": 0.9887,
+      "type_disagreement": 0.0113,
+      "priority_disagreement": 0.0113
+    }
+  ]
+}
