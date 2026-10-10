@@ -4,7 +4,7 @@ MAS4RE — Ablation statistical analysis
 Compares TwoCallBaseline vs Pipeline using the same RQ1 protocol:
     Wilcoxon signed-rank + Cohen's h + Bonferroni α' = 0.05/6 = 0.0083
 
-Usage (from D:/mas4re):
+Usage (from the repository root):
     python experiments/compute_ablation_stats.py \\
         --ablation experiments/results/ablation_<timestamp>/ablation_summary.csv \\
         --grid    experiments/results/grid_summary_<timestamp>.csv

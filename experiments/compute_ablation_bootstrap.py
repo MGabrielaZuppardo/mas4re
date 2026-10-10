@@ -9,7 +9,7 @@ reported in the ablation table), to check whether "not significant" is
 "no detectable effect" (CI tight around zero) rather than "underpowered"
 (CI wide / one-sided).
 
-Usage (from D:/mas4re):
+Usage (from the repository root):
     python experiments/compute_ablation_bootstrap.py
 
 Output:

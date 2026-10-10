@@ -6,7 +6,7 @@ Efeito de idioma: PT vs EN — McNemar exato, pareado pelo campo `text`
 (invariante em PT entre as duas condições), em vez do Mann-Whitney U
 não-pareado usado em compute_stats.py.
 
-Uso (a partir de D:/mas4re):
+Uso (a partir da raiz do repositório):
     python experiments/compute_mcnemar_stats.py                  # usa o CSV mais recente
     python experiments/compute_mcnemar_stats.py <caminho_csv>    # CSV específico
 

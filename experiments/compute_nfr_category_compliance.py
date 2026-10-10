@@ -10,7 +10,7 @@ como NF (JSON válido, confidence definida), qual fração não produz uma
 nfr_category válida/reconhecida. Essa falha não aparece no proxy de §6.6
 porque o parsing da resposta como um todo ainda é bem-sucedido.
 
-Uso (a partir de D:/mas4re):
+Uso (a partir da raiz do repositório):
     python experiments/compute_nfr_category_compliance.py
 """
 

@@ -15,8 +15,8 @@ import numpy as np
 from sklearn.metrics import f1_score, precision_score, recall_score
 
 # ── Configuração ───────────────────────────────────────────────────────────────
-results_dir = Path("D:/mas4re/experiments/results")
-csv_path = "D:/mas4re/experiments/results/grid_summary_nfull_20260524T184454.csv"
+results_dir = Path("experiments/results")
+csv_path = "experiments/results/grid_summary_nfull_20260524T184454.csv"
 CONF_THRESHOLD = 0.70
 
 MODELS = ["qwen2.5:7b", "llama3.1:8b", "mistral:7b"]
@@ -250,7 +250,7 @@ out = {
     "subcategory": {str(k): v for k, v in subcat_results.items()},
     "error_propagation": {str(k): v for k, v in ep_results.items()},
 }
-out_path = Path("D:/mas4re/experiments/results/subcategory_errorprop.json")
+out_path = Path("experiments/results/subcategory_errorprop.json")
 with open(out_path, "w", encoding="utf-8") as f:
     json.dump(out, f, indent=2, ensure_ascii=False)
 print(f"\nResultados salvos em: {out_path}")

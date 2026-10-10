@@ -12,7 +12,7 @@ requirement indices are used to recompute kappa under both
 architectures, so the two draws stay paired per resample -- mirroring
 compute_ablation_bootstrap.py's approach for RQ2's delta F1-macro.
 
-Usage (from D:/mas4re):
+Usage (from the repository root):
     python experiments/compute_rq3_kappa_bootstrap.py
 
 Output:

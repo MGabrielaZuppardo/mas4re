@@ -5,7 +5,7 @@ RQ1: Pipeline vs Baseline — Wilcoxon signed-rank + Cohen's h (pareado por requ
 RQ2: Idioma EN vs PT     — Mann-Whitney U + Cohen's h (não-pareado)
 OBS: MoSCoW consistency  — Fleiss' kappa descritivo (4 estratos, sem GT)
 
-Uso (a partir de D:/mas4re):
+Uso (a partir da raiz do repositório):
     python experiments/compute_stats.py                  # usa o CSV mais recente
     python experiments/compute_stats.py <caminho_csv>    # CSV específico
 

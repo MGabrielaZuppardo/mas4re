@@ -10,7 +10,7 @@ Then compares against the already-executed pipeline results from the main
 grid (experiments/results/).  Statistical tests mirror the RQ1 protocol
 (Wilcoxon signed-rank + Cohen's h + Bonferroni α' = 0.05/6 = 0.0083).
 
-Usage (from D:/mas4re):
+Usage (from the repository root):
     python -m experiments.run_ablation_grid
     python -m experiments.run_ablation_grid --resume
     python -m experiments.run_ablation_grid --n 50   # quick smoke-test

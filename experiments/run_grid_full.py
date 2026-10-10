@@ -4,7 +4,7 @@ MAS4RE — Grid completo n=625 (dataset PROMISE NFR+ completo)
 Roda 12 condições sequencialmente:
     3 modelos × 2 idiomas × 2 arquiteturas
 
-Uso (a partir de D:/mas4re):
+Uso (a partir da raiz do repositório):
     python -m experiments.run_grid_full
 
 Flags opcionais:

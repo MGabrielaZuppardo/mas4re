@@ -25,7 +25,7 @@ o veredito correto é "não estimável com confiança neste desenho", não
 "negligible" (que é uma leitura tão arbitrária quanto qualquer outra
 dentro do IC).
 
-Uso (a partir de D:/mas4re):
+Uso (a partir da raiz do repositório):
     python experiments/compute_cohens_g.py
 """
 

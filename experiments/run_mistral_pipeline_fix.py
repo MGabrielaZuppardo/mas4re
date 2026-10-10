@@ -4,7 +4,7 @@ MAS4RE — Rerun seletivo: pipeline mistral:7b PT e EN com parser fix.
 Roda apenas 2 condições (das 12 do grid original) para validar o
 schema-compliance fix em classifier._parse_response.
 
-Uso (a partir de D:/mas4re):
+Uso (a partir da raiz do repositório):
     python experiments/run_mistral_pipeline_fix.py
 
 Saída: novo CSV  experiments/results/mistral_fix_<timestamp>.csv

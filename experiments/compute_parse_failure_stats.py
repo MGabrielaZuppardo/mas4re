@@ -8,7 +8,7 @@ RQ1 (Wilcoxon) e o efeito de idioma (Mann-Whitney U) retendo todos os 625
 requisitos e contando as falhas de parsing como predições incorretas, para
 avaliar a sensibilidade das conclusões a essa política.
 
-Uso (a partir de D:/mas4re):
+Uso (a partir da raiz do repositório):
     python experiments/compute_parse_failure_stats.py
     python experiments/compute_parse_failure_stats.py <caminho_csv>
 
