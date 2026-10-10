@@ -1,0 +1,190 @@
+[
+  {
+    "source": "grid_full.filtered.log",
+    "strategy": "baseline",
+    "model": "qwen2.5:7b",
+    "lang": "pt",
+    "n": 625,
+    "repairs": 0,
+    "rate": 0.0,
+    "modules": []
+  },
+  {
+    "source": "grid_full.filtered.log",
+    "strategy": "pipeline",
+    "model": "qwen2.5:7b",
+    "lang": "pt",
+    "n": 625,
+    "repairs": 0,
+    "rate": 0.0,
+    "modules": []
+  },
+  {
+    "source": "grid_full.filtered.log",
+    "strategy": "baseline",
+    "model": "qwen2.5:7b",
+    "lang": "en",
+    "n": 625,
+    "repairs": 0,
+    "rate": 0.0,
+    "modules": []
+  },
+  {
+    "source": "grid_full.filtered.log",
+    "strategy": "pipeline",
+    "model": "qwen2.5:7b",
+    "lang": "en",
+    "n": 625,
+    "repairs": 0,
+    "rate": 0.0,
+    "modules": []
+  },
+  {
+    "source": "grid_full.filtered.log",
+    "strategy": "baseline",
+    "model": "llama3.1:8b",
+    "lang": "pt",
+    "n": 625,
+    "repairs": 0,
+    "rate": 0.0,
+    "modules": []
+  },
+  {
+    "source": "grid_full.filtered.log",
+    "strategy": "pipeline",
+    "model": "llama3.1:8b",
+    "lang": "pt",
+    "n": 625,
+    "repairs": 0,
+    "rate": 0.0,
+    "modules": []
+  },
+  {
+    "source": "grid_full.filtered.log",
+    "strategy": "baseline",
+    "model": "llama3.1:8b",
+    "lang": "en",
+    "n": 625,
+    "repairs": 0,
+    "rate": 0.0,
+    "modules": []
+  },
+  {
+    "source": "grid_full.filtered.log",
+    "strategy": "pipeline",
+    "model": "llama3.1:8b",
+    "lang": "en",
+    "n": 625,
+    "repairs": 0,
+    "rate": 0.0,
+    "modules": []
+  },
+  {
+    "source": "grid_full.filtered.log",
+    "strategy": "baseline",
+    "model": "mistral:7b",
+    "lang": "pt",
+    "n": 625,
+    "repairs": 0,
+    "rate": 0.0,
+    "modules": []
+  },
+  {
+    "source": "grid_full.filtered.log",
+    "strategy": "pipeline",
+    "model": "mistral:7b",
+    "lang": "pt",
+    "n": 625,
+    "repairs": 16,
+    "rate": 0.0256,
+    "modules": [
+      "agents.classifier"
+    ]
+  },
+  {
+    "source": "grid_full.filtered.log",
+    "strategy": "baseline",
+    "model": "mistral:7b",
+    "lang": "en",
+    "n": 625,
+    "repairs": 0,
+    "rate": 0.0,
+    "modules": []
+  },
+  {
+    "source": "grid_full.filtered.log",
+    "strategy": "pipeline",
+    "model": "mistral:7b",
+    "lang": "en",
+    "n": 625,
+    "repairs": 7,
+    "rate": 0.0112,
+    "modules": [
+      "agents.classifier"
+    ]
+  },
+  {
+    "source": "ablation_grid.filtered.log",
+    "strategy": "two_call_baseline",
+    "model": "qwen2.5:7b",
+    "lang": "pt",
+    "n": 625,
+    "repairs": 0,
+    "rate": 0.0,
+    "modules": []
+  },
+  {
+    "source": "ablation_grid.filtered.log",
+    "strategy": "two_call_baseline",
+    "model": "qwen2.5:7b",
+    "lang": "en",
+    "n": 625,
+    "repairs": 0,
+    "rate": 0.0,
+    "modules": []
+  },
+  {
+    "source": "ablation_grid.filtered.log",
+    "strategy": "two_call_baseline",
+    "model": "llama3.1:8b",
+    "lang": "pt",
+    "n": 625,
+    "repairs": 0,
+    "rate": 0.0,
+    "modules": []
+  },
+  {
+    "source": "ablation_grid.filtered.log",
+    "strategy": "two_call_baseline",
+    "model": "llama3.1:8b",
+    "lang": "en",
+    "n": 625,
+    "repairs": 0,
+    "rate": 0.0,
+    "modules": []
+  },
+  {
+    "source": "ablation_grid.filtered.log",
+    "strategy": "two_call_baseline",
+    "model": "mistral:7b",
+    "lang": "pt",
+    "n": 625,
+    "repairs": 16,
+    "rate": 0.0256,
+    "modules": [
+      "agents.two_call_baseline"
+    ]
+  },
+  {
+    "source": "ablation_grid.filtered.log",
+    "strategy": "two_call_baseline",
+    "model": "mistral:7b",
+    "lang": "en",
+    "n": 625,
+    "repairs": 7,
+    "rate": 0.0112,
+    "modules": [
+      "agents.two_call_baseline"
+    ]
+  }
+]

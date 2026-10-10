@@ -1,0 +1,61 @@
+# Filtered from the main-grid execution log (24-25 May 2026); final 12-condition run only
+# kept: lines matching INICIANDO | Run start | Run done | Schema fix (source lines >= 15812)
+18:44:54 | INFO | __main__ | [01/12] INICIANDO | baseline | qwen2.5:7b | pt | n=625
+18:44:55 | INFO | experiments.runner | Run start | strategy=baseline | model=ollama/qwen2.5:7b | n=625 | seed=42
+19:43:44 | INFO | experiments.runner | Run done | strategy=baseline | elapsed=3528.99s | metrics={'accuracy': 0.7328, 'f1_macro': 0.7327, 'f1_weighted': 0.7319, 'mcc': 0.5266, 'n_evaluated': 625} | dir=experiments\results\baseline_ollama-qwen2.5-7b_pt_n625_1779662624
+19:43:44 | INFO | __main__ | [02/12] INICIANDO | pipeline | qwen2.5:7b | pt | n=625
+19:43:46 | INFO | experiments.runner | Run start | strategy=pipeline | model=ollama/qwen2.5:7b-ollama/qwen2.5:7b | n=625 | seed=42
+20:40:40 | INFO | experiments.runner | Run done | strategy=pipeline | elapsed=3414.55s | metrics={'accuracy': 0.8112, 'f1_macro': 0.8096, 'f1_weighted': 0.8128, 'mcc': 0.6335, 'n_evaluated': 625} | dir=experiments\results\pipeline_ollama-qwen2.5-7b-ollama-qwen2.5-7b_pt_n625_1779666040
+20:40:40 | INFO | __main__ | [03/12] INICIANDO | baseline | qwen2.5:7b | en | n=625
+20:40:40 | INFO | experiments.runner | Run start | strategy=baseline | model=ollama/qwen2.5:7b | n=625 | seed=42
+21:32:34 | INFO | experiments.runner | Run done | strategy=baseline | elapsed=3110.31s | metrics={'accuracy': 0.784, 'f1_macro': 0.7839, 'f1_weighted': 0.7846, 'mcc': 0.6134, 'n_evaluated': 625} | dir=experiments\results\baseline_ollama-qwen2.5-7b_en_n625_1779669154
+21:32:34 | INFO | __main__ | [04/12] INICIANDO | pipeline | qwen2.5:7b | en | n=625
+21:32:35 | INFO | experiments.runner | Run start | strategy=pipeline | model=ollama/qwen2.5:7b-ollama/qwen2.5:7b | n=625 | seed=42
+22:22:45 | INFO | experiments.runner | Run done | strategy=pipeline | elapsed=3010.29s | metrics={'accuracy': 0.808, 'f1_macro': 0.8072, 'f1_weighted': 0.8095, 'mcc': 0.6389, 'n_evaluated': 625} | dir=experiments\results\pipeline_ollama-qwen2.5-7b-ollama-qwen2.5-7b_en_n625_1779672165
+22:22:45 | INFO | __main__ | [05/12] INICIANDO | baseline | llama3.1:8b | pt | n=625
+22:22:45 | INFO | experiments.runner | Run start | strategy=baseline | model=ollama/llama3.1:8b | n=625 | seed=42
+23:30:56 | INFO | experiments.runner | Run done | strategy=baseline | elapsed=4091.09s | metrics={'accuracy': 0.64, 'f1_macro': 0.6297, 'f1_weighted': 0.6184, 'mcc': 0.4457, 'n_evaluated': 625} | dir=experiments\results\baseline_ollama-llama3.1-8b_pt_n625_1779676256
+23:30:56 | INFO | __main__ | [06/12] INICIANDO | pipeline | llama3.1:8b | pt | n=625
+23:30:57 | INFO | experiments.runner | Run start | strategy=pipeline | model=ollama/llama3.1:8b-ollama/llama3.1:8b | n=625 | seed=42
+00:39:56 | INFO | experiments.runner | Run done | strategy=pipeline | elapsed=4138.73s | metrics={'accuracy': 0.696, 'f1_macro': 0.6929, 'f1_weighted': 0.6872, 'mcc': 0.5105, 'n_evaluated': 625} | dir=experiments\results\pipeline_ollama-llama3.1-8b-ollama-llama3.1-8b_pt_n625_1779680396
+00:39:56 | INFO | __main__ | [07/12] INICIANDO | baseline | llama3.1:8b | en | n=625
+00:39:56 | INFO | experiments.runner | Run start | strategy=baseline | model=ollama/llama3.1:8b | n=625 | seed=42
+01:43:16 | INFO | experiments.runner | Run done | strategy=baseline | elapsed=3799.47s | metrics={'accuracy': 0.6896, 'f1_macro': 0.6853, 'f1_weighted': 0.6785, 'mcc': 0.5106, 'n_evaluated': 625} | dir=experiments\results\baseline_ollama-llama3.1-8b_en_n625_1779684196
+01:43:16 | INFO | __main__ | [08/12] INICIANDO | pipeline | llama3.1:8b | en | n=625
+01:43:16 | INFO | experiments.runner | Run start | strategy=pipeline | model=ollama/llama3.1:8b-ollama/llama3.1:8b | n=625 | seed=42
+02:51:25 | INFO | experiments.runner | Run done | strategy=pipeline | elapsed=4089.17s | metrics={'accuracy': 0.7296, 'f1_macro': 0.7284, 'f1_weighted': 0.725, 'mcc': 0.5557, 'n_evaluated': 625} | dir=experiments\results\pipeline_ollama-llama3.1-8b-ollama-llama3.1-8b_en_n625_1779688285
+02:51:25 | INFO | __main__ | [09/12] INICIANDO | baseline | mistral:7b | pt | n=625
+02:51:26 | INFO | experiments.runner | Run start | strategy=baseline | model=ollama/mistral:7b | n=625 | seed=42
+04:01:34 | INFO | experiments.runner | Run done | strategy=baseline | elapsed=4208.47s | metrics={'accuracy': 0.6016, 'f1_macro': 0.5864, 'f1_weighted': 0.5717, 'mcc': 0.3804, 'n_evaluated': 625} | dir=experiments\results\baseline_ollama-mistral-7b_pt_n625_1779692494
+04:01:34 | INFO | __main__ | [10/12] INICIANDO | pipeline | mistral:7b | pt | n=625
+04:01:35 | INFO | experiments.runner | Run start | strategy=pipeline | model=ollama/mistral:7b-ollama/mistral:7b | n=625 | seed=42
+04:02:00 | WARNING | agents.classifier | Schema fix: requirement_type='PE' interpretado como NF + nfr_category | req_id=76a5c7ef
+04:03:26 | WARNING | agents.classifier | Schema fix: requirement_type='PE' interpretado como NF + nfr_category | req_id=b860099e
+04:03:45 | WARNING | agents.classifier | Schema fix: requirement_type='A' interpretado como NF + nfr_category | req_id=f9ca9943
+04:05:34 | WARNING | agents.classifier | Schema fix: requirement_type='A' interpretado como NF + nfr_category | req_id=f9612b38
+04:05:38 | WARNING | agents.classifier | Schema fix: requirement_type='PE' interpretado como NF + nfr_category | req_id=5d398488
+04:13:00 | WARNING | agents.classifier | Schema fix: requirement_type='PE' interpretado como NF + nfr_category | req_id=f50e07e8
+04:13:03 | WARNING | agents.classifier | Schema fix: requirement_type='PE' interpretado como NF + nfr_category | req_id=8354f094
+04:13:58 | WARNING | agents.classifier | Schema fix: requirement_type='SE' interpretado como NF + nfr_category | req_id=b3bc7408
+04:14:04 | WARNING | agents.classifier | Schema fix: requirement_type='SE' interpretado como NF + nfr_category | req_id=a1c034fa
+04:17:10 | WARNING | agents.classifier | Schema fix: requirement_type='PE' interpretado como NF + nfr_category | req_id=0732746e
+04:18:17 | WARNING | agents.classifier | Schema fix: requirement_type='SE' interpretado como NF + nfr_category | req_id=d0a980a7
+04:22:33 | WARNING | agents.classifier | Schema fix: requirement_type='PE' interpretado como NF + nfr_category | req_id=3226f720
+04:27:34 | WARNING | agents.classifier | Schema fix: requirement_type='PE' interpretado como NF + nfr_category | req_id=573a3002
+04:27:49 | WARNING | agents.classifier | Schema fix: requirement_type='PE' interpretado como NF + nfr_category | req_id=79603c61
+04:29:55 | WARNING | agents.classifier | Schema fix: requirement_type='PE' interpretado como NF + nfr_category | req_id=c1ac9b52
+04:33:13 | WARNING | agents.classifier | Schema fix: requirement_type='PE' interpretado como NF + nfr_category | req_id=676e53a9
+05:07:20 | INFO | experiments.runner | Run done | strategy=pipeline | elapsed=3944.61s | metrics={'accuracy': 0.5792, 'f1_macro': 0.5596, 'f1_weighted': 0.5424, 'mcc': 0.3454, 'n_evaluated': 625} | dir=experiments\results\pipeline_ollama-mistral-7b-ollama-mistral-7b_pt_n625_1779696440
+05:07:20 | INFO | __main__ | [11/12] INICIANDO | baseline | mistral:7b | en | n=625
+05:07:20 | INFO | experiments.runner | Run start | strategy=baseline | model=ollama/mistral:7b | n=625 | seed=42
+06:03:22 | INFO | experiments.runner | Run done | strategy=baseline | elapsed=3361.81s | metrics={'accuracy': 0.6064, 'f1_macro': 0.5911, 'f1_weighted': 0.5765, 'mcc': 0.394, 'n_evaluated': 625} | dir=experiments\results\baseline_ollama-mistral-7b_en_n625_1779699802
+06:03:22 | INFO | __main__ | [12/12] INICIANDO | pipeline | mistral:7b | en | n=625
+06:03:22 | INFO | experiments.runner | Run start | strategy=pipeline | model=ollama/mistral:7b-ollama/mistral:7b | n=625 | seed=42
+06:03:47 | WARNING | agents.classifier | Schema fix: requirement_type='PE' interpretado como NF + nfr_category | req_id=cb33d402
+06:04:58 | WARNING | agents.classifier | Schema fix: requirement_type='US' interpretado como NF + nfr_category | req_id=c88a3a09
+06:05:06 | WARNING | agents.classifier | Schema fix: requirement_type='PE' interpretado como NF + nfr_category | req_id=b3a8ec95
+06:05:55 | WARNING | agents.classifier | Schema fix: requirement_type='PO' interpretado como NF + nfr_category | req_id=bb0f948b
+06:07:01 | WARNING | agents.classifier | Schema fix: requirement_type='PE' interpretado como NF + nfr_category | req_id=b96d593f
+06:10:54 | WARNING | agents.classifier | Schema fix: requirement_type='PE' interpretado como NF + nfr_category | req_id=f1c1ebbb
+06:33:01 | WARNING | agents.classifier | Schema fix: requirement_type='PE' interpretado como NF + nfr_category | req_id=9c72658b
+07:03:20 | INFO | experiments.runner | Run done | strategy=pipeline | elapsed=3597.39s | metrics={'accuracy': 0.6384, 'f1_macro': 0.6283, 'f1_weighted': 0.617, 'mcc': 0.4403, 'n_evaluated': 625} | dir=experiments\results\pipeline_ollama-mistral-7b-ollama-mistral-7b_en_n625_1779703400

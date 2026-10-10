@@ -1,0 +1,47 @@
+# Filtered from the two-call ablation execution log (1-2 Jun 2026)
+# kept: lines matching INICIANDO | Run start | Run done | Schema fix (source lines >= 1)
+23:29:14 | INFO | __main__ | [01/6] INICIANDO | qwen2.5:7b | pt | n=50
+23:29:15 | INFO | experiments.runner | Run start | strategy=two_call_baseline | model=ollama/qwen2.5:7b | n=50 | seed=42
+23:29:47 | INFO | __main__ | [01/6] INICIANDO | qwen2.5:7b | pt | n=625
+23:29:47 | INFO | experiments.runner | Run start | strategy=two_call_baseline | model=ollama/qwen2.5:7b | n=625 | seed=42
+00:25:53 | INFO | experiments.runner | Run done | strategy=two_call_baseline | elapsed=3365.96s | metrics={'accuracy': 0.8096, 'f1_macro': 0.8082, 'f1_weighted': 0.8112, 'mcc': 0.6321, 'n_evaluated': 625} | dir=experiments\results\ablation_20260601T232947\two_call_baseline_ollama-qwen2.5-7b_pt_n625_1780370753
+00:25:53 | INFO | __main__ | [02/6] INICIANDO | qwen2.5:7b | en | n=625
+00:25:54 | INFO | experiments.runner | Run start | strategy=two_call_baseline | model=ollama/qwen2.5:7b | n=625 | seed=42
+01:15:17 | INFO | experiments.runner | Run done | strategy=two_call_baseline | elapsed=2963.47s | metrics={'accuracy': 0.8048, 'f1_macro': 0.8042, 'f1_weighted': 0.8062, 'mcc': 0.6353, 'n_evaluated': 625} | dir=experiments\results\ablation_20260601T232947\two_call_baseline_ollama-qwen2.5-7b_en_n625_1780373717
+01:15:17 | INFO | __main__ | [03/6] INICIANDO | llama3.1:8b | pt | n=625
+01:15:17 | INFO | experiments.runner | Run start | strategy=two_call_baseline | model=ollama/llama3.1:8b | n=625 | seed=42
+02:25:04 | INFO | experiments.runner | Run done | strategy=two_call_baseline | elapsed=4186.88s | metrics={'accuracy': 0.6864, 'f1_macro': 0.6823, 'f1_weighted': 0.6757, 'mcc': 0.5005, 'n_evaluated': 625} | dir=experiments\results\ablation_20260601T232947\two_call_baseline_ollama-llama3.1-8b_pt_n625_1780377904
+02:25:04 | INFO | __main__ | [04/6] INICIANDO | llama3.1:8b | en | n=625
+02:25:05 | INFO | experiments.runner | Run start | strategy=two_call_baseline | model=ollama/llama3.1:8b | n=625 | seed=42
+03:31:37 | INFO | experiments.runner | Run done | strategy=two_call_baseline | elapsed=3992.59s | metrics={'accuracy': 0.7312, 'f1_macro': 0.73, 'f1_weighted': 0.7268, 'mcc': 0.5579, 'n_evaluated': 625} | dir=experiments\results\ablation_20260601T232947\two_call_baseline_ollama-llama3.1-8b_en_n625_1780381897
+03:31:37 | INFO | __main__ | [05/6] INICIANDO | mistral:7b | pt | n=625
+03:31:38 | INFO | experiments.runner | Run start | strategy=two_call_baseline | model=ollama/mistral:7b | n=625 | seed=42
+03:32:29 | WARNING | agents.two_call_baseline | Schema fix: requirement_type='PE' interpretado como NF | req_id=197f432a
+03:35:21 | WARNING | agents.two_call_baseline | Schema fix: requirement_type='PE' interpretado como NF | req_id=b346ea01
+03:35:56 | WARNING | agents.two_call_baseline | Schema fix: requirement_type='A' interpretado como NF | req_id=bf3da6d0
+03:39:35 | WARNING | agents.two_call_baseline | Schema fix: requirement_type='A' interpretado como NF | req_id=f05c7b98
+03:39:38 | WARNING | agents.two_call_baseline | Schema fix: requirement_type='PE' interpretado como NF | req_id=01cdaec7
+03:54:18 | WARNING | agents.two_call_baseline | Schema fix: requirement_type='PE' interpretado como NF | req_id=c992968d
+03:54:21 | WARNING | agents.two_call_baseline | Schema fix: requirement_type='PE' interpretado como NF | req_id=2d9eb7c7
+03:56:10 | WARNING | agents.two_call_baseline | Schema fix: requirement_type='SE' interpretado como NF | req_id=4f0f4d7f
+04:02:18 | WARNING | agents.two_call_baseline | Schema fix: requirement_type='PE' interpretado como NF | req_id=95f2768a
+04:04:33 | WARNING | agents.two_call_baseline | Schema fix: requirement_type='SE' interpretado como NF | req_id=9326a342
+04:13:08 | WARNING | agents.two_call_baseline | Schema fix: requirement_type='PE' interpretado como NF | req_id=f09a42c4
+04:15:52 | WARNING | agents.two_call_baseline | Schema fix: requirement_type='SE' interpretado como NF | req_id=50d1ed6a
+04:22:42 | WARNING | agents.two_call_baseline | Schema fix: requirement_type='PE' interpretado como NF | req_id=13761cd8
+04:23:15 | WARNING | agents.two_call_baseline | Schema fix: requirement_type='PE' interpretado como NF | req_id=9ca201a2
+04:27:28 | WARNING | agents.two_call_baseline | Schema fix: requirement_type='PE' interpretado como NF | req_id=89b9bdd0
+04:33:46 | WARNING | agents.two_call_baseline | Schema fix: requirement_type='PE' interpretado como NF | req_id=8687dfda
+04:35:47 | INFO | experiments.runner | Run done | strategy=two_call_baseline | elapsed=3849.24s | metrics={'accuracy': 0.5824, 'f1_macro': 0.5629, 'f1_weighted': 0.5459, 'mcc': 0.3536, 'n_evaluated': 625} | dir=experiments\results\ablation_20260601T232947\two_call_baseline_ollama-mistral-7b_pt_n625_1780385747
+04:35:47 | INFO | __main__ | [06/6] INICIANDO | mistral:7b | en | n=625
+04:35:47 | INFO | experiments.runner | Run start | strategy=two_call_baseline | model=ollama/mistral:7b | n=625 | seed=42
+04:36:31 | WARNING | agents.two_call_baseline | Schema fix: requirement_type='PE' interpretado como NF | req_id=4ecdd260
+04:39:11 | WARNING | agents.two_call_baseline | Schema fix: requirement_type='PE' interpretado como NF | req_id=2dafe70e
+04:39:44 | WARNING | agents.two_call_baseline | Schema fix: requirement_type='A' interpretado como NF | req_id=c00dc350
+04:40:39 | WARNING | agents.two_call_baseline | Schema fix: requirement_type='PO' interpretado como NF | req_id=e557f00c
+04:42:49 | WARNING | agents.two_call_baseline | Schema fix: requirement_type='PE' interpretado como NF | req_id=a65586c1
+04:50:13 | WARNING | agents.two_call_baseline | Schema fix: requirement_type='PE' interpretado como NF | req_id=5c35f03a
+05:31:55 | WARNING | agents.two_call_baseline | Schema fix: requirement_type='PE' interpretado como NF | req_id=2c65a756
+05:33:47 | INFO | experiments.runner | Run done | strategy=two_call_baseline | elapsed=3480.16s | metrics={'accuracy': 0.6272, 'f1_macro': 0.6153, 'f1_weighted': 0.6028, 'mcc': 0.4254, 'n_evaluated': 625} | dir=experiments\results\ablation_20260601T232947\two_call_baseline_ollama-mistral-7b_en_n625_1780389227
+06:30:30 | INFO | __main__ | [01/6] INICIANDO | qwen2.5:7b | pt | n=50
+06:30:30 | INFO | experiments.runner | Run start | strategy=two_call_baseline | model=ollama/qwen2.5:7b | n=50 | seed=42
