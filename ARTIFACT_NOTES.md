@@ -108,8 +108,19 @@ generate the JSON files it reads.
 | NFR subcategory F1 | `compute_subcategory_errorprop.py` | `subcategory_errorprop.json` |
 | Run-to-run variation of kappa | `compute_repeat_kappa_variance.py` | `repeat_kappa_variance.json` |
 | `gpt-4.1-mini` supplement | `compute_foundry_supplement.py` | `foundry_supplement.json` |
+| NFR-code repairs per condition (section 4.5) | `compute_nf_repair_counts.py` (reads `experiments/logs/*.filtered.log`) | `nf_repair_counts.json` |
+| Pipeline vs. two-call item-level agreement (section 6.3) | `compute_pipeline_vs_two_call_agreement.py` | `pipeline_vs_two_call_agreement.json` |
+| Translation validation, back-translation BERTScore (section 5.2) | `datasets/translation_validator.py` (generator) | `translation_validation_scores.csv`, `translation_validation_summary.json` |
 
 The committed JSON files are the outputs the paper's numbers come from.
+
+Two files are derived rather than regenerated from raw predictions:
+
+- `experiments/logs/*.filtered.log` keep only the lines of the original execution logs
+  that the repair count needs (`INICIANDO`, `Run start`, `Run done`, `Schema fix`); a
+  repair leaves no trace in `results.json`.
+- `translation_validation_scores.csv` holds the per-requirement scores of the translation
+  check **without the requirement texts**, so that it does not redistribute the dataset.
 
 ## 6. Known limitations of the artifact
 
