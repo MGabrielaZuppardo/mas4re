@@ -112,6 +112,7 @@ generate the JSON files it reads.
 | Pipeline vs. two-call item-level agreement (section 6.3) | `compute_pipeline_vs_two_call_agreement.py` | `pipeline_vs_two_call_agreement.json` |
 | Translation validation, back-translation BERTScore (section 5.2) | `datasets/translation_validator.py` (generator) | `translation_validation_scores.csv`, `translation_validation_summary.json` |
 | Systematic fault-injection campaign (section 6.6) | `run_fault_injection_campaign.py` (scripted LLM, no model server) | `fault_injection_campaign.json` |
+| Paired bootstrap of the macro-F1 differences (section 6.1) | `compute_macro_f1_bootstrap.py` | `macro_f1_bootstrap.json` |
 
 The committed JSON files are the outputs the paper's numbers come from.
 

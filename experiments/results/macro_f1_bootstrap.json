@@ -1,0 +1,282 @@
+{
+  "method": "paired bootstrap, stratified by true class, B=10000, seed=42",
+  "n_comparisons_bonferroni": 6,
+  "results": [
+    {
+      "model": "qwen2.5:7b",
+      "lang": "pt",
+      "pipeline_minus_baseline": {
+        "n": 621,
+        "delta_macro_f1": 0.079,
+        "ci95": [
+          0.0497,
+          0.109
+        ],
+        "ci_bonferroni": [
+          0.0416,
+          0.1195
+        ],
+        "p_bootstrap": 0.0,
+        "excludes_zero_bonferroni": true
+      },
+      "delta_p_two_call_minus_baseline": {
+        "n": 623,
+        "delta_macro_f1": 0.0756,
+        "ci95": [
+          0.0464,
+          0.1054
+        ],
+        "ci_bonferroni": [
+          0.0341,
+          0.1146
+        ],
+        "p_bootstrap": 0.0,
+        "excludes_zero_bonferroni": true
+      },
+      "delta_s_pipeline_minus_two_call": {
+        "n": 621,
+        "delta_macro_f1": 0.0046,
+        "ci95": [
+          -0.0065,
+          0.0157
+        ],
+        "ci_bonferroni": [
+          -0.0111,
+          0.0204
+        ],
+        "p_bootstrap": 0.4898,
+        "excludes_zero_bonferroni": false
+      }
+    },
+    {
+      "model": "qwen2.5:7b",
+      "lang": "en",
+      "pipeline_minus_baseline": {
+        "n": 623,
+        "delta_macro_f1": 0.0234,
+        "ci95": [
+          -0.0007,
+          0.0484
+        ],
+        "ci_bonferroni": [
+          -0.0088,
+          0.0574
+        ],
+        "p_bootstrap": 0.0626,
+        "excludes_zero_bonferroni": false
+      },
+      "delta_p_two_call_minus_baseline": {
+        "n": 623,
+        "delta_macro_f1": 0.0203,
+        "ci95": [
+          -0.0037,
+          0.0445
+        ],
+        "ci_bonferroni": [
+          -0.0129,
+          0.0539
+        ],
+        "p_bootstrap": 0.1032,
+        "excludes_zero_bonferroni": false
+      },
+      "delta_s_pipeline_minus_two_call": {
+        "n": 623,
+        "delta_macro_f1": 0.0031,
+        "ci95": [
+          -0.0033,
+          0.0095
+        ],
+        "ci_bonferroni": [
+          -0.005,
+          0.0125
+        ],
+        "p_bootstrap": 0.4494,
+        "excludes_zero_bonferroni": false
+      }
+    },
+    {
+      "model": "llama3.1:8b",
+      "lang": "pt",
+      "pipeline_minus_baseline": {
+        "n": 623,
+        "delta_macro_f1": 0.0632,
+        "ci95": [
+          0.0372,
+          0.0901
+        ],
+        "ci_bonferroni": [
+          0.0276,
+          0.1004
+        ],
+        "p_bootstrap": 0.0,
+        "excludes_zero_bonferroni": true
+      },
+      "delta_p_two_call_minus_baseline": {
+        "n": 623,
+        "delta_macro_f1": 0.0527,
+        "ci95": [
+          0.0269,
+          0.0787
+        ],
+        "ci_bonferroni": [
+          0.0182,
+          0.0873
+        ],
+        "p_bootstrap": 0.0,
+        "excludes_zero_bonferroni": true
+      },
+      "delta_s_pipeline_minus_two_call": {
+        "n": 623,
+        "delta_macro_f1": 0.0106,
+        "ci95": [
+          0.0005,
+          0.0217
+        ],
+        "ci_bonferroni": [
+          -0.0029,
+          0.0256
+        ],
+        "p_bootstrap": 0.0324,
+        "excludes_zero_bonferroni": false
+      }
+    },
+    {
+      "model": "llama3.1:8b",
+      "lang": "en",
+      "pipeline_minus_baseline": {
+        "n": 590,
+        "delta_macro_f1": -0.0048,
+        "ci95": [
+          -0.0309,
+          0.0207
+        ],
+        "ci_bonferroni": [
+          -0.0414,
+          0.0281
+        ],
+        "p_bootstrap": 0.7368,
+        "excludes_zero_bonferroni": false
+      },
+      "delta_p_two_call_minus_baseline": {
+        "n": 590,
+        "delta_macro_f1": -0.003,
+        "ci95": [
+          -0.0279,
+          0.0219
+        ],
+        "ci_bonferroni": [
+          -0.0361,
+          0.0291
+        ],
+        "p_bootstrap": 0.8196,
+        "excludes_zero_bonferroni": false
+      },
+      "delta_s_pipeline_minus_two_call": {
+        "n": 623,
+        "delta_macro_f1": -0.0017,
+        "ci95": [
+          -0.0101,
+          0.0067
+        ],
+        "ci_bonferroni": [
+          -0.0133,
+          0.0101
+        ],
+        "p_bootstrap": 0.8638,
+        "excludes_zero_bonferroni": false
+      }
+    },
+    {
+      "model": "mistral:7b",
+      "lang": "pt",
+      "pipeline_minus_baseline": {
+        "n": 623,
+        "delta_macro_f1": -0.0269,
+        "ci95": [
+          -0.0563,
+          0.0014
+        ],
+        "ci_bonferroni": [
+          -0.0661,
+          0.0115
+        ],
+        "p_bootstrap": 0.0666,
+        "excludes_zero_bonferroni": false
+      },
+      "delta_p_two_call_minus_baseline": {
+        "n": 623,
+        "delta_macro_f1": -0.0235,
+        "ci95": [
+          -0.0523,
+          0.0054
+        ],
+        "ci_bonferroni": [
+          -0.0624,
+          0.0147
+        ],
+        "p_bootstrap": 0.1118,
+        "excludes_zero_bonferroni": false
+      },
+      "delta_s_pipeline_minus_two_call": {
+        "n": 623,
+        "delta_macro_f1": -0.0034,
+        "ci95": [
+          -0.0111,
+          0.0039
+        ],
+        "ci_bonferroni": [
+          -0.014,
+          0.0062
+        ],
+        "p_bootstrap": 0.44,
+        "excludes_zero_bonferroni": false
+      }
+    },
+    {
+      "model": "mistral:7b",
+      "lang": "en",
+      "pipeline_minus_baseline": {
+        "n": 622,
+        "delta_macro_f1": 0.0373,
+        "ci95": [
+          0.0116,
+          0.0633
+        ],
+        "ci_bonferroni": [
+          0.0033,
+          0.073
+        ],
+        "p_bootstrap": 0.004,
+        "excludes_zero_bonferroni": true
+      },
+      "delta_p_two_call_minus_baseline": {
+        "n": 621,
+        "delta_macro_f1": 0.0243,
+        "ci95": [
+          0.0,
+          0.0496
+        ],
+        "ci_bonferroni": [
+          -0.0083,
+          0.058
+        ],
+        "p_bootstrap": 0.0596,
+        "excludes_zero_bonferroni": false
+      },
+      "delta_s_pipeline_minus_two_call": {
+        "n": 621,
+        "delta_macro_f1": 0.0131,
+        "ci95": [
+          0.0038,
+          0.023
+        ],
+        "ci_bonferroni": [
+          0.0019,
+          0.0267
+        ],
+        "p_bootstrap": 0.003,
+        "excludes_zero_bonferroni": true
+      }
+    }
+  ]
+}
