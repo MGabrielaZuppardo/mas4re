@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field, field_validator
 
 from domain.enums import MoSCoWPriority, RequirementType
 from domain.failures import FailureRecord
+from domain.messages import Message
 
 
 class Requirement(BaseModel):
@@ -137,6 +138,7 @@ class PipelineState(BaseModel):
     raw_requirements: list[Requirement] = Field(default_factory=list)
     classified_requirements: list[ClassifiedRequirement] = Field(default_factory=list)
     prioritized_requirements: list[PrioritizedRequirement] = Field(default_factory=list)
+    messages: list[Message] = Field(default_factory=list)
 
     errors: list[str] = Field(default_factory=list)
     metrics: dict[str, Any] = Field(default_factory=dict)

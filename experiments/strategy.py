@@ -3,6 +3,9 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
+from agents.agentic.classifier import AgenticClassifier
+from agents.agentic.prioritizer import AgenticPrioritizer
+from agents.agentic.runtime import DEFAULT_MAX_STEPS
 from agents.baseline import BaselineAgent
 from agents.classifier import ClassificationAgent
 from agents.prioritizer import PrioritizationAgent
@@ -107,6 +110,50 @@ class PipelineStrategy(OrchestrationStrategy):
     @property
     def name(self) -> str:
         return "pipeline"
+
+    def execute(
+        self,
+        requirements: list[Requirement],
+        trace_writer: TraceWriter | None = None,
+    ) -> PipelineState:
+        self._classifier._trace = trace_writer
+        self._prioritizer._trace = trace_writer
+        state = PipelineState(raw_requirements=requirements)
+        return _coerce_state(self._graph.invoke(state))
+
+
+class AgenticPipelineStrategy(OrchestrationStrategy):
+    """Condition A with autonomous agents: the turns are fixed (classifier, then prioritizer),
+    but inside their turn each agent decides its own tools and when it is done, and the
+    prioritizer learns about the classification only through the classifier's message."""
+
+    def __init__(
+        self,
+        classifier_model: str,
+        prioritizer_model: str,
+        temperature: float = 0.0,
+        nfr_categories: list[tuple[str, str]] | None = None,
+        lang: Lang = Lang.PT,
+        max_steps: int = DEFAULT_MAX_STEPS,
+    ) -> None:
+        self._classifier = AgenticClassifier(
+            model=classifier_model,
+            temperature=temperature,
+            nfr_categories=nfr_categories,
+            lang=lang,
+            max_steps=max_steps,
+        )
+        self._prioritizer = AgenticPrioritizer(
+            model=prioritizer_model,
+            temperature=temperature,
+            lang=lang,
+            max_steps=max_steps,
+        )
+        self._graph = build_pipeline_graph(self._classifier, self._prioritizer)
+
+    @property
+    def name(self) -> str:
+        return "pipeline_agentic"
 
     def execute(
         self,

@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from functools import partial
+from typing import Any
 
 from langgraph.graph import END, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
-from agents.classifier import ClassificationAgent
-from agents.prioritizer import PrioritizationAgent
+from agents.base import BaseAgent
 from domain.models import PipelineState
 from pipeline.nodes.classifier_node import classifier_node
 from pipeline.nodes.cross_check_node import cross_check_node
@@ -14,8 +14,8 @@ from pipeline.nodes.prioritizer_node import prioritizer_node
 
 
 def build_pipeline_graph(
-    classifier: ClassificationAgent,
-    prioritizer: PrioritizationAgent,
+    classifier: BaseAgent[Any, Any],
+    prioritizer: BaseAgent[Any, Any],
 ) -> CompiledStateGraph:
     """Build and compile the minimal MAS pipeline.
 
@@ -82,8 +82,8 @@ def finalize_mediation_node(state: PipelineState) -> PipelineState:
 
 
 def build_mediated_pipeline_graph(
-    classifier: ClassificationAgent,
-    prioritizer: PrioritizationAgent,
+    classifier: BaseAgent[Any, Any],
+    prioritizer: BaseAgent[Any, Any],
 ) -> CompiledStateGraph:
     """Build and compile Condition B: mediated coordination via conditional
     routing.

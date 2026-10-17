@@ -7,6 +7,7 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
+from agents.agentic.runtime import DEFAULT_MAX_STEPS
 from config.settings import settings
 from domain.enums import Lang
 from evaluation.backlog import (
@@ -16,7 +17,12 @@ from evaluation.backlog import (
     write_backlog_csv,
 )
 from experiments.runner import ExperimentRunner, RunConfig
-from experiments.strategy import BaselineStrategy, MediatedPipelineStrategy, PipelineStrategy
+from experiments.strategy import (
+    AgenticPipelineStrategy,
+    BaselineStrategy,
+    MediatedPipelineStrategy,
+    PipelineStrategy,
+)
 
 app = typer.Typer(
     add_completion=False,
@@ -27,7 +33,9 @@ console = Console()
 
 @app.command()
 def run(
-    strategy: str = typer.Option(..., help="baseline | pipeline | pipeline_mediated"),
+    strategy: str = typer.Option(
+        ..., help="baseline | pipeline | pipeline_mediated | pipeline_agentic"
+    ),
     model: str = typer.Option(settings.classifier_model, help="Model for baseline / classifier."),
     pri_model: str = typer.Option(
         settings.prioritizer_model, help="Prioritizer model (pipeline only)."
@@ -37,6 +45,9 @@ def run(
     dataset: str = typer.Option(settings.promise_dataset_path, help="Dataset CSV path."),
     lang: str = typer.Option("pt", help="pt | en"),
     temperature: float = typer.Option(0.0, help="LLM temperature."),
+    max_steps: int = typer.Option(
+        DEFAULT_MAX_STEPS, help="Step budget of each agent episode (pipeline_agentic only)."
+    ),
     backlog_delimiter: str = typer.Option(
         DEFAULT_DELIMITER, help="CSV delimiter of backlog.csv / failed.csv."
     ),
@@ -48,9 +59,9 @@ def run(
     _check_delimiter(backlog_delimiter)
     lang_enum = Lang(lang)
     if strategy == "baseline":
-        strat: BaselineStrategy | PipelineStrategy | MediatedPipelineStrategy = BaselineStrategy(
-            model=model, temperature=temperature, lang=lang_enum
-        )
+        strat: (
+            BaselineStrategy | PipelineStrategy | MediatedPipelineStrategy | AgenticPipelineStrategy
+        ) = BaselineStrategy(model=model, temperature=temperature, lang=lang_enum)
         run_model = model
     elif strategy == "pipeline":
         strat = PipelineStrategy(
@@ -68,8 +79,19 @@ def run(
             lang=lang_enum,
         )
         run_model = f"{model}+{pri_model}"
+    elif strategy == "pipeline_agentic":
+        strat = AgenticPipelineStrategy(
+            classifier_model=model,
+            prioritizer_model=pri_model,
+            temperature=temperature,
+            lang=lang_enum,
+            max_steps=max_steps,
+        )
+        run_model = f"{model}+{pri_model}"
     else:
-        raise typer.BadParameter("strategy must be 'baseline', 'pipeline' or 'pipeline_mediated'")
+        raise typer.BadParameter(
+            "strategy must be 'baseline', 'pipeline', 'pipeline_mediated' or 'pipeline_agentic'"
+        )
 
     config = RunConfig(
         strategy_name=strategy,
@@ -88,6 +110,8 @@ def run(
     console.print(f"  backlog: {result.backlog_path}")
     if result.failed_path:
         console.print(f"  [yellow]failed requirements:[/] {result.failed_path}")
+    if result.actions_path:
+        console.print(f"  actions: {result.actions_path}")
     cls = result.metrics.get("classification", {})
     if cls:
         console.print(f"  classification: {cls}")

@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-from agents.prioritizer import PrioritizationAgent
+from typing import Any
+
+from agents.base import BaseAgent
 from domain.models import PipelineState
 
 
 def prioritizer_node(
     state: PipelineState,
-    agent: PrioritizationAgent,
+    agent: BaseAgent[Any, Any],
 ) -> PipelineState:
     """LangGraph node: prioritize classified requirements via the agent.
 

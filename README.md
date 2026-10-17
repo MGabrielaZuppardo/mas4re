@@ -20,13 +20,14 @@ The pipeline runs fully locally via [Ollama](https://ollama.com) — no external
 [Output: structured backlog + trace JSONL]
 ```
 
-Three architectures are evaluated side-by-side:
+Four architectures are evaluated side-by-side:
 
 | Architecture | Description |
 |---|---|
 | `baseline` | Single LLM call — classification + prioritization in one JSON response |
 | `pipeline` | Two specialized agents via LangGraph `StateGraph` with typed state handoff |
 | `two_call` | Two sequential LLM calls using the same specialized prompts, but without typed state |
+| `pipeline_agentic` | Same two roles as `pipeline`, but each is an autonomous agent (ReAct loop): the model chooses its tools and when to finish, and the prioritizer learns about the classification only through a typed message (ADR-012, `docs/agency_conformance.md`) |
 
 ---
 
@@ -140,6 +141,8 @@ results.json    — classification metrics (F1, accuracy, MCC) + full prediction
 backlog.csv     — classification + priority of every processed requirement, best first
 failed.csv      — requirements the agents could not process, with the recorded reason
                   (only written when there is at least one)
+actions.jsonl   — one episode per agent and requirement (goal, beliefs, the actions the agent
+                  chose, tokens); only for `pipeline_agentic`
 ```
 
 `backlog.csv` is UTF-8 with BOM and `;`-separated, so it opens correctly in Excel with Portuguese
@@ -152,6 +155,11 @@ evidence from `failure_detections`, plus every detection recorded for that requi
 python -m cli.main run --strategy pipeline --n 50 --backlog-delimiter "," --no-ground-truth
 python -m cli.main backlog experiments/results/<run_id>          # rebuild it for a finished run
 ```
+
+`pipeline_agentic` runs take `--max-steps` (step budget of each episode, default 5). Its
+`results.json` carries an `agent_activity` block per agent: valid and invalid actions, tools
+called, episodes ended by budget instead of by the agent, entropy of the action sequences and
+tokens; the `manifest.json` records each agent's budget and tools.
 
 `backlog` rebuilds the CSV from a finished run's `results.json` (options `--delimiter`,
 `--no-ground-truth`, `--out`). The requirements the agents could not process are not stored there,

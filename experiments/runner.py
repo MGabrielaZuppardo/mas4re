@@ -12,8 +12,10 @@ from pathlib import Path
 from typing import Any, cast
 
 from datasets.promise import PromiseAdapter
+from domain.agent_actions import AgentEpisode
 from domain.enums import InformationRegime
 from domain.models import ClassifiedRequirement, PipelineState
+from evaluation.agent_activity import ACTIONS_FILENAME, summarize_episodes, write_episodes_jsonl
 from evaluation.backlog import (
     BACKLOG_FILENAME,
     DEFAULT_DELIMITER,
@@ -91,6 +93,7 @@ class RunResult:
     metrics: dict[str, Any] = field(default_factory=dict)
     backlog_path: Path | None = None
     failed_path: Path | None = None
+    actions_path: Path | None = None
 
 
 class ExperimentRunner:
@@ -103,6 +106,8 @@ class ExperimentRunner:
         results.json   — quality metrics + full predictions
         backlog.csv    — classification + priority of every processed requirement
         failed.csv     — requirements the agents could not process (only if there are any)
+        actions.jsonl  — one episode per agent and requirement: goal, beliefs, the actions the
+                         agent chose, tokens (only for strategies with agents that act)
         trace.jsonl    — per-requirement latency + parse outcome (TraceWriter, in trace_dir)
     """
 
@@ -127,8 +132,9 @@ class ExperimentRunner:
         n_loaded: int,
         elapsed: float,
         trace_path: Path,
+        agent_runtime: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        return {
+        manifest = {
             "run_id": run_id,
             "git_commit": _git_commit(),
             "timestamp_utc": datetime.now(UTC).isoformat(),
@@ -146,6 +152,9 @@ class ExperimentRunner:
             "elapsed_seconds": round(elapsed, 3),
             "trace_path": str(trace_path),
         }
+        if agent_runtime:
+            manifest["agent_runtime"] = agent_runtime
+        return manifest
 
     def _compute_metrics(self, state: PipelineState) -> dict[str, Any]:
         ground_truth = state.raw_requirements
@@ -168,7 +177,13 @@ class ExperimentRunner:
             metrics["failure_detections"] = state.metrics["failure_detections"]
         if "mediation" in state.metrics:
             metrics["mediation"] = state.metrics["mediation"]
+        if episodes := self._episodes_of(state):
+            metrics["agent_activity"] = summarize_episodes(episodes)
         return metrics
+
+    @staticmethod
+    def _episodes_of(state: PipelineState) -> list[AgentEpisode]:
+        return [AgentEpisode.model_validate(e) for e in state.metrics.get("agent_episodes", [])]
 
     def execute(self, strategy: OrchestrationStrategy, config: RunConfig) -> RunResult:
         adapter = PromiseAdapter(path=config.dataset_path)
@@ -201,7 +216,14 @@ class ExperimentRunner:
             state = strategy.execute(requirements, trace_writer=tw)
         elapsed = time.perf_counter() - start
 
-        manifest = self._build_manifest(config, run_id, len(requirements), elapsed, trace_path)
+        manifest = self._build_manifest(
+            config,
+            run_id,
+            len(requirements),
+            elapsed,
+            trace_path,
+            state.metrics.get("agent_runtime"),
+        )
         (run_path / "manifest.json").write_text(
             json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8"
         )
@@ -223,6 +245,7 @@ class ExperimentRunner:
             self._backlog_delimiter,
             self._include_ground_truth,
         )
+        actions_path = write_episodes_jsonl(self._episodes_of(state), run_path / ACTIONS_FILENAME)
         results = {
             "run_id": run_id,
             "config": {
@@ -238,6 +261,7 @@ class ExperimentRunner:
             "n_failed": len(backlog.failed),
             "backlog_path": str(backlog_path),
             "failed_path": str(failed_path) if failed_path else None,
+            "actions_path": str(actions_path) if actions_path else None,
             "predictions": predictions,
         }
         (run_path / "results.json").write_text(
@@ -259,4 +283,5 @@ class ExperimentRunner:
             metrics=metrics,
             backlog_path=backlog_path,
             failed_path=failed_path,
+            actions_path=actions_path,
         )

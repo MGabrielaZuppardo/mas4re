@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-from agents.classifier import ClassificationAgent
+from typing import Any
+
+from agents.base import BaseAgent
 from domain.models import PipelineState
 
 
 def classifier_node(
     state: PipelineState,
-    agent: ClassificationAgent,
+    agent: BaseAgent[Any, Any],
 ) -> PipelineState:
     """LangGraph node: classify raw requirements via the injected agent.
 

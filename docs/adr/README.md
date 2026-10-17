@@ -16,6 +16,7 @@ mudanças posteriores entram via novo ADR que marca o anterior como `Superseded 
 | 008 | [Credenciais condicionais](ADR-008-credenciais.md)    | Proposed | YYYY-MM-DD | infra |
 | 009 | [Estratégia de coordenação condicional](ADR-009-estrategia-coordenacao-condicional.md) | Accepted | 2026-09-14 | SQ2 |
 | 011 | [Agentes agentic: memória, planejamento, ferramentas](ADR-011-agentes-agentic-memoria-planejamento-ferramentas.md) | Accepted | 2026-09-14 | SQ2 |
+| 012 | [Agentes autônomos (laço ReAct) com mensagens tipadas](ADR-012-agentes-react-mensagens-tipadas.md) | Accepted | 2026-09-20 | SQ2 |
 
 ## Convenções
 - **Nome do arquivo:** `ADR-NNN-slug-kebab-case.md`
