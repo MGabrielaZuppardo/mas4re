@@ -8,6 +8,7 @@ agent's decision.
 from __future__ import annotations
 
 from domain.enums import Lang
+from prompts.localization import localized
 from prompts.v1._shared import build_nfr_block
 
 CLASSIFIER_GOAL_PT = (
@@ -72,19 +73,59 @@ _PERCEPT_PT = 'Requisito a classificar:\n"""{requirement_text}"""'
 _PERCEPT_EN = 'Requirement to classify:\n"""{requirement_text}"""'
 
 
+CLASSIFIER_GOAL_ES = (
+    "Clasificar el requisito como funcional (F) o no funcional (NF) y, si es NF, asignar la "
+    "categoría correcta de la taxonomía."
+)
+
+_SYSTEM_ES = """\
+Eres un agente especialista en Ingeniería de Requisitos.
+
+Objetivo: {goal}
+
+Definiciones:
+- Funcional (F): describe lo que el sistema debe HACER (funciones, comportamientos, datos, \
+interacciones).
+- No Funcional (NF): describe una CUALIDAD o RESTRICCIÓN sobre cómo opera el sistema.
+
+{nfr_block}
+
+Herramientas a tu disposición. Usa las que consideres útiles, en el orden y la cantidad que \
+quieras:
+- lookup_nfr_taxonomy: definición canónica de una categoría NFR.
+- recall_similar_cases: requisitos parecidos ya tratados en este lote y cómo fueron clasificados.
+- check_consistency: comprueba que el tipo y la categoría sean coherentes entre sí y con la \
+taxonomía.
+- submit_classification: envía la clasificación final. Es la acción que termina tu trabajo en \
+este requisito.
+
+Reglas de la clasificación final: si el tipo es F, "nfr_category" es null; "confidence" es un \
+número entre 0.0 y 1.0 que expresa cuánto confías en la respuesta; "justification" tiene como \
+máximo 2 frases, en español.
+"""
+
+_PERCEPT_ES = 'Requisito a clasificar:\n"""{requirement_text}"""'
+
+_GOAL: dict[Lang, str] = {
+    Lang.PT: CLASSIFIER_GOAL_PT,
+    Lang.EN: CLASSIFIER_GOAL_EN,
+    Lang.ES: CLASSIFIER_GOAL_ES,
+}
+_SYSTEM: dict[Lang, str] = {Lang.PT: _SYSTEM_PT, Lang.EN: _SYSTEM_EN, Lang.ES: _SYSTEM_ES}
+_PERCEPT: dict[Lang, str] = {Lang.PT: _PERCEPT_PT, Lang.EN: _PERCEPT_EN, Lang.ES: _PERCEPT_ES}
+
+
 def classifier_goal(lang: Lang) -> str:
-    return CLASSIFIER_GOAL_PT if lang is Lang.PT else CLASSIFIER_GOAL_EN
+    return localized(_GOAL, lang)
 
 
 def build_classifier_system_prompt(
     lang: Lang = Lang.PT, nfr_categories: list[tuple[str, str]] | None = None
 ) -> str:
-    template = _SYSTEM_PT if lang is Lang.PT else _SYSTEM_EN
-    return template.format(
+    return localized(_SYSTEM, lang).format(
         goal=classifier_goal(lang), nfr_block=build_nfr_block(nfr_categories, lang)
     )
 
 
 def build_classifier_percept(requirement_text: str, lang: Lang = Lang.PT) -> str:
-    template = _PERCEPT_PT if lang is Lang.PT else _PERCEPT_EN
-    return template.format(requirement_text=requirement_text)
+    return localized(_PERCEPT, lang).format(requirement_text=requirement_text)

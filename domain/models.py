@@ -28,6 +28,16 @@ class Requirement(BaseModel):
             raise ValueError("O texto do requisito não pode estar vazio.")
         return v.strip()
 
+    @property
+    def gold_priority(self) -> MoSCoWPriority | None:
+        """The dataset's human MoSCoW label, if it has one (also when read back from JSON)."""
+        value = self.metadata.get("ground_truth_priority")
+        if isinstance(value, MoSCoWPriority):
+            return value
+        if isinstance(value, str) and value in {p.value for p in MoSCoWPriority}:
+            return MoSCoWPriority(value)
+        return None
+
 
 class ClassificationOutput(BaseModel):
     """Output estruturado do agente classificador."""

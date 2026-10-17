@@ -11,10 +11,12 @@ from agents.classifier import ClassificationAgent
 from agents.prioritizer import PrioritizationAgent
 from agents.two_call_baseline import TwoCallBaselineAgent
 from config.settings import settings
-from domain.enums import Lang
+from domain.enums import CoordinationProtocol, Lang
 from domain.models import PipelineState, Requirement
 from pipeline.graph import build_mediated_pipeline_graph, build_pipeline_graph
 from pipeline.graph_streaming import build_streaming_pipeline_graph
+from pipeline.mediation import DEFAULT_MAX_REQUESTS
+from pipeline.protocols import build_protocol_graph
 
 if TYPE_CHECKING:
     from evaluation.trace_writer import TraceWriter
@@ -122,10 +124,24 @@ class PipelineStrategy(OrchestrationStrategy):
         return _coerce_state(self._graph.invoke(state))
 
 
+_AGENTIC_NAMES: dict[CoordinationProtocol, str] = {
+    CoordinationProtocol.FIXED: "pipeline_agentic",
+    CoordinationProtocol.PEERS: "pipeline_agentic_p2",
+    CoordinationProtocol.MEDIATED: "pipeline_agentic_p3",
+}
+AGENTIC_STRATEGY_PROTOCOLS: dict[str, CoordinationProtocol] = {
+    name: protocol for protocol, name in _AGENTIC_NAMES.items()
+}
+
+
 class AgenticPipelineStrategy(OrchestrationStrategy):
-    """Condition A with autonomous agents: the turns are fixed (classifier, then prioritizer),
-    but inside their turn each agent decides its own tools and when it is done, and the
-    prioritizer learns about the classification only through the classifier's message."""
+    """Autonomous agents under one coordination protocol.
+
+    Inside their turn each agent decides its own tools and when it is done, and the prioritizer
+    learns about the classification only through the classifier's message. The protocol decides
+    what else the agents may do (see pipeline/protocols.py): P0 nothing (condition A), P2 ask each
+    other, P3 answer a mediator. The agents are the same under all three.
+    """
 
     def __init__(
         self,
@@ -135,7 +151,10 @@ class AgenticPipelineStrategy(OrchestrationStrategy):
         nfr_categories: list[tuple[str, str]] | None = None,
         lang: Lang = Lang.PT,
         max_steps: int = DEFAULT_MAX_STEPS,
+        protocol: CoordinationProtocol = CoordinationProtocol.FIXED,
+        max_requests: int = DEFAULT_MAX_REQUESTS,
     ) -> None:
+        self._protocol = protocol
         self._classifier = AgenticClassifier(
             model=classifier_model,
             temperature=temperature,
@@ -148,12 +167,15 @@ class AgenticPipelineStrategy(OrchestrationStrategy):
             temperature=temperature,
             lang=lang,
             max_steps=max_steps,
+            protocol=protocol,
         )
-        self._graph = build_pipeline_graph(self._classifier, self._prioritizer)
+        self._graph = build_protocol_graph(
+            protocol, self._classifier, self._prioritizer, lang, max_requests
+        )
 
     @property
     def name(self) -> str:
-        return "pipeline_agentic"
+        return _AGENTIC_NAMES[self._protocol]
 
     def execute(
         self,
@@ -163,6 +185,7 @@ class AgenticPipelineStrategy(OrchestrationStrategy):
         self._classifier._trace = trace_writer
         self._prioritizer._trace = trace_writer
         state = PipelineState(raw_requirements=requirements)
+        state.metrics["protocol"] = self._protocol.value
         return _coerce_state(self._graph.invoke(state))
 
 
@@ -222,8 +245,8 @@ class PipelineStreamingStrategy(OrchestrationStrategy):
     langgraph.types.Send, see pipeline/graph_streaming.py) so it can be
     prioritized as soon as its own classification finishes, instead of
     waiting for the whole batch to classify first. Opt-in and separate from
-    PipelineStrategy on purpose: it isn't wired into scripts/run_grid.py or
-    any existing grid condition, so no existing run is affected by this
+    PipelineStrategy on purpose: it isn't wired into any existing
+    experiment condition, so no existing run is affected by this
     strategy's introduction.
     """
 

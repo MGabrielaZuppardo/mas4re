@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 from agents.agentic.prioritizer import AgenticPrioritizer
 from domain.agent_actions import AgentEpisode, EpisodeOutcome
-from domain.enums import Lang, MoSCoWPriority, RequirementType
+from domain.enums import CoordinationProtocol, Lang, MoSCoWPriority, RequirementType
 from domain.messages import (
     ClassificationReport,
     Message,
@@ -20,6 +20,9 @@ def _prioritizer(script: list, **kwargs) -> tuple[AgenticPrioritizer, ScriptedCh
     llm = ScriptedChatModel(script=script)
     with patch("agents.agentic.prioritizer.build_llm", return_value=llm):
         return AgenticPrioritizer(model="ollama/fake", **kwargs), llm
+
+
+_PEERS = CoordinationProtocol.PEERS
 
 
 def _submit(priority: str, score: float | None = None, why: str = "ok"):
@@ -204,7 +207,8 @@ class TestTools:
             [
                 tool_call("request_reclassification", reason="parece funcional"),
                 _submit("C"),
-            ]
+            ],
+            protocol=_PEERS,
         )
         state = _state(_inform("r1"))
 
@@ -222,7 +226,8 @@ class TestTools:
                 _submit("M"),
                 tool_call("request_reclassification", reason="b duvidoso"),
                 _submit("S"),
-            ]
+            ],
+            protocol=_PEERS,
         )
         state = _state(_inform("a"), _inform("b"))
 
@@ -233,7 +238,9 @@ class TestTools:
 
     def test_destinatario_do_pedido_e_configuravel(self):
         agent, _ = _prioritizer(
-            [tool_call("request_reclassification", reason="x"), _submit("M")], peer="revisor"
+            [tool_call("request_reclassification", reason="x"), _submit("M")],
+            peer="revisor",
+            protocol=_PEERS,
         )
         state = _state(_inform())
 
@@ -265,7 +272,7 @@ class TestBudgetAndEpisodes:
         assert episode.goal.description in llm.seen[0][0].content
 
     def test_prompt_apresenta_as_ferramentas_sem_prescrever_procedimento(self):
-        agent, llm = _prioritizer([_submit("M")], lang=Lang.EN)
+        agent, llm = _prioritizer([_submit("M")], lang=Lang.EN, protocol=_PEERS)
 
         agent.run(_state(_inform()))
 

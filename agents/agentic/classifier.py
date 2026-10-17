@@ -15,7 +15,7 @@ from agents.agentic.toolkit import (
 )
 from agents.memory import EpisodicMemory
 from agents.tools import make_nfr_taxonomy_tool
-from domain.agent_actions import Belief, Goal
+from domain.agent_actions import Belief, EpisodePhase, Goal
 from domain.enums import Lang, RequirementType
 from domain.messages import (
     ClassificationReport,
@@ -254,6 +254,7 @@ class AgenticClassifier(AgenticAgent[Requirement, ClassifiedRequirement]):
                 Belief(source="percept", content=current.text),
                 Belief(source=f"message:{request.id}", content=reason),
             ],
+            phase=EpisodePhase.REPLY,
         )
 
     @staticmethod

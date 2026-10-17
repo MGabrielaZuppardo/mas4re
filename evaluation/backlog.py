@@ -28,7 +28,13 @@ FAILED_FILENAME = "failed.csv"
 DEFAULT_DELIMITER = ";"
 
 _CSV_ENCODING = "utf-8-sig"
-_GROUND_TRUTH_FIELDS = ("gold_type", "gold_category", "type_correct")
+_GROUND_TRUTH_FIELDS = (
+    "gold_type",
+    "gold_category",
+    "type_correct",
+    "gold_priority",
+    "priority_correct",
+)
 
 
 class BacklogStatus(StrEnum):
@@ -53,6 +59,8 @@ class BacklogRow(BaseModel):
     gold_type: str | None
     gold_category: str | None
     type_correct: bool | None
+    gold_priority: str | None = None
+    priority_correct: bool | None = None
 
 
 class FailedRow(BaseModel):
@@ -83,6 +91,7 @@ def _ground_truth(requirement: Requirement) -> tuple[str | None, str | None]:
 
 def _backlog_row(run_id: str, source: Requirement, result: ClassifiedRequirement) -> BacklogRow:
     gold_type, gold_category = _ground_truth(source)
+    gold_priority = source.gold_priority
     prioritized = result if isinstance(result, PrioritizedRequirement) else None
     priority = prioritized.priority if prioritized else None
     return BacklogRow(
@@ -102,6 +111,10 @@ def _backlog_row(run_id: str, source: Requirement, result: ClassifiedRequirement
         gold_type=gold_type,
         gold_category=gold_category,
         type_correct=None if gold_type is None else result.requirement_type.value == gold_type,
+        gold_priority=gold_priority.value if gold_priority else None,
+        priority_correct=(
+            None if gold_priority is None or priority is None else priority == gold_priority
+        ),
     )
 
 

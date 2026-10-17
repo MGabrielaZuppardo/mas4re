@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from domain.enums import Lang
+from prompts.localization import localized
 from prompts.v1._shared import build_nfr_block
 
 # ── System prompts ─────────────────────────────────────────────────────────────
@@ -121,6 +122,73 @@ Classify and prioritize the following software requirement:
 \"\"\"{requirement_text}\"\"\"
 """
 
+BASELINE_SYSTEM_PROMPT_ES = """\
+Eres un especialista en Ingeniería de Requisitos con profundo conocimiento del método de \
+clasificación funcional/no funcional y del método de priorización MoSCoW \
+(Clegg & Barker, 1994).
+
+Tu tarea es, en un único análisis, clasificar Y priorizar un requisito de software.
+
+─── PASO 1 · CLASIFICACIÓN ───────────────────────────────────────────────
+
+Clasifica el requisito como:
+· Funcional (F): describe lo que el sistema debe hacer.
+· No Funcional (NF): describe una cualidad o restricción del sistema.
+
+{nfr_block}
+
+─── PASO 2 · PRIORIZACIÓN ────────────────────────────────────────────────
+
+Prioriza el requisito usando MoSCoW:
+· M (Must Have)   — Obligatorio. Sin esto el sistema no funciona.
+· S (Should Have) — Importante, pero se puede posponer.
+· C (Could Have)  — Deseable, puede excluirse sin gran impacto.
+· W (Won't Have)  — Fuera del alcance actual.
+
+Criterios según el tipo:
+· F:  evalúa el impacto en el negocio, la frecuencia de uso y las dependencias.
+· NF: evalúa el riesgo operativo, el cumplimiento legal y la experiencia del usuario.
+
+─── REGLAS ───────────────────────────────────────────────────────────────
+
+- Responde SIEMPRE en JSON válido, sin markdown.
+- Si el tipo es F, "nfr_category" debe ser null.
+- "confidence" y "priority_score" son decimales entre 0.0 y 1.0.
+  Referencia de score: M=1.0, S=0.75, C=0.5, W=0.25.
+- "priority_rank" debe ser 1 (el sistema lo recalculará globalmente).
+- Las justificaciones deben ser concisas (máx. 2 frases cada una), en español.
+
+─── FORMATO DE RESPUESTA ─────────────────────────────────────────────────
+
+{{
+  "requirement_type": "F" | "NF",
+  "nfr_category": "<categoría>" | null,
+  "confidence": <decimal>,
+  "classification_justification": "<texto>",
+  "priority": "M" | "S" | "C" | "W",
+  "priority_score": <decimal>,
+  "priority_rank": 1,
+  "priority_justification": "<texto>"
+}}
+"""
+
+BASELINE_USER_PROMPT_ES = """\
+Clasifica y prioriza el siguiente requisito de software:
+
+\"\"\"{requirement_text}\"\"\"
+"""
+
+_SYSTEM: dict[Lang, str] = {
+    Lang.PT: BASELINE_SYSTEM_PROMPT_PT,
+    Lang.EN: BASELINE_SYSTEM_PROMPT_EN,
+    Lang.ES: BASELINE_SYSTEM_PROMPT_ES,
+}
+_USER: dict[Lang, str] = {
+    Lang.PT: BASELINE_USER_PROMPT_PT,
+    Lang.EN: BASELINE_USER_PROMPT_EN,
+    Lang.ES: BASELINE_USER_PROMPT_ES,
+}
+
 # ── Builders ───────────────────────────────────────────────────────────────────
 
 
@@ -133,17 +201,14 @@ def build_baseline_messages(
 
     Args:
         requirement_text: Texto do requisito a ser processado.
-        lang: Lang.PT (português) ou Lang.EN (inglês).
+        lang: Idioma do prompt (Lang.PT, Lang.EN ou Lang.ES).
         nfr_categories: Lista de (código, descrição) das categorias NFR do dataset.
                         None = sem taxonomia estruturada (prompt genérico).
     """
     nfr_block = build_nfr_block(nfr_categories, lang)
 
-    system_template = BASELINE_SYSTEM_PROMPT_PT if lang is Lang.PT else BASELINE_SYSTEM_PROMPT_EN
-    system = system_template.format(nfr_block=nfr_block)
-
-    user_template = BASELINE_USER_PROMPT_PT if lang is Lang.PT else BASELINE_USER_PROMPT_EN
-    user = user_template.format(requirement_text=requirement_text)
+    system = localized(_SYSTEM, lang).format(nfr_block=nfr_block)
+    user = localized(_USER, lang).format(requirement_text=requirement_text)
 
     return [
         {"role": "system", "content": system},

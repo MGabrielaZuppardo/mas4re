@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import random
 from abc import ABC, abstractmethod
 
 from domain.models import Requirement
@@ -20,6 +21,11 @@ class DatasetAdapter(ABC):
     @abstractmethod
     def load(self) -> list[Requirement]:
         "Carrega os requisitos do dataset como objetos Requirements"
+
+    def load_sample(self, n: int, seed: int = 42) -> list[Requirement]:
+        """Amostra aleatória reprodutível de n requisitos (tudo, se n >= tamanho)."""
+        requirements = self.load()
+        return random.Random(seed).sample(requirements, min(n, len(requirements)))
 
     @property
     def nfr_categories(self) -> list[tuple[str, str]] | None:

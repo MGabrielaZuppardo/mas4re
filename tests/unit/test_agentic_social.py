@@ -7,7 +7,7 @@ from unittest.mock import patch
 from agents.agentic.classifier import AgenticClassifier
 from agents.agentic.prioritizer import AgenticPrioritizer
 from domain.agent_actions import AgentEpisode, EpisodeOutcome
-from domain.enums import RequirementType
+from domain.enums import CoordinationProtocol, RequirementType
 from domain.messages import (
     ClassificationReport,
     Message,
@@ -28,10 +28,10 @@ def _classifier(script: list, **kwargs) -> tuple[AgenticClassifier, ScriptedChat
         return AgenticClassifier(model="ollama/fake", **kwargs), llm
 
 
-def _prioritizer(script: list) -> tuple[AgenticPrioritizer, ScriptedChatModel]:
+def _prioritizer(script: list, **kwargs) -> tuple[AgenticPrioritizer, ScriptedChatModel]:
     llm = ScriptedChatModel(script=script)
     with patch("agents.agentic.prioritizer.build_llm", return_value=llm):
-        return AgenticPrioritizer(model="ollama/fake"), llm
+        return AgenticPrioritizer(model="ollama/fake", **kwargs), llm
 
 
 def _request(reason: str = "parece funcional", req_id: str = "r1") -> Message:
@@ -213,7 +213,8 @@ class TestTwoAgentsTalking:
             [
                 tool_call("request_reclassification", reason="parece funcional"),
                 tool_call("submit_priority", priority="S", justification="provisório"),
-            ]
+            ],
+            protocol=CoordinationProtocol.PEERS,
         )
         state = PipelineState(raw_requirements=[Requirement(id="r1", text=_TEXT)])
 

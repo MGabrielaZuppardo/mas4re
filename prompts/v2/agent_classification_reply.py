@@ -6,6 +6,7 @@ The agent may agree, revising its answer, or refuse, saying why. Neither is the 
 from __future__ import annotations
 
 from domain.enums import Lang
+from prompts.localization import localized
 from prompts.v1._shared import build_nfr_block
 
 REPLY_GOAL_PT = (
@@ -83,15 +84,64 @@ confidence={confidence}. Justification: {justification}
 Colleague's request: {reason}"""
 
 
+REPLY_GOAL_ES = (
+    "Responder a una solicitud de reconsideración: aceptar y revisar la clasificación, o "
+    "rechazar justificando."
+)
+
+_SYSTEM_ES = """\
+Eres un agente especialista en Ingeniería de Requisitos que clasificó un requisito. Un \
+colega cuestionó esa clasificación.
+
+Objetivo: {goal}
+
+Definiciones:
+- Funcional (F): describe lo que el sistema debe HACER (funciones, comportamientos, datos, \
+interacciones).
+- No Funcional (NF): describe una CUALIDAD o RESTRICCIÓN sobre cómo opera el sistema.
+
+{nfr_block}
+
+Herramientas a tu disposición. Usa las que consideres útiles, en el orden y la cantidad que \
+quieras:
+- lookup_nfr_taxonomy: definición canónica de una categoría NFR.
+- recall_similar_cases: requisitos parecidos ya tratados en este lote y cómo fueron clasificados.
+- check_consistency: comprueba que el tipo y la categoría sean coherentes entre sí y con la \
+taxonomía.
+- reply_to_request: envía tu respuesta al colega. Es la acción que termina tu trabajo.
+
+En la respuesta, "decision" es "agree" o "refuse"; "reason" explica la decisión. Al aceptar, \
+informa la clasificación revisada (requirement_type, nfr_category, confidence, justification).
+"""
+
+_PERCEPT_ES = """\
+Requisito:
+\"\"\"{text}\"\"\"
+
+Tu clasificación actual: tipo={requirement_type}, categoría={category}, \
+confianza={confidence}. Justificación: {justification}
+
+Solicitud del colega: {reason}"""
+
+_GOAL: dict[Lang, str] = {
+    Lang.PT: REPLY_GOAL_PT,
+    Lang.EN: REPLY_GOAL_EN,
+    Lang.ES: REPLY_GOAL_ES,
+}
+_SYSTEM: dict[Lang, str] = {Lang.PT: _SYSTEM_PT, Lang.EN: _SYSTEM_EN, Lang.ES: _SYSTEM_ES}
+_PERCEPT: dict[Lang, str] = {Lang.PT: _PERCEPT_PT, Lang.EN: _PERCEPT_EN, Lang.ES: _PERCEPT_ES}
+
+
 def reply_goal(lang: Lang) -> str:
-    return REPLY_GOAL_PT if lang is Lang.PT else REPLY_GOAL_EN
+    return localized(_GOAL, lang)
 
 
 def build_reply_system_prompt(
     lang: Lang = Lang.PT, nfr_categories: list[tuple[str, str]] | None = None
 ) -> str:
-    template = _SYSTEM_PT if lang is Lang.PT else _SYSTEM_EN
-    return template.format(goal=reply_goal(lang), nfr_block=build_nfr_block(nfr_categories, lang))
+    return localized(_SYSTEM, lang).format(
+        goal=reply_goal(lang), nfr_block=build_nfr_block(nfr_categories, lang)
+    )
 
 
 def build_reply_percept(
@@ -103,8 +153,7 @@ def build_reply_percept(
     reason: str,
     lang: Lang = Lang.PT,
 ) -> str:
-    template = _PERCEPT_PT if lang is Lang.PT else _PERCEPT_EN
-    return template.format(
+    return localized(_PERCEPT, lang).format(
         text=text,
         requirement_type=requirement_type,
         category=nfr_category or "-",

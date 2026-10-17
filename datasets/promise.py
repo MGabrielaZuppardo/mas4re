@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from datasets.base import DatasetAdapter
 from domain.enums import NFRCategory, RequirementType
 from domain.models import Requirement
 
@@ -20,7 +21,7 @@ _LABEL_TO_CATEGORY: dict[str, NFRCategory] = {c.value: c for c in NFRCategory}
 _DEFAULT_PATH = Path("datasets/data/promise_nfr/promise_nfr_pt.csv")
 
 
-class PromiseAdapter:
+class PromiseAdapter(DatasetAdapter):
     """
     Carrega e converte o dataset PROMISE NFR+ (versão PT) para modelos de domínio.
 
@@ -106,6 +107,7 @@ class PromiseAdapter:
         label = str(row["class"]).strip().upper()
         is_functional = label == "F"
         return Requirement(
+            id=f"promise-{int(row.name):04d}",
             text=str(row["RequirementText_PT"]).strip(),
             text_en=str(row.get("RequirementText", "")).strip() or None,
             source="PROMISE_NFR_PT",

@@ -11,11 +11,16 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, cast
 
-from datasets.promise import PromiseAdapter
+from datasets.registry import PROMISE, build_adapter, default_data_lang
 from domain.agent_actions import AgentEpisode
-from domain.enums import InformationRegime
+from domain.enums import InformationRegime, Lang
 from domain.models import ClassifiedRequirement, PipelineState
-from evaluation.agent_activity import ACTIONS_FILENAME, summarize_episodes, write_episodes_jsonl
+from evaluation.agent_activity import (
+    ACTIONS_FILENAME,
+    summarize_episodes,
+    summarize_messages,
+    write_episodes_jsonl,
+)
 from evaluation.backlog import (
     BACKLOG_FILENAME,
     DEFAULT_DELIMITER,
@@ -28,7 +33,10 @@ from evaluation.metrics.classification import (
     compute_classification_metrics,
     compute_subcategory_metrics,
 )
-from evaluation.metrics.prioritization import compute_moscow_distribution
+from evaluation.metrics.prioritization import (
+    compute_moscow_distribution,
+    compute_priority_gold_metrics,
+)
 from evaluation.trace_writer import TraceWriter
 from experiments.strategy import OrchestrationStrategy
 
@@ -67,7 +75,11 @@ def _langgraph_version() -> str:
 
 @dataclass
 class RunConfig:
-    """Frozen parameters of one experimental run (SQ2 reproducibility)."""
+    """Frozen parameters of one experimental run (SQ2 reproducibility).
+
+    `lang` is the language of the prompts; `data_lang` is the language of the requirement text
+    the agents read. They are independent: a run may give Spanish text to Portuguese prompts.
+    """
 
     strategy_name: str
     model: str
@@ -78,9 +90,12 @@ class RunConfig:
     temperature: float = 0.0
     prompt_version: str = "v1"
     information_regime: InformationRegime = InformationRegime.ZERO_SHOT
+    dataset_name: str = PROMISE
+    data_lang: str | None = None
 
     def __post_init__(self) -> None:
         self.information_regime = InformationRegime(self.information_regime)
+        self.data_lang = Lang(self.data_lang or default_data_lang(self.dataset_name)).value
 
 
 @dataclass
@@ -133,6 +148,7 @@ class ExperimentRunner:
         elapsed: float,
         trace_path: Path,
         agent_runtime: dict[str, Any] | None = None,
+        protocol: str | None = None,
     ) -> dict[str, Any]:
         manifest = {
             "run_id": run_id,
@@ -145,6 +161,8 @@ class ExperimentRunner:
             "temperature": config.temperature,
             "prompt_version": config.prompt_version,
             "information_regime": config.information_regime.value,
+            "dataset_name": config.dataset_name,
+            "data_lang": config.data_lang,
             "dataset": config.dataset_path,
             "dataset_n": n_loaded,
             "dataset_md5": _file_md5(Path(config.dataset_path)),
@@ -154,6 +172,8 @@ class ExperimentRunner:
         }
         if agent_runtime:
             manifest["agent_runtime"] = agent_runtime
+        if protocol:
+            manifest["protocol"] = protocol
         return manifest
 
     def _compute_metrics(self, state: PipelineState) -> dict[str, Any]:
@@ -171,6 +191,8 @@ class ExperimentRunner:
             metrics["moscow_distribution"] = compute_moscow_distribution(
                 state.prioritized_requirements
             )
+            if gold := compute_priority_gold_metrics(state.prioritized_requirements, ground_truth):
+                metrics["prioritization"] = gold
         if "inter_agent_conflicts" in state.metrics:
             metrics["inter_agent_conflicts"] = state.metrics["inter_agent_conflicts"]
         if "failure_detections" in state.metrics:
@@ -179,6 +201,10 @@ class ExperimentRunner:
             metrics["mediation"] = state.metrics["mediation"]
         if episodes := self._episodes_of(state):
             metrics["agent_activity"] = summarize_episodes(episodes)
+        if state.messages:
+            metrics["interaction"] = summarize_messages(state.messages)
+        if "mediator" in state.metrics:
+            metrics["mediator"] = state.metrics["mediator"]
         return metrics
 
     @staticmethod
@@ -186,7 +212,7 @@ class ExperimentRunner:
         return [AgentEpisode.model_validate(e) for e in state.metrics.get("agent_episodes", [])]
 
     def execute(self, strategy: OrchestrationStrategy, config: RunConfig) -> RunResult:
-        adapter = PromiseAdapter(path=config.dataset_path)
+        adapter = build_adapter(config.dataset_name, config.dataset_path, Lang(config.data_lang))
         requirements = (
             adapter.load_sample(config.n_samples, seed=config.seed)
             if config.n_samples
@@ -223,6 +249,7 @@ class ExperimentRunner:
             elapsed,
             trace_path,
             state.metrics.get("agent_runtime"),
+            state.metrics.get("protocol"),
         )
         (run_path / "manifest.json").write_text(
             json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8"
@@ -255,6 +282,8 @@ class ExperimentRunner:
                 "seed": config.seed,
                 "n": len(requirements),
                 "information_regime": config.information_regime.value,
+                "dataset_name": config.dataset_name,
+                "data_lang": config.data_lang,
             },
             "metrics": metrics,
             "n_predictions": len(predictions),

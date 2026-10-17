@@ -54,7 +54,7 @@ def _patch_adapter(reqs: list[Requirement]):
     fake_adapter = MagicMock()
     fake_adapter.load.return_value = reqs
     fake_adapter.load_sample.return_value = reqs
-    return patch("experiments.runner.PromiseAdapter", return_value=fake_adapter)
+    return patch("experiments.runner.build_adapter", return_value=fake_adapter)
 
 
 def test_runner_executes_strategy(tmp_path: Path, fake_requirements) -> None:

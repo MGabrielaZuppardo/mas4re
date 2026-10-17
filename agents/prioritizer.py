@@ -19,6 +19,7 @@ from domain.models import (
 from evaluation.failure_detectors import DetectionContext
 from llm.factory import build_llm
 from llm.json_parser import coerce_str, extract_first_json
+from prompts.localization import localized
 from prompts.v1.prioritization import (
     build_prioritization_critique_messages,
     build_prioritization_messages,
@@ -26,6 +27,12 @@ from prompts.v1.prioritization import (
 
 _FEW_SHOT_HEADER_PT = "Exemplos já priorizados neste lote (referência de estilo/consistência):\n"
 _FEW_SHOT_HEADER_EN = "Examples already prioritized in this batch (style/consistency reference):\n"
+_FEW_SHOT_HEADER_ES = "Ejemplos ya priorizados en este lote (referencia de estilo/consistencia):\n"
+_FEW_SHOT_HEADER = {
+    Lang.PT: _FEW_SHOT_HEADER_PT,
+    Lang.EN: _FEW_SHOT_HEADER_EN,
+    Lang.ES: _FEW_SHOT_HEADER_ES,
+}
 
 logger = logging.getLogger(__name__)
 
@@ -111,7 +118,7 @@ class PrioritizationAgent(BaseAgent[ClassifiedRequirement, PrioritizedRequiremen
         similar: list[MemoryItem] = self._memory.retrieve_similar(requirement_text)
         if not similar:
             return ""
-        header = _FEW_SHOT_HEADER_PT if self._lang is Lang.PT else _FEW_SHOT_HEADER_EN
+        header = localized(_FEW_SHOT_HEADER, self._lang)
         lines = [header]
         lines.extend(
             f'- "{item.text}" -> {item.output_summary} ({item.justification})\n' for item in similar

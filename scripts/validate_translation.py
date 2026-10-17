@@ -1,10 +1,11 @@
-"""Validate the PROMISE-PT dataset translation quality.
+"""Validate the quality of a dataset translated into Portuguese (PROMISE-PT, PrioReSpa-PT).
 
 Uses back-translation (PT -> EN via Ollama) + BERTScore to assess
 semantic preservation without human reference translations.
 
 Uso:
     python scripts/validate_translation.py
+    python scripts/validate_translation.py --pair priorespa
     python scripts/validate_translation.py --model ollama/qwen2.5:7b
     python scripts/validate_translation.py --threshold-accept 0.88
     python scripts/validate_translation.py --output results/validation.csv
@@ -24,10 +25,26 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from config.settings import settings
-from datasets.translation_validator import TranslationValidator
+from datasets.translation_validator import (
+    PRIORESPA_ES_PT,
+    PROMISE_EN_PT,
+    TranslationValidator,
+)
 
-_DEFAULT_OUTPUT = Path("datasets/data/promise_nfr/validation_report.csv")
-_DEFAULT_SUMMARY = Path("datasets/data/promise_nfr/validation_summary.json")
+_PAIRS = {
+    "promise": (
+        PROMISE_EN_PT,
+        settings.promise_dataset_path,
+        Path("datasets/data/promise_nfr/validation_report.csv"),
+        Path("datasets/data/promise_nfr/validation_summary.json"),
+    ),
+    "priorespa": (
+        PRIORESPA_ES_PT,
+        settings.priorespa_pt_dataset_path,
+        Path("datasets/data/priorespa/validation_report.csv"),
+        Path("datasets/data/priorespa/validation_summary.json"),
+    ),
+}
 
 
 def main() -> None:
@@ -35,10 +52,12 @@ def main() -> None:
         description="Validate PROMISE-PT translation via back-translation + BERTScore"
     )
     parser.add_argument(
-        "--dataset",
-        default=settings.promise_dataset_path,
-        help="Path to the PROMISE-PT CSV file",
+        "--pair",
+        choices=sorted(_PAIRS),
+        default="promise",
+        help="Which dataset and language pair to validate (default: promise, EN -> PT)",
     )
+    parser.add_argument("--dataset", default=None, help="CSV to validate (default: the pair's own)")
     parser.add_argument(
         "--model",
         default="ollama/qwen2.5:7b",
@@ -64,15 +83,19 @@ def main() -> None:
     )
     parser.add_argument(
         "--output",
-        default=str(_DEFAULT_OUTPUT),
+        default=None,
         help="Output CSV path for per-requirement scores",
     )
     parser.add_argument(
         "--summary",
-        default=str(_DEFAULT_SUMMARY),
+        default=None,
         help="Output JSON path for aggregate summary",
     )
     args = parser.parse_args()
+    pair, default_dataset, default_output, default_summary = _PAIRS[args.pair]
+    args.dataset = args.dataset or default_dataset
+    args.output = args.output or str(default_output)
+    args.summary = args.summary or str(default_summary)
 
     print("\nMAS4RE Translation Validator")
     print(f"  Dataset  : {args.dataset}")
@@ -84,6 +107,7 @@ def main() -> None:
         batch_size=args.batch_size,
         threshold_accept=args.threshold_accept,
         threshold_review=args.threshold_review,
+        pair=pair,
     )
 
     report = validator.validate(args.dataset)

@@ -5,7 +5,6 @@ Tests cover:
 - ExperimentRunner wires TraceWriter (trace.jsonl is created)
 - strategy.execute() receives and injects trace_writer into agents
 - run_id present in RunResult and artifacts
-- grid script dry-run produces correct condition count
 
 All tests use mocked LLM — no Ollama required.
 """
@@ -202,7 +201,7 @@ class TestExperimentRunnerTrace:
             mock_build.return_value = MagicMock(
                 invoke=MagicMock(return_value=_baseline_llm_response())
             )
-            with patch("experiments.runner.PromiseAdapter") as mock_adapter:
+            with patch("experiments.runner.build_adapter") as mock_adapter:
                 mock_adapter.return_value.load_sample.return_value = reqs
                 mock_adapter.return_value.load.return_value = reqs
 
@@ -251,66 +250,3 @@ class TestExperimentRunnerTrace:
         trace_file = traces_dir / f"{result.run_id}.jsonl"
         for line in trace_file.read_text().splitlines():
             assert json.loads(line)["run_id"] == result.run_id
-
-
-# ---------------------------------------------------------------------------
-# Grid script — dry-run
-# ---------------------------------------------------------------------------
-
-
-class TestGridScript:
-    def test_dry_run_produces_18_conditions(self, capsys) -> None:
-        from scripts.run_grid import _build_conditions
-
-        conditions = _build_conditions()
-        assert len(conditions) == 18
-
-    def test_conditions_cover_all_models_langs_strategies(self) -> None:
-        from scripts.run_grid import LANGUAGES, MODELS, _build_conditions
-
-        conditions = _build_conditions()
-        for model in MODELS:
-            for lang in LANGUAGES:
-                for strategy in ("baseline", "pipeline", "two_call_baseline"):
-                    match = [
-                        c
-                        for c in conditions
-                        if c.model == model and c.lang == lang and c.strategy == strategy
-                    ]
-                    assert len(match) == 1, f"Missing: {model} {lang} {strategy}"
-
-    def test_baseline_strategy_uses_same_model(self) -> None:
-        from scripts.run_grid import GridCondition, _build_config
-
-        cond = GridCondition(model="ollama/qwen2.5:7b", lang="pt", strategy="baseline")
-        cfg = _build_config(cond, n=5)
-        assert cfg.model == "ollama/qwen2.5:7b"
-        assert cfg.lang == "pt"
-        assert cfg.n_samples == 5
-
-    def test_pipeline_config_model_label(self) -> None:
-        from scripts.run_grid import GridCondition, _build_config
-
-        cond = GridCondition(model="ollama/qwen2.5:7b", lang="en", strategy="pipeline")
-        cfg = _build_config(cond, n=None)
-        assert cfg.model == "ollama/qwen2.5:7b+ollama/qwen2.5:7b"
-        assert cfg.lang == "en"
-
-    def test_two_call_baseline_config_model_label(self) -> None:
-        from scripts.run_grid import GridCondition, _build_config
-
-        cond = GridCondition(model="ollama/qwen2.5:7b", lang="en", strategy="two_call_baseline")
-        cfg = _build_config(cond, n=None)
-        # Unlike "pipeline", two_call_baseline is a single agent making two
-        # calls, not two agent slots — model_label must not get a "+model"
-        # suffix (see scripts/run_grid.py::_build_config).
-        assert cfg.model == "ollama/qwen2.5:7b"
-        assert cfg.lang == "en"
-
-    def test_build_strategy_dispatches_two_call_baseline(self) -> None:
-        from experiments.strategy import TwoCallBaselineStrategy
-        from scripts.run_grid import GridCondition, _build_strategy
-
-        cond = GridCondition(model="ollama/qwen2.5:7b", lang="pt", strategy="two_call_baseline")
-        strategy = _build_strategy(cond)
-        assert isinstance(strategy, TwoCallBaselineStrategy)

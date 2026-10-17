@@ -24,6 +24,15 @@ class EpisodeOutcome(StrEnum):
     BUDGET_EXHAUSTED = "budget_exhausted"
 
 
+class EpisodePhase(StrEnum):
+    """Why the agent is working: on an item for the first time, answering a peer or the
+    mediator, or deciding again after an answer."""
+
+    WORK = "work"
+    REPLY = "reply"
+    RECONSIDERATION = "reconsideration"
+
+
 class Goal(BaseModel):
     description: str
 
@@ -59,6 +68,7 @@ class AgentEpisode(BaseModel):
     actions: list[ActionRecord] = Field(default_factory=list)
     outcome: EpisodeOutcome = EpisodeOutcome.BUDGET_EXHAUSTED
     submitted_via: Literal["tool", "text"] | None = None
+    phase: EpisodePhase = EpisodePhase.WORK
 
     @property
     def llm_calls(self) -> int:

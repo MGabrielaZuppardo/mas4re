@@ -6,12 +6,13 @@ import json
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import pytest
 import typer.main
 from typer.testing import CliRunner
 
 from cli.main import app
 from domain.agent_actions import AgentEpisode
-from domain.enums import RequirementType
+from domain.enums import CoordinationProtocol, RequirementType
 from domain.messages import ClassificationReport, Performative
 from domain.models import PipelineState, Requirement
 from experiments.runner import ExperimentRunner, RunConfig
@@ -41,6 +42,10 @@ def _classify(category: str = "PE"):
 
 def _prioritize(priority: str = "M"):
     return tool_call("submit_priority", priority=priority, justification="crítico")
+
+
+def _refuse_request():
+    return tool_call("reply_to_request", decision="refuse", reason="mantenho")
 
 
 def _strategy(
@@ -100,10 +105,10 @@ class TestRunnerArtifacts:
     def _run(tmp_path: Path, strategy: OrchestrationStrategy):
         adapter = MagicMock()
         adapter.load.return_value = adapter.load_sample.return_value = _requirements()
-        with patch("experiments.runner.PromiseAdapter", return_value=adapter):
+        with patch("experiments.runner.build_adapter", return_value=adapter):
             runner = ExperimentRunner(out_dir=str(tmp_path), trace_dir=str(tmp_path / "traces"))
             config = RunConfig(
-                strategy_name="pipeline_agentic",
+                strategy_name=strategy.name,
                 model="ollama/clf+ollama/pri",
                 dataset_path="datasets/data/promise_nfr/promise_nfr_pt.csv",
                 n_samples=1,
@@ -136,9 +141,49 @@ class TestRunnerArtifacts:
         runtime = result.manifest["agent_runtime"]
         [prioritizer_runtime] = runtime["prioritizer"]
         assert prioritizer_runtime["max_steps"] == 4
-        assert "request_reclassification" in prioritizer_runtime["tools"]
+        assert "request_reclassification" not in prioritizer_runtime["tools"]
         assert prioritizer_runtime["terminal_tools"] == ["submit_priority"]
         assert len(runtime["classifier"]) == 2
+
+    def test_manifesto_registra_o_protocolo_de_coordenacao(self, tmp_path):
+        classifier_llm = ScriptedChatModel(script=[_classify("PE")])
+        prioritizer_llm = ScriptedChatModel(script=[_prioritize("S")])
+        with (
+            patch("agents.agentic.classifier.build_llm", return_value=classifier_llm),
+            patch("agents.agentic.prioritizer.build_llm", return_value=prioritizer_llm),
+        ):
+            strategy = AgenticPipelineStrategy(
+                "ollama/clf", "ollama/pri", max_steps=4, protocol=CoordinationProtocol.PEERS
+            )
+
+        result = self._run(tmp_path, strategy)
+
+        assert result.manifest["protocol"] == "p2"
+        [prioritizer_runtime, *_] = result.manifest["agent_runtime"]["prioritizer"]
+        assert "request_reclassification" in prioritizer_runtime["tools"]
+
+    def test_resultado_traz_a_interacao_e_o_mediador_quando_o_protocolo_os_produz(self, tmp_path):
+        classifier_llm = ScriptedChatModel(script=[_classify("PE")])
+        prioritizer_llm = ScriptedChatModel(script=[_prioritize("M"), _refuse_request()])
+        with (
+            patch("agents.agentic.classifier.build_llm", return_value=classifier_llm),
+            patch("agents.agentic.prioritizer.build_llm", return_value=prioritizer_llm),
+        ):
+            strategy = AgenticPipelineStrategy(
+                "ollama/clf", "ollama/pri", max_steps=4, protocol=CoordinationProtocol.MEDIATED
+            )
+
+        result = self._run(tmp_path, strategy)
+
+        assert result.metrics["interaction"]["requests_by_sender"] == {"mediator": 1}
+        assert result.metrics["interaction"]["refuse"] == 1
+        assert result.metrics["mediator"]["must_inflation"] == 1
+
+    def test_protocolo_fixo_nao_gera_interacao_nem_mediador(self, tmp_path):
+        result = self._run(tmp_path, _strategy())
+
+        assert result.metrics["interaction"]["requests"] == 0
+        assert "mediator" not in result.metrics
 
     def test_estrategia_sem_agentes_nao_cria_o_arquivo_de_acoes(self, tmp_path):
         class Plain(OrchestrationStrategy):
@@ -176,4 +221,33 @@ class TestCli:
 
         assert result.exit_code == 0, result.output
         assert strategy.call_args.kwargs["max_steps"] == 7
+        assert strategy.call_args.kwargs["protocol"] is CoordinationProtocol.FIXED
         assert "a.jsonl" in result.output
+
+    @pytest.mark.parametrize(
+        ("name", "protocol"),
+        [
+            ("pipeline_agentic", CoordinationProtocol.FIXED),
+            ("pipeline_agentic_p2", CoordinationProtocol.PEERS),
+            ("pipeline_agentic_p3", CoordinationProtocol.MEDIATED),
+        ],
+    )
+    def test_cada_nome_de_estrategia_agentica_escolhe_o_seu_protocolo(self, name, protocol):
+        with (
+            patch("cli.main.AgenticPipelineStrategy") as strategy,
+            patch("cli.main.ExperimentRunner") as experiment_runner,
+        ):
+            experiment_runner.return_value.execute.return_value = MagicMock(
+                metrics={}, backlog_path="b.csv", failed_path=None, actions_path=None
+            )
+            result = CliRunner().invoke(app, ["run", "--strategy", name, "--n", "1"])
+
+        assert result.exit_code == 0, result.output
+        assert strategy.call_args.kwargs["protocol"] is protocol
+        assert experiment_runner.return_value.execute.call_args.args[1].strategy_name == name
+
+    def test_estrategia_desconhecida_lista_os_protocolos_disponiveis(self):
+        result = CliRunner().invoke(app, ["run", "--strategy", "pipeline_agentic_p1", "--n", "1"])
+
+        assert result.exit_code != 0
+        assert "pipeline_agentic_p2" in result.output and "pipeline_agentic_p3" in result.output

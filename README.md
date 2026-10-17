@@ -20,14 +20,16 @@ The pipeline runs fully locally via [Ollama](https://ollama.com) — no external
 [Output: structured backlog + trace JSONL]
 ```
 
-Four architectures are evaluated side-by-side:
+The strategies below are evaluated side-by-side. The dissertation's single experimental factor is the **coordination protocol** of the autonomous agents (`pipeline_agentic*`, ADR-013); `pipeline` is the workflow control.
 
 | Architecture | Description |
 |---|---|
 | `baseline` | Single LLM call — classification + prioritization in one JSON response |
 | `pipeline` | Two specialized agents via LangGraph `StateGraph` with typed state handoff |
 | `two_call` | Two sequential LLM calls using the same specialized prompts, but without typed state |
-| `pipeline_agentic` | Same two roles as `pipeline`, but each is an autonomous agent (ReAct loop): the model chooses its tools and when to finish, and the prioritizer learns about the classification only through a typed message (ADR-012, `docs/agency_conformance.md`) |
+| `pipeline_agentic` (P0, fixed) | Same two roles as `pipeline`, but each is an autonomous agent (ReAct loop): the model chooses its tools and when to finish, and the prioritizer learns about the classification only through a typed message (ADR-012, `docs/agency_conformance.md`). One-way handoff: the prioritizer has no way to ask back |
+| `pipeline_agentic_p2` (P2, peers) | P0 plus one round of dialogue: the prioritizer may ask the classifier to reconsider, the classifier agrees or refuses, and the prioritizer decides again (ADR-013) |
+| `pipeline_agentic_p3` (P3, mediated) | P0 plus a mediator (environment code, not an agent) that reads the finished backlog, sends typed requests with evidence (critical NFR with a low priority, Must inflation above 60%), and the prioritizer agrees or refuses each one (ADR-013) |
 
 ---
 
@@ -93,7 +95,15 @@ ollama pull mistral:7b
 
 ### 4. Place the dataset
 
-Download [PROMISE NFR](http://promise.site.uottawa.ca/SERepository/) and place the files at:
+**PrioReSpa** (the dissertation's dataset: 401 requirements in Spanish with type, PROMISE category and a human MoSCoW label) is versioned at `datasets/data/priorespa/PrioReSpa.csv`. The Portuguese version (`PrioReSpa_pt.csv`) is produced and checked by two scripts, in batches of at most 100 items (each command stays under 10 minutes and resumes from a checkpoint):
+
+```bash
+python scripts/translate_priorespa.py --model ollama/qwen2.5:7b --limit 25   # first batch
+python scripts/validate_translation.py --pair priorespa                       # back-translation + BERTScore
+python scripts/translate_priorespa.py                                         # the rest, repeat until done
+```
+
+[PROMISE NFR](http://promise.site.uottawa.ca/SERepository/) (no MoSCoW gold) goes at:
 
 ```
 datasets/data/promise_nfr/promise_nfr_en.csv   # English original
@@ -104,21 +114,15 @@ datasets/data/promise_nfr/promise_nfr_pt.csv   # Portuguese (machine-translated)
 
 ## Running Experiments
 
-### Full grid (18 conditions: 3 models × 3 architectures × 2 languages)
-
-```bash
-python scripts/run_grid.py                     # full dataset (n=625)
-python scripts/run_grid.py --n 50              # sample of 50 requirements
-python scripts/run_grid.py --seed 42           # fixed seed for reproducibility
-python scripts/run_grid.py --dry-run           # print conditions without executing
-python scripts/run_grid.py --resume            # skip conditions already completed (status=ok)
-```
-
-`--resume` skips conditions with `status=ok` in the existing summary CSV, matched by `(strategy, model, lang)`. Conditions with `status=error` are always retried.
-
 ### Individual runs
 
 ```bash
+# Coordination protocols on PrioReSpa — primary cell (data ES, prompts ES), 10-item smoke
+python -m cli.main run --strategy pipeline_agentic    --dataset-name priorespa --data-lang es --lang es --n 10
+python -m cli.main run --strategy pipeline_agentic_p2 --dataset-name priorespa --data-lang es --lang es --n 10
+python -m cli.main run --strategy pipeline_agentic_p3 --dataset-name priorespa --data-lang es --lang es --n 10
+python -m cli.main run --strategy pipeline            --dataset-name priorespa --data-lang es --lang es --n 10
+
 # MAS pipeline — 50 samples, Portuguese, qwen2.5:7b
 python scripts/run_mas_pipeline.py --n 50 --seed 42 --clf-model ollama/qwen2.5:7b
 
@@ -135,14 +139,14 @@ python scripts/run_baseline.py --full --model claude-haiku-4-5 --lang en --no-ta
 Each run produces files under `experiments/results/{run_id}/`:
 
 ```
-manifest.json   — frozen parameters (model, seed, temperature, dataset hash, git commit,
-                  information_regime)
+manifest.json   — frozen parameters (model, seed, temperature, dataset name and hash, data and
+                  prompt language, git commit, information_regime, coordination protocol)
 results.json    — classification metrics (F1, accuracy, MCC) + full predictions
 backlog.csv     — classification + priority of every processed requirement, best first
 failed.csv      — requirements the agents could not process, with the recorded reason
                   (only written when there is at least one)
 actions.jsonl   — one episode per agent and requirement (goal, beliefs, the actions the agent
-                  chose, tokens); only for `pipeline_agentic`
+                  chose, tokens); only for `pipeline_agentic*`
 ```
 
 `backlog.csv` is UTF-8 with BOM and `;`-separated, so it opens correctly in Excel with Portuguese
@@ -156,10 +160,18 @@ python -m cli.main run --strategy pipeline --n 50 --backlog-delimiter "," --no-g
 python -m cli.main backlog experiments/results/<run_id>          # rebuild it for a finished run
 ```
 
-`pipeline_agentic` runs take `--max-steps` (step budget of each episode, default 5). Its
+`pipeline_agentic*` runs take `--max-steps` (step budget of each episode, default 5). Their
 `results.json` carries an `agent_activity` block per agent: valid and invalid actions, tools
 called, episodes ended by budget instead of by the agent, entropy of the action sequences and
-tokens; the `manifest.json` records each agent's budget and tools.
+tokens; the `manifest.json` records each agent's budget and tools. `interaction` counts the
+requests, agreements and refusals between agents, and `mediator` (P3) the findings and the Must
+share before and after. On a dataset with human MoSCoW labels, `prioritization` reports accuracy
+next to the majority-class baseline, weighted kappa, rank correlations, per-class precision/recall,
+the confusion matrix and coverage.
+
+Languages: `--data-lang` picks the requirement text (`es` or `pt`) and `--lang` the prompts
+(`pt`, `en` or `es`). ES/ES is the primary cell; ES/PT and PT/PT are sensitivity checks, and
+protocols are only compared inside one cell.
 
 `backlog` rebuilds the CSV from a finished run's `results.json` (options `--delimiter`,
 `--no-ground-truth`, `--out`). The requirements the agents could not process are not stored there,
@@ -169,21 +181,6 @@ Each run also writes a trace file per requirement:
 
 ```
 experiments/traces/{run_id}.jsonl   — per-requirement latency + parse outcome
-```
-
-A grid summary is appended incrementally:
-
-```
-experiments/results/grid_summary.csv
-```
-
-### Statistical analysis
-
-After collecting all runs:
-
-```bash
-python experiments/compute_stats.py            # RQ1 (Wilcoxon), RQ2 (Mann-Whitney), Fleiss κ
-python experiments/compute_ablation_stats.py   # RQ3 ablation (Δ_p and Δ_s)
 ```
 
 ### Analysis and diagnostics
@@ -200,6 +197,18 @@ python -m experiments.analyze_coordination_power   # cross_check conflicts and M
 python -m experiments.analyze_verifier_oracle      # classical verifier (hybrid, exploratory)
 ```
 
+Agency and coordination, on real runs of one language cell (`docs/agency_conformance.md`, ADR-013):
+
+```bash
+python -m experiments.analyze_agency \
+    --agentic experiments/results/<p0_run> --agentic experiments/results/<p2_run> \
+    --agentic experiments/results/<p3_run> --workflow experiments/results/<pipeline_run>
+```
+
+It reports C1/C2/C4 from the logs, C5 (does an observation change the next action) as an
+association test, and C7 (agents against the workflow on the same items, paired by id) with cost and
+coverage beside the quality figures. It refuses to mix language cells.
+
 Diagnostics that call the LLM (keep other Ollama work idle while they run):
 
 ```bash
@@ -211,11 +220,11 @@ python -m experiments.diagnose_retry_determinism     # does a blind retry reprod
 ### Result generations
 
 `experiments/results/` is for **new** runs (agents from ADR-011 onward). Everything produced before
-ADR-011 and the critique fix, including the runs behind the submitted paper, lives in
-`experiments/results/archive_pre_adr011_20260920/` (see its `ARCHIVE.md`). The statistics scripts
-(`compute_stats.py`, `compute_*_bootstrap.py`, ...) read that archive through
-`experiments/paths.py`, and the analysis scripts take `--generation historical|active` so runs
-from different generations are never analysed together by accident.
+ADR-011 and the critique fix lives in `experiments/results/archive_pre_adr011_20260920/` (see its
+`ARCHIVE.md`). The scripts read it through `experiments/paths.py` and take
+`--generation historical|active`, so runs from different generations are never analysed together
+by accident. The statistics and grid scripts of the SBQS paper are not on this branch: they remain
+on `develop` and `artifact/sbqs-camera-ready`.
 
 `information_regime` is `zero_shot` for everything except `analyze_verifier_oracle`, which trains
 on labelled data and is stamped `hybrid_exploratory` so it is never mixed with zero-shot results.
@@ -282,14 +291,14 @@ Switch providers by changing `CLASSIFIER_MODEL` / `PRIORITIZER_MODEL` in `.env` 
 mas4re/
 ├── agents/          # BaseAgent, ClassificationAgent, PrioritizationAgent, BaselineAgent
 ├── config/          # Pydantic settings (loaded from .env)
-├── datasets/        # DatasetAdapter ABC + PROMISE adapter
+├── datasets/        # DatasetAdapter ABC, PROMISE and PrioReSpa adapters, registry, ES→PT translation
 ├── domain/          # Pydantic models (Requirement, PipelineState) + enums
 ├── evaluation/      # Metrics (F1, MCC, Kendall τ, MoSCoW accuracy) + TraceWriter
 ├── experiments/     # Runner, OrchestrationStrategy, statistical analysis scripts
 ├── llm/             # LLM factory (Anthropic / Groq / Ollama)
-├── pipeline/        # LangGraph StateGraph + node definitions
-├── prompts/v1/      # Versioned prompt builders (classification, prioritization, baseline)
-├── scripts/         # Entry-point scripts (run_grid.py, run_mas_pipeline.py, run_baseline.py)
+├── pipeline/        # LangGraph StateGraph + nodes; protocols.py (P0/P2/P3) and mediation.py
+├── prompts/         # v1 (workflow) and v2 (autonomous agents, mediator) prompt builders, PT/EN/ES
+├── scripts/         # Entry-point scripts (run_mas_pipeline.py, run_baseline.py)
 └── tests/           # Unit tests (pytest)
 ```
 

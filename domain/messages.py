@@ -14,7 +14,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field
 
-from domain.enums import RequirementType
+from domain.enums import MoSCoWPriority, RequirementType
 
 
 class Performative(StrEnum):
@@ -44,16 +44,39 @@ class ReclassificationRequest(BaseModel):
     reason: str
 
 
+class ReprioritizationRequest(BaseModel):
+    """Someone asks for a priority to be decided again, with the reason and the evidence."""
+
+    kind: Literal["reprioritization_request"] = "reprioritization_request"
+    reason: str
+    evidence: str = ""
+
+
+class PriorityReport(BaseModel):
+    """What a prioritizer tells a peer about the priority it settled on."""
+
+    kind: Literal["priority_report"] = "priority_report"
+    priority: MoSCoWPriority
+    priority_score: float = Field(ge=0.0, le=1.0)
+    justification: str = ""
+
+
 class RequestReply(BaseModel):
-    """Answer to a request: the reason, plus the revised report when the sender agreed."""
+    """Answer to a request: the reason, plus what was revised when the sender agreed (a
+    classification, for a reclassification request; a priority, for a reprioritization one)."""
 
     kind: Literal["request_reply"] = "request_reply"
     reason: str
     revised: ClassificationReport | None = None
+    revised_priority: PriorityReport | None = None
 
 
 MessageContent = Annotated[
-    ClassificationReport | ReclassificationRequest | RequestReply,
+    ClassificationReport
+    | ReclassificationRequest
+    | ReprioritizationRequest
+    | PriorityReport
+    | RequestReply,
     Field(discriminator="kind"),
 ]
 
@@ -66,6 +89,10 @@ class Message(BaseModel):
     requirement_id: str
     content: MessageContent
     in_reply_to: str | None = None
+
+
+def replies_to(messages: Iterable[Message], request: Message) -> list[Message]:
+    return [m for m in messages if m.in_reply_to == request.id]
 
 
 def inbox_of(

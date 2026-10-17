@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any
 
 from domain.agent_actions import ActionKind, AgentEpisode, EpisodeOutcome
+from domain.messages import Message, Performative
 
 ACTIONS_FILENAME = "actions.jsonl"
 
@@ -62,6 +63,27 @@ def summarize_episodes(episodes: Sequence[AgentEpisode]) -> dict[str, dict[str, 
     for episode in episodes:
         by_agent.setdefault(episode.agent, []).append(episode)
     return {agent: _summarize_agent(group) for agent, group in sorted(by_agent.items())}
+
+
+def summarize_messages(messages: Sequence[Message]) -> dict[str, Any]:
+    """What the agents said to each other: how many requests, who made them, and what became of
+    them. The agree and refuse rates are the real-run evidence for criterion C4 (an agent that can
+    refuse): both must be above zero for the "advice" not to be a disguised order."""
+    requests = [m for m in messages if m.performative is Performative.REQUEST]
+    answers = [m for m in messages if m.in_reply_to is not None]
+    counts = Counter(m.performative for m in answers)
+    answered = {m.in_reply_to for m in answers}
+    decided = counts[Performative.AGREE] + counts[Performative.REFUSE]
+    return {
+        "requests": len(requests),
+        "requests_by_sender": dict(sorted(Counter(m.sender for m in requests).items())),
+        "agree": counts[Performative.AGREE],
+        "refuse": counts[Performative.REFUSE],
+        "failure": counts[Performative.FAILURE],
+        "unanswered": sum(1 for m in requests if m.id not in answered),
+        "agree_rate": round(counts[Performative.AGREE] / decided, 4) if decided else None,
+        "refuse_rate": round(counts[Performative.REFUSE] / decided, 4) if decided else None,
+    }
 
 
 def write_episodes_jsonl(episodes: Sequence[AgentEpisode], path: Path) -> Path | None:

@@ -4,6 +4,7 @@ import json
 from collections.abc import Mapping
 
 from domain.enums import Lang
+from prompts.localization import localized
 
 PRIORITIZATION_SYSTEM_PROMPT_PT = """\
 Você é um especialista em Engenharia de Requisitos com profundo conhecimento \
@@ -150,6 +151,109 @@ Prioritization to review:
 """
 
 
+PRIORITIZATION_SYSTEM_PROMPT_ES = """\
+Eres un especialista en Ingeniería de Requisitos con profundo conocimiento del método de \
+priorización MoSCoW (Clegg & Barker, 1994).
+
+Tu tarea es priorizar un requisito de software usando el método MoSCoW:
+- M (Must Have)   — Obligatorio. Sin esto el sistema no funciona o no puede entregarse.
+- S (Should Have) — Importante, pero no crítico. Alta prioridad, aunque se puede posponer.
+- C (Could Have)  — Deseable. Aporta valor, pero puede excluirse sin gran impacto.
+- W (Won't Have)  — Fuera del alcance actual. Puede reconsiderarse en versiones futuras.
+
+Criterios según el tipo de requisito:
+- Funcional (F): evalúa el impacto en el negocio, la frecuencia de uso y las dependencias.
+- No Funcional (NF): evalúa el riesgo operativo, el cumplimiento legal y la experiencia del usuario.
+  - Seguridad (SE), Rendimiento (PE), Disponibilidad (A): tienden a ser M o S.
+  - Usabilidad (US), Apariencia (LF): tienden a ser S o C.
+  - Portabilidad (PO), Escalabilidad (SC): dependen del contexto del proyecto.
+
+Reglas obligatorias:
+- Responde SIEMPRE en JSON válido, sin markdown.
+- "priority_score" debe ser un decimal entre 0.0 y 1.0 que refleje la urgencia.
+  Referencia: M=1.0, S=0.75, C=0.5, W=0.25 (se alientan variaciones dentro del rango).
+- "priority_rank" debe ser 1 (el sistema lo recalculará globalmente).
+- "justification" debe ser concisa (máx. 2 frases), en español.
+- Si "classification_confidence" es inferior a 0.70, la clasificación del tipo es incierta.
+  En ese caso, sé conservador: evita M para requisitos dudosos y prefiere S o C.
+
+Formato de respuesta:
+{
+  "priority": "M" | "S" | "C" | "W",
+  "priority_score": <decimal 0.0–1.0>,
+  "priority_rank": 1,
+  "justification": "<texto>"
+}
+"""
+
+PRIORITIZATION_USER_PROMPT_ES = """\
+Prioriza el siguiente requisito de software:
+
+Texto: \"\"\"{requirement_text}\"\"\"
+Tipo: {requirement_type}{nfr_category_line}
+classification_confidence: {confidence:.2f}{uncertainty_flag}
+"""
+
+_UNCERTAINTY_FLAG_ES = " (INCIERTA — la clasificación puede ser incorrecta)"
+
+PRIORITIZATION_CRITIQUE_SYSTEM_PROMPT_ES = """\
+Eres un revisor especialista en Ingeniería de Requisitos. Tu tarea es revisar una \
+priorización MoSCoW ya realizada por otro especialista y decidir si necesita corrección.
+
+Responde SIEMPRE en JSON válido, sin markdown:
+{{
+  "needs_revision": true | false,
+  "issue": "<qué está mal, o cadena vacía si no necesita revisión>",
+  "revised_output": {{
+    "priority": "M" | "S" | "C" | "W",
+    "priority_score": <decimal 0.0-1.0>,
+    "priority_rank": 1,
+    "justification": "<texto>"
+  }} | null
+}}
+
+Si "needs_revision" es false, "revised_output" debe ser null.
+"""
+
+PRIORITIZATION_CRITIQUE_USER_PROMPT_ES = """\
+Requisito: \"\"\"{requirement_text}\"\"\"
+
+Priorización a revisar:
+{original_answer_json}
+"""
+
+_SYSTEM: dict[Lang, str] = {
+    Lang.PT: PRIORITIZATION_SYSTEM_PROMPT_PT,
+    Lang.EN: PRIORITIZATION_SYSTEM_PROMPT_EN,
+    Lang.ES: PRIORITIZATION_SYSTEM_PROMPT_ES,
+}
+_USER: dict[Lang, str] = {
+    Lang.PT: PRIORITIZATION_USER_PROMPT_PT,
+    Lang.EN: PRIORITIZATION_USER_PROMPT_EN,
+    Lang.ES: PRIORITIZATION_USER_PROMPT_ES,
+}
+_UNCERTAINTY_FLAG: dict[Lang, str] = {
+    Lang.PT: _UNCERTAINTY_FLAG_PT,
+    Lang.EN: _UNCERTAINTY_FLAG_EN,
+    Lang.ES: _UNCERTAINTY_FLAG_ES,
+}
+_NFR_CATEGORY_LINE: dict[Lang, str] = {
+    Lang.PT: "\nCategoria NFR: {category}",
+    Lang.EN: "\nNFR Category: {category}",
+    Lang.ES: "\nCategoría NFR: {category}",
+}
+_CRITIQUE_SYSTEM: dict[Lang, str] = {
+    Lang.PT: PRIORITIZATION_CRITIQUE_SYSTEM_PROMPT_PT,
+    Lang.EN: PRIORITIZATION_CRITIQUE_SYSTEM_PROMPT_EN,
+    Lang.ES: PRIORITIZATION_CRITIQUE_SYSTEM_PROMPT_ES,
+}
+_CRITIQUE_USER: dict[Lang, str] = {
+    Lang.PT: PRIORITIZATION_CRITIQUE_USER_PROMPT_PT,
+    Lang.EN: PRIORITIZATION_CRITIQUE_USER_PROMPT_EN,
+    Lang.ES: PRIORITIZATION_CRITIQUE_USER_PROMPT_ES,
+}
+
+
 def build_prioritization_critique_messages(
     requirement_text: str,
     original_answer: Mapping[str, object],
@@ -160,16 +264,8 @@ def build_prioritization_critique_messages(
     original_answer: os campos de PrioritizationOutput já gerados
     (priority/priority_score/priority_rank/justification), como dict.
     """
-    is_pt = lang is Lang.PT
-    system = (
-        PRIORITIZATION_CRITIQUE_SYSTEM_PROMPT_PT
-        if is_pt
-        else PRIORITIZATION_CRITIQUE_SYSTEM_PROMPT_EN
-    )
-    template = (
-        PRIORITIZATION_CRITIQUE_USER_PROMPT_PT if is_pt else PRIORITIZATION_CRITIQUE_USER_PROMPT_EN
-    )
-    user = template.format(
+    system = localized(_CRITIQUE_SYSTEM, lang)
+    user = localized(_CRITIQUE_USER, lang).format(
         requirement_text=requirement_text,
         original_answer_json=json.dumps(original_answer, ensure_ascii=False),
     )
@@ -195,24 +291,17 @@ def build_prioritization_messages(
         nfr_category: Sigla da categoria NFR (ex: 'SE', 'PE') ou None.
         confidence: Confiança do ClassificationAgent (0.0–1.0). Abaixo de
             0.70 sinaliza classificação incerta ao modelo prioritizador.
-        lang: Lang.PT (português) ou Lang.EN (inglês).
+        lang: Idioma do prompt (Lang.PT, Lang.EN ou Lang.ES).
         few_shot_block: Bloco opcional de exemplos já processados no lote
                         (memória episódica, ADR-011). Vazio por padrão.
     """
-    is_pt = lang is Lang.PT
-    system = PRIORITIZATION_SYSTEM_PROMPT_PT if is_pt else PRIORITIZATION_SYSTEM_PROMPT_EN
-    template = PRIORITIZATION_USER_PROMPT_PT if is_pt else PRIORITIZATION_USER_PROMPT_EN
-
+    system = localized(_SYSTEM, lang)
     nfr_line = (
-        (f"\nCategoria NFR: {nfr_category}" if is_pt else f"\nNFR Category: {nfr_category}")
-        if nfr_category
-        else ""
+        localized(_NFR_CATEGORY_LINE, lang).format(category=nfr_category) if nfr_category else ""
     )
-    uncertainty_flag = (
-        (_UNCERTAINTY_FLAG_PT if is_pt else _UNCERTAINTY_FLAG_EN) if confidence < 0.70 else ""
-    )
+    uncertainty_flag = localized(_UNCERTAINTY_FLAG, lang) if confidence < 0.70 else ""
 
-    user = few_shot_block + template.format(
+    user = few_shot_block + localized(_USER, lang).format(
         requirement_text=requirement_text,
         requirement_type=requirement_type,
         nfr_category_line=nfr_line,

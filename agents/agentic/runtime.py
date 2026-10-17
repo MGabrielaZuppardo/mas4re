@@ -29,6 +29,7 @@ from domain.agent_actions import (
     AgentEpisode,
     Belief,
     EpisodeOutcome,
+    EpisodePhase,
     Goal,
 )
 from llm.json_parser import extract_first_json
@@ -50,6 +51,7 @@ class EpisodeTask:
     system_prompt: str
     percept: str
     beliefs: list[Belief] = field(default_factory=list)
+    phase: EpisodePhase = EpisodePhase.WORK
 
 
 @dataclass(frozen=True)
@@ -122,6 +124,7 @@ class AgentRuntime:
             model=task.model,
             goal=task.goal,
             beliefs=list(task.beliefs),
+            phase=task.phase,
         )
         messages: list[BaseMessage] = [
             SystemMessage(content=task.system_prompt),

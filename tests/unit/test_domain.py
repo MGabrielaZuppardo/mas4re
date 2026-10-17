@@ -38,9 +38,10 @@ class TestLangEnum:
 
     def test_iteration(self) -> None:
         all_langs = list(Lang)
-        assert len(all_langs) == 2
+        assert len(all_langs) == 3
         assert Lang.PT in all_langs
         assert Lang.EN in all_langs
+        assert Lang.ES in all_langs
 
     def test_invalid_value_raises(self) -> None:
         with pytest.raises(ValueError):

@@ -22,10 +22,13 @@ pergunta: **quem decide o próximo passo?** Se é o código, é workflow; se é 
 | C1 | `test_agency_conformance.py::TestC1…` | `agent_activity.action_sequence_entropy_bits` no `results.json` |
 | C2 | `TestC2…` | `agent_activity.budget_exhaustion_rate` |
 | C3 | `TestC3…` | n/a (propriedade do código) |
-| C4 | `TestC4…` | taxas de `agree`/`refuse` — só existirão com o protocolo P2 (`feat/protocol-conditions`) |
-| C5 | `test_agentic_runtime.py::TestTheModelDecides` | `analyze_agency.py` (a fazer) |
+| C4 | `TestC4…`, `test_protocols.py` | `metrics.interaction` (`agree_rate`, `refuse_rate`) de `pipeline_agentic_p2` (o classificador responde ao priorizador) e `pipeline_agentic_p3` (o priorizador responde ao mediador); consolidado por `analyze_agency.py` |
+| C5 | `test_agentic_runtime.py::TestTheModelDecides` | `analyze_agency.py`: tabela de contingência observação × ação seguinte (Fisher ou χ², V de Cramér), ou `insufficient_data` |
 | C6 | `TestC6…` | inspeção de `actions.jsonl` |
-| C7 | n/a | comparação `pipeline` × `pipeline_agentic` (a fazer, na Rodada) |
+| C7 | `test_analyze_agency.py` (a análise, em dados sintéticos) | `analyze_agency.py --workflow`: `pipeline` × `pipeline_agentic*` pareados por id (McNemar, Δ de acurácia e κ ponderado com IC por bootstrap), com custo e cobertura ao lado |
+
+As execuções reais de C4, C5 e C7 seguem o plano de células de idioma do ADR-013: ES/ES (primária) e
+as demais como sensibilidade; o script recusa misturar células.
 
 ## O que o código decide e o que o modelo decide
 
@@ -40,6 +43,12 @@ de fluxo do agente.
 
 ## Limites conhecidos
 
-- A capacidade social (pedir, aceitar, recusar) está implementada nos agentes e testada, mas as
-  condições A e B não a usam: o protocolo de pedidos é o P2 da `feat/protocol-conditions`.
+- A capacidade social está ligada nos protocolos P2 (pedidos entre pares) e P3 (pedidos de um
+  mediador do ambiente) do ADR-013; no P0 ela não existe por construção (o priorizador não tem a
+  ferramenta de pedido). Cada protocolo troca **uma** rodada de mensagens: mede consulta, não
+  negociação.
+- C4 só se sustenta se aceite **e** recusa ocorrem em execução real. Com modelos de 7–8B pode haver
+  aceite quase sempre; então a taxa de recusa zero é o resultado, e o texto deve dizê-lo.
+- C5 e C7 dependem de contagens: abaixo do mínimo (`MIN_OBSERVATIONS`, 20) o script devolve
+  `insufficient_data` em vez de um valor-p.
 - Com modelos de 7–8B a taxa de ações bem formadas pode ser baixa; é reportada, não escondida.

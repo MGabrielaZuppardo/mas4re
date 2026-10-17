@@ -47,8 +47,10 @@ class Settings(BaseSettings):
     retry_wait_max: float = Field(default=30.0)
 
     promise_dataset_path: str = Field(default="datasets/data/promise_nfr/promise_nfr_pt.csv")
+    priorespa_dataset_path: str = Field(default="datasets/data/priorespa/PrioReSpa.csv")
+    priorespa_pt_dataset_path: str = Field(default="datasets/data/priorespa/PrioReSpa_pt.csv")
 
-    @field_validator("promise_dataset_path")
+    @field_validator("promise_dataset_path", "priorespa_dataset_path", "priorespa_pt_dataset_path")
     @classmethod
     def _anchor_to_project_root(cls, value: str) -> str:
         path = Path(value)

@@ -4,6 +4,7 @@ import json
 from collections.abc import Mapping
 
 from domain.enums import Lang
+from prompts.localization import localized
 from prompts.v1._shared import build_nfr_block
 
 # ── System prompts ─────────────────────────────────────────────────────────────
@@ -145,6 +146,96 @@ Classification to review:
 """
 
 
+CLASSIFICATION_SYSTEM_PROMPT_ES = """\
+Eres un especialista en Ingeniería de Requisitos con profundo conocimiento \
+del método de clasificación funcional/no funcional de requisitos de software.
+
+Tu tarea es clasificar un requisito de software en:
+1. TIPO: Funcional (F) o No Funcional (NF)
+2. CATEGORÍA NFR (solo si es NF)
+
+{nfr_block}
+
+Reglas obligatorias:
+- Responde SIEMPRE en JSON válido, sin markdown.
+- Si el tipo es F, el campo "nfr_category" debe ser null.
+- "confidence" debe ser un número decimal entre 0.0 y 1.0.
+- "justification" debe ser concisa (máx. 2 frases), en español.
+
+Formato de respuesta:
+{{
+  "requirement_type": "F" | "NF",
+  "nfr_category": "<categoría>" | null,
+  "confidence": <decimal>,
+  "justification": "<texto>"
+}}
+"""
+
+CLASSIFICATION_USER_PROMPT_ES = """\
+Clasifica el siguiente requisito de software:
+
+\"\"\"{requirement_text}\"\"\"
+"""
+
+CLASSIFICATION_CRITIQUE_SYSTEM_PROMPT_ES = """\
+Eres un revisor especialista en Ingeniería de Requisitos. Tu tarea es revisar una \
+clasificación funcional/no funcional ya realizada por otro especialista y decidir si contiene \
+un error CLARO.
+
+Criterios de referencia:
+- Funcional (F): describe lo que el sistema debe HACER (funciones, comportamientos, datos, \
+interacciones).
+- No Funcional (NF): describe una CUALIDAD o RESTRICCIÓN sobre cómo opera el sistema.
+
+{nfr_block}
+
+Revisa solo si la clasificación contradice claramente los criterios anteriores; ante la duda, \
+mantenla.
+
+Responde SIEMPRE en JSON válido, sin markdown:
+{{
+  "needs_revision": true | false,
+  "issue": "<qué está mal, o cadena vacía si no necesita revisión>",
+  "revised_output": {{
+    "requirement_type": "F" | "NF",
+    "nfr_category": "<categoría>" | null,
+    "confidence": <decimal 0.0-1.0>,
+    "justification": "<texto>"
+  }} | null
+}}
+
+Si "needs_revision" es false, "revised_output" debe ser null.
+"""
+
+CLASSIFICATION_CRITIQUE_USER_PROMPT_ES = """\
+Requisito: \"\"\"{requirement_text}\"\"\"
+
+Clasificación a revisar:
+{original_answer_json}
+"""
+
+_SYSTEM: dict[Lang, str] = {
+    Lang.PT: CLASSIFICATION_SYSTEM_PROMPT_PT,
+    Lang.EN: CLASSIFICATION_SYSTEM_PROMPT_EN,
+    Lang.ES: CLASSIFICATION_SYSTEM_PROMPT_ES,
+}
+_USER: dict[Lang, str] = {
+    Lang.PT: CLASSIFICATION_USER_PROMPT_PT,
+    Lang.EN: CLASSIFICATION_USER_PROMPT_EN,
+    Lang.ES: CLASSIFICATION_USER_PROMPT_ES,
+}
+_CRITIQUE_SYSTEM: dict[Lang, str] = {
+    Lang.PT: CLASSIFICATION_CRITIQUE_SYSTEM_PROMPT_PT,
+    Lang.EN: CLASSIFICATION_CRITIQUE_SYSTEM_PROMPT_EN,
+    Lang.ES: CLASSIFICATION_CRITIQUE_SYSTEM_PROMPT_ES,
+}
+_CRITIQUE_USER: dict[Lang, str] = {
+    Lang.PT: CLASSIFICATION_CRITIQUE_USER_PROMPT_PT,
+    Lang.EN: CLASSIFICATION_CRITIQUE_USER_PROMPT_EN,
+    Lang.ES: CLASSIFICATION_CRITIQUE_USER_PROMPT_ES,
+}
+
+
 def build_classification_critique_messages(
     requirement_text: str,
     original_answer: Mapping[str, object],
@@ -158,17 +249,10 @@ def build_classification_critique_messages(
     nfr_categories: taxonomia do dataset, o padrão externo contra o qual o
         crítico julga (mesmo bloco usado no prompt de classificação).
     """
-    is_pt = lang is Lang.PT
-    system_template = (
-        CLASSIFICATION_CRITIQUE_SYSTEM_PROMPT_PT
-        if is_pt
-        else CLASSIFICATION_CRITIQUE_SYSTEM_PROMPT_EN
+    system = localized(_CRITIQUE_SYSTEM, lang).format(
+        nfr_block=build_nfr_block(nfr_categories, lang)
     )
-    system = system_template.format(nfr_block=build_nfr_block(nfr_categories, lang))
-    template = (
-        CLASSIFICATION_CRITIQUE_USER_PROMPT_PT if is_pt else CLASSIFICATION_CRITIQUE_USER_PROMPT_EN
-    )
-    user = template.format(
+    user = localized(_CRITIQUE_USER, lang).format(
         requirement_text=requirement_text,
         original_answer_json=json.dumps(original_answer, ensure_ascii=False),
     )
@@ -188,7 +272,7 @@ def build_classification_messages(
 
     Args:
         requirement_text: Texto do requisito a ser classificado.
-        lang: Lang.PT (português) ou Lang.EN (inglês).
+        lang: Idioma do prompt (Lang.PT, Lang.EN ou Lang.ES).
         nfr_categories: Lista de (código, descrição) das categorias NFR do dataset.
                         None = sem taxonomia estruturada (prompt genérico).
         few_shot_block: Bloco opcional de exemplos já processados no lote
@@ -197,15 +281,8 @@ def build_classification_messages(
     """
     nfr_block = build_nfr_block(nfr_categories, lang)
 
-    system_template = (
-        CLASSIFICATION_SYSTEM_PROMPT_PT if lang is Lang.PT else CLASSIFICATION_SYSTEM_PROMPT_EN
-    )
-    system = system_template.format(nfr_block=nfr_block)
-
-    user_template = (
-        CLASSIFICATION_USER_PROMPT_PT if lang is Lang.PT else CLASSIFICATION_USER_PROMPT_EN
-    )
-    user = few_shot_block + user_template.format(requirement_text=requirement_text)
+    system = localized(_SYSTEM, lang).format(nfr_block=nfr_block)
+    user = few_shot_block + localized(_USER, lang).format(requirement_text=requirement_text)
 
     return [
         {"role": "system", "content": system},

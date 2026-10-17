@@ -21,7 +21,8 @@ CHECK_CONSISTENCY = "check_consistency"
 BACKLOG_OVERVIEW = "backlog_overview"
 REQUEST_RECLASSIFICATION = "request_reclassification"
 
-_NO_SIMILAR_CASES = "No similar cases handled so far."
+NO_SIMILAR_CASES = "No similar cases handled so far."
+CONSISTENT = "Consistent."
 
 
 class _RecallArgs(BaseModel):
@@ -40,7 +41,7 @@ def make_recall_tool(get_memory: Callable[[], EpisodicMemory | None]) -> Structu
         memory = get_memory()
         similar = memory.retrieve_similar(query) if memory is not None else []
         if not similar:
-            return _NO_SIMILAR_CASES
+            return NO_SIMILAR_CASES
         return "\n".join(f'- "{i.text}" -> {i.output_summary} ({i.justification})' for i in similar)
 
     return StructuredTool.from_function(
@@ -81,7 +82,7 @@ def make_consistency_tool(valid_codes: Iterable[str]) -> StructuredTool:
 
     def _check(requirement_type: RequirementType, nfr_category: str | None = None) -> str:
         issues = structural_issues(requirement_type, nfr_category, codes)
-        return "Consistent." if not issues else "Inconsistent: " + " ".join(issues)
+        return CONSISTENT if not issues else "Inconsistent: " + " ".join(issues)
 
     return StructuredTool.from_function(
         func=_check,

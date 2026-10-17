@@ -220,8 +220,12 @@ def _library_versions() -> dict[str, str]:
 
 
 def build_analysis_manifest(
-    script: str, information_regime: InformationRegime, parameters: dict[str, Any]
+    script: str,
+    information_regime: InformationRegime,
+    parameters: dict[str, Any],
+    dataset_path: str | None = None,
 ) -> dict[str, Any]:
+    dataset = dataset_path or settings.promise_dataset_path
     return {
         "script": script,
         "git_commit": _git_commit(),
@@ -229,8 +233,8 @@ def build_analysis_manifest(
         "information_regime": information_regime.value,
         "python": sys.version.split()[0],
         "libraries": _library_versions(),
-        "dataset": settings.promise_dataset_path,
-        "dataset_md5": _file_md5(Path(settings.promise_dataset_path)),
+        "dataset": dataset,
+        "dataset_md5": _file_md5(Path(dataset)),
         "parameters": parameters,
     }
 

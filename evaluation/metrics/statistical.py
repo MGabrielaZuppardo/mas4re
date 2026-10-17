@@ -1,12 +1,14 @@
 """Statistical analysis for SQ2 and SQ3 (S4).
 
-Provides three complementary tests used to compare MAS pipeline vs.
-baseline across the 12 grid conditions (3 models x 2 languages x 2
-architectures):
+Provides complementary tests used to compare MAS pipeline vs. baseline across the 12 grid
+conditions (3 models x 2 languages x 2 architectures), and paired comparisons of two strategies
+on the same items:
 
 - Wilcoxon signed-rank test  : paired non-parametric significance test.
 - Cliff's delta              : effect-size magnitude (no distribution assumption).
-- Bootstrap CI               : 95 % confidence interval on the mean difference.
+- Bootstrap CI               : 95 % confidence interval on the mean difference, or on the
+                               difference of any paired statistic (e.g. a weighted kappa).
+- McNemar's exact test       : paired correctness of two classifiers on the same items.
 
 All functions accept plain Python lists of floats so they work directly
 with the per-run metric values collected by ExperimentRunner.
@@ -20,10 +22,11 @@ Reference for effect-size thresholds (Romano et al. 2006):
 
 from __future__ import annotations
 
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 
 import numpy as np
-from scipy.stats import wilcoxon
+from scipy.stats import binomtest, wilcoxon
 
 # ---------------------------------------------------------------------------
 # Result dataclasses
@@ -199,6 +202,79 @@ def bootstrap_ci(
         n_bootstrap=n_bootstrap,
         confidence=confidence,
     )
+
+
+# ---------------------------------------------------------------------------
+# Bootstrap CI on the difference of an arbitrary paired statistic
+# ---------------------------------------------------------------------------
+
+
+def bootstrap_statistic_difference(
+    difference: Callable[[np.ndarray], float],
+    n: int,
+    n_bootstrap: int = 2_000,
+    confidence: float = 0.95,
+    seed: int = 42,
+) -> BootstrapCIResult:
+    """Percentile bootstrap CI for a paired difference that is not a difference of means.
+
+    `difference` receives the indices of one resample of the n pairs and returns the statistic
+    of A minus that of B computed on those pairs (a weighted kappa, for instance, which has no
+    per-item value to average). Resamples where the statistic is undefined (NaN) are skipped
+    and `n_bootstrap` in the result is the number that counted. `mean_difference` is the
+    statistic on the full sample.
+
+    Raises:
+        ValueError: if n < 2 or no resample had a defined statistic.
+    """
+    if n < 2:
+        raise ValueError("Need at least 2 paired observations")
+
+    rng = np.random.default_rng(seed)
+    replicates = np.array(
+        [difference(rng.integers(0, n, size=n)) for _ in range(n_bootstrap)], dtype=float
+    )
+    defined = replicates[~np.isnan(replicates)]
+    if defined.size == 0:
+        raise ValueError("The statistic is undefined in every resample")
+
+    alpha = 1.0 - confidence
+    return BootstrapCIResult(
+        mean_difference=round(float(difference(np.arange(n))), 6),
+        ci_lower=round(float(np.percentile(defined, 100 * alpha / 2)), 6),
+        ci_upper=round(float(np.percentile(defined, 100 * (1 - alpha / 2))), 6),
+        n_bootstrap=int(defined.size),
+        confidence=confidence,
+    )
+
+
+# ---------------------------------------------------------------------------
+# McNemar's exact test (paired correctness of two classifiers)
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class McNemarResult:
+    only_a_correct: int
+    only_b_correct: int
+    p_value: float
+
+
+def mcnemar_exact(a_correct: Sequence[bool], b_correct: Sequence[bool]) -> McNemarResult:
+    """Exact McNemar test: only the pairs where the two disagree carry information, and under
+    the null each disagreement is equally likely to favour either side (binomial, p = 0.5).
+
+    Raises:
+        ValueError: if the samples are not paired.
+    """
+    if len(a_correct) != len(b_correct):
+        raise ValueError(f"Samples must be paired (len a={len(a_correct)}, len b={len(b_correct)})")
+
+    only_a = sum(1 for a, b in zip(a_correct, b_correct, strict=True) if a and not b)
+    only_b = sum(1 for a, b in zip(a_correct, b_correct, strict=True) if b and not a)
+    disagreements = only_a + only_b
+    p_value = binomtest(min(only_a, only_b), disagreements, 0.5).pvalue if disagreements else 1.0
+    return McNemarResult(only_a_correct=only_a, only_b_correct=only_b, p_value=float(p_value))
 
 
 # ---------------------------------------------------------------------------

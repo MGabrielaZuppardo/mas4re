@@ -9,6 +9,7 @@ from rich.table import Table
 
 from agents.agentic.runtime import DEFAULT_MAX_STEPS
 from config.settings import settings
+from datasets.registry import DATASET_NAMES, PROMISE, default_data_lang, default_path
 from domain.enums import Lang
 from evaluation.backlog import (
     BACKLOG_FILENAME,
@@ -18,6 +19,7 @@ from evaluation.backlog import (
 )
 from experiments.runner import ExperimentRunner, RunConfig
 from experiments.strategy import (
+    AGENTIC_STRATEGY_PROTOCOLS,
     AgenticPipelineStrategy,
     BaselineStrategy,
     MediatedPipelineStrategy,
@@ -34,7 +36,9 @@ console = Console()
 @app.command()
 def run(
     strategy: str = typer.Option(
-        ..., help="baseline | pipeline | pipeline_mediated | pipeline_agentic"
+        ...,
+        help="baseline | pipeline | pipeline_mediated | "
+        "pipeline_agentic (P0) | pipeline_agentic_p2 | pipeline_agentic_p3",
     ),
     model: str = typer.Option(settings.classifier_model, help="Model for baseline / classifier."),
     pri_model: str = typer.Option(
@@ -42,11 +46,19 @@ def run(
     ),
     n: int | None = typer.Option(None, help="Sample size (None = full dataset)."),
     seed: int = typer.Option(42, help="Sampling seed."),
-    dataset: str = typer.Option(settings.promise_dataset_path, help="Dataset CSV path."),
-    lang: str = typer.Option("pt", help="pt | en"),
+    dataset_name: str = typer.Option(PROMISE, "--dataset-name", help="promise | priorespa"),
+    dataset: str | None = typer.Option(
+        None, help="Dataset CSV path (default: the dataset's own file)."
+    ),
+    data_lang: str | None = typer.Option(
+        None,
+        "--data-lang",
+        help="Language of the requirement text: pt | es (default: the dataset's original).",
+    ),
+    lang: str = typer.Option("pt", help="Language of the prompts: pt | en | es"),
     temperature: float = typer.Option(0.0, help="LLM temperature."),
     max_steps: int = typer.Option(
-        DEFAULT_MAX_STEPS, help="Step budget of each agent episode (pipeline_agentic only)."
+        DEFAULT_MAX_STEPS, help="Step budget of each agent episode (pipeline_agentic* only)."
     ),
     backlog_delimiter: str = typer.Option(
         DEFAULT_DELIMITER, help="CSV delimiter of backlog.csv / failed.csv."
@@ -57,7 +69,10 @@ def run(
 ) -> None:
     """Run one strategy under a frozen config and persist artifacts."""
     _check_delimiter(backlog_delimiter)
+    if dataset_name not in DATASET_NAMES:
+        raise typer.BadParameter(f"dataset-name must be one of {list(DATASET_NAMES)}")
     lang_enum = Lang(lang)
+    data_language = Lang(data_lang) if data_lang else default_data_lang(dataset_name)
     if strategy == "baseline":
         strat: (
             BaselineStrategy | PipelineStrategy | MediatedPipelineStrategy | AgenticPipelineStrategy
@@ -79,28 +94,32 @@ def run(
             lang=lang_enum,
         )
         run_model = f"{model}+{pri_model}"
-    elif strategy == "pipeline_agentic":
+    elif strategy in AGENTIC_STRATEGY_PROTOCOLS:
         strat = AgenticPipelineStrategy(
             classifier_model=model,
             prioritizer_model=pri_model,
             temperature=temperature,
             lang=lang_enum,
             max_steps=max_steps,
+            protocol=AGENTIC_STRATEGY_PROTOCOLS[strategy],
         )
         run_model = f"{model}+{pri_model}"
     else:
         raise typer.BadParameter(
-            "strategy must be 'baseline', 'pipeline', 'pipeline_mediated' or 'pipeline_agentic'"
+            "strategy must be 'baseline', 'pipeline', 'pipeline_mediated' or one of "
+            f"{sorted(AGENTIC_STRATEGY_PROTOCOLS)}"
         )
 
     config = RunConfig(
         strategy_name=strategy,
         model=run_model,
-        dataset_path=dataset,
+        dataset_path=dataset or default_path(dataset_name, data_language),
         lang=lang,
         n_samples=n,
         seed=seed,
         temperature=temperature,
+        dataset_name=dataset_name,
+        data_lang=data_language.value,
     )
     result = ExperimentRunner(
         backlog_delimiter=backlog_delimiter, include_ground_truth=not no_ground_truth

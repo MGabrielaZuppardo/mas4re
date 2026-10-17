@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import math
 
+import numpy as np
 import pytest
 
 from evaluation.metrics.statistical import (
@@ -17,7 +18,9 @@ from evaluation.metrics.statistical import (
     PairwiseReport,
     WilcoxonResult,
     bootstrap_ci,
+    bootstrap_statistic_difference,
     cliffs_delta,
+    mcnemar_exact,
     pairwise_report,
     wilcoxon_test,
 )
@@ -251,3 +254,82 @@ class TestPairwiseReport:
         assert not math.isnan(result.wilcoxon.p_value)
         assert not math.isnan(result.cliffs_delta.delta)
         assert not math.isnan(result.bootstrap_ci.mean_difference)
+
+
+# ---------------------------------------------------------------------------
+# bootstrap_statistic_difference
+# ---------------------------------------------------------------------------
+
+
+class TestBootstrapStatisticDifference:
+    @staticmethod
+    def _median_gap(a: np.ndarray, b: np.ndarray):
+        return lambda idx: float(np.median(a[idx]) - np.median(b[idx]))
+
+    def test_estimativa_pontual_e_a_estatistica_na_amostra_inteira(self):
+        a, b = np.array([5.0, 6, 7, 8, 9]), np.array([1.0, 2, 3, 4, 5])
+
+        result = bootstrap_statistic_difference(self._median_gap(a, b), n=5)
+
+        assert result.mean_difference == 4.0
+        assert result.ci_lower <= 4.0 <= result.ci_upper
+
+    def test_e_reproduzivel_com_a_mesma_semente(self):
+        a, b = np.arange(20, dtype=float), np.arange(20, dtype=float)[::-1] / 2
+
+        first = bootstrap_statistic_difference(self._median_gap(a, b), n=20, seed=7)
+        second = bootstrap_statistic_difference(self._median_gap(a, b), n=20, seed=7)
+
+        assert first == second
+
+    def test_reamostras_com_estatistica_indefinida_sao_puladas_e_contadas(self):
+        calls = iter(range(10_000))
+
+        def sometimes_undefined(idx: np.ndarray) -> float:
+            return math.nan if next(calls) % 2 else 1.0
+
+        result = bootstrap_statistic_difference(sometimes_undefined, n=5, n_bootstrap=100)
+
+        assert 0 < result.n_bootstrap < 100
+
+    def test_estatistica_sempre_indefinida_e_erro(self):
+        with pytest.raises(ValueError, match="undefined"):
+            bootstrap_statistic_difference(lambda idx: math.nan, n=5, n_bootstrap=10)
+
+    def test_menos_de_dois_pares_e_erro(self):
+        with pytest.raises(ValueError, match="at least 2"):
+            bootstrap_statistic_difference(lambda idx: 0.0, n=1)
+
+
+# ---------------------------------------------------------------------------
+# mcnemar_exact
+# ---------------------------------------------------------------------------
+
+
+class TestMcNemarExact:
+    def test_so_os_pares_discordantes_contam(self):
+        a = [True, True, True, False, False, True]
+        b = [True, False, False, False, True, True]
+
+        result = mcnemar_exact(a, b)
+
+        assert (result.only_a_correct, result.only_b_correct) == (2, 1)
+
+    def test_valor_p_binomial_exato(self):
+        # 9 vs 1 disagreements: two-sided binomial p = 2 * P(X <= 1 | n=10, p=.5) = 0.0215
+        a = [True] * 9 + [False]
+        b = [False] * 9 + [True]
+
+        assert mcnemar_exact(a, b).p_value == pytest.approx(0.021484375)
+
+    def test_sem_discordancia_o_valor_p_e_um(self):
+        assert mcnemar_exact([True, False], [True, False]).p_value == 1.0
+
+    def test_discordancia_perfeitamente_equilibrada_nao_e_significativa(self):
+        result = mcnemar_exact([True, False, True, False], [False, True, False, True])
+
+        assert result.p_value == 1.0
+
+    def test_amostras_de_tamanhos_diferentes_sao_erro(self):
+        with pytest.raises(ValueError, match="paired"):
+            mcnemar_exact([True], [True, False])
