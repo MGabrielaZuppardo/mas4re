@@ -1,0 +1,1320 @@
+{
+  "manifest": {
+    "script": "analyze_protocols",
+    "git_commit": "f3d913e2bcf47a9283da1c6b4df2eb43a8620ed7",
+    "timestamp_utc": "2026-10-19T19:47:07.371306+00:00",
+    "information_regime": "zero_shot",
+    "python": "3.13.3",
+    "libraries": {
+      "numpy": "2.4.4",
+      "scikit-learn": "1.8.0",
+      "pandas": "3.0.2",
+      "scipy": "1.17.1",
+      "langgraph": "1.1.9"
+    },
+    "dataset": "D:\\mas4re\\datasets\\data\\priorespa\\PrioReSpa.csv",
+    "dataset_md5": "050ba11f931d1f8354291831b5a50b0d",
+    "parameters": {
+      "P0": "experiments\\results\\pipeline_agentic_ollama-qwen2.5-7b-ollama-qwen2.5-7b_es-es_n401_20261018-132249",
+      "P2": "experiments\\results\\pipeline_agentic_p2_ollama-qwen2.5-7b-ollama-qwen2.5-7b_es-es_n401_20261018-221030",
+      "P3": "experiments\\results\\pipeline_agentic_p3_ollama-qwen2.5-7b-ollama-qwen2.5-7b_es-es_n401_20261019-071626"
+    }
+  },
+  "results": {
+    "architecture_claim": {
+      "overall": "not_supported",
+      "note": null,
+      "arms": {
+        "P0": {
+          "verdict": "minimal",
+          "failed": [],
+          "checks": [
+            {
+              "check": "architecture_recorded",
+              "passed": true,
+              "detail": "manifest architecture: p0"
+            },
+            {
+              "check": "conformance",
+              "passed": true,
+              "detail": "0 violations (limit 0)"
+            },
+            {
+              "check": "classifier_acts",
+              "passed": true,
+              "detail": "entropy 2.6347 bits, budget exhaustion 0.0075"
+            },
+            {
+              "check": "prioritizer_acts",
+              "passed": true,
+              "detail": "entropy 1.3324 bits, budget exhaustion 0.0"
+            }
+          ],
+          "reported": {
+            "agree_rate": null,
+            "refuse_rate": null,
+            "interaction_failures": 0
+          }
+        },
+        "P2": {
+          "verdict": "supported",
+          "failed": [],
+          "checks": [
+            {
+              "check": "architecture_recorded",
+              "passed": true,
+              "detail": "manifest architecture: p2"
+            },
+            {
+              "check": "conformance",
+              "passed": true,
+              "detail": "0 violations (limit 0)"
+            },
+            {
+              "check": "classifier_acts",
+              "passed": true,
+              "detail": "entropy 2.7033 bits, budget exhaustion 0.0098"
+            },
+            {
+              "check": "prioritizer_acts",
+              "passed": true,
+              "detail": "entropy 1.816 bits, budget exhaustion 0.0025"
+            },
+            {
+              "check": "channel_used",
+              "passed": true,
+              "detail": "6 requests (minimum 1)"
+            }
+          ],
+          "reported": {
+            "agree_rate": 0.8,
+            "refuse_rate": 0.2,
+            "interaction_failures": 2
+          }
+        },
+        "P3": {
+          "verdict": "not_supported",
+          "failed": [
+            "channel_used"
+          ],
+          "checks": [
+            {
+              "check": "architecture_recorded",
+              "passed": true,
+              "detail": "manifest architecture: p3"
+            },
+            {
+              "check": "conformance",
+              "passed": true,
+              "detail": "0 violations (limit 0)"
+            },
+            {
+              "check": "classifier_acts",
+              "passed": true,
+              "detail": "entropy 2.5976 bits, budget exhaustion 0.0075"
+            },
+            {
+              "check": "prioritizer_acts",
+              "passed": true,
+              "detail": "entropy 1.3831 bits, budget exhaustion 0.0"
+            },
+            {
+              "check": "channel_used",
+              "passed": false,
+              "detail": "0 requests (minimum 1)"
+            }
+          ],
+          "reported": {
+            "agree_rate": null,
+            "refuse_rate": null,
+            "interaction_failures": 0
+          }
+        }
+      }
+    },
+    "status": "confirmatory",
+    "spec_sha256": "62db866413b128d58a2abce268870a7d4d2f680d50490f3345ed101a21824e2e",
+    "replicates": 1,
+    "runs": {
+      "P0": "pipeline_agentic_ollama-qwen2.5-7b-ollama-qwen2.5-7b_es-es_n401_20261018-132249",
+      "P2": "pipeline_agentic_p2_ollama-qwen2.5-7b-ollama-qwen2.5-7b_es-es_n401_20261018-221030",
+      "P3": "pipeline_agentic_p3_ollama-qwen2.5-7b-ollama-qwen2.5-7b_es-es_n401_20261019-071626",
+      "P0R": "pipeline_agentic_ollama-qwen2.5-7b-ollama-qwen2.5-7b_es-es_n401_p0-repeat_20261018-165112"
+    },
+    "ordinal_mapping_verified": false,
+    "quality": {
+      "n_paired": 398,
+      "tasks": {
+        "type": {
+          "f1_macro": {
+            "P2-P0": {
+              "first": 0.6231,
+              "second": 0.6363,
+              "delta": -0.013188,
+              "ci95": [
+                -0.024994,
+                -0.004151
+              ],
+              "p_permutation": 0.029497,
+              "p_holm": 0.088491,
+              "noise_floor_delta": -0.013188,
+              "exceeds_noise_floor": false
+            },
+            "P3-P0": {
+              "first": 0.6231,
+              "second": 0.6363,
+              "delta": -0.013188,
+              "ci95": [
+                -0.024994,
+                -0.004151
+              ],
+              "p_permutation": 0.029497,
+              "p_holm": 0.088491,
+              "noise_floor_delta": -0.013188,
+              "exceeds_noise_floor": false
+            },
+            "P3-P2": {
+              "first": 0.6231,
+              "second": 0.6231,
+              "delta": 0.0,
+              "ci95": [
+                0.0,
+                0.0
+              ],
+              "p_permutation": 1.0,
+              "p_holm": 1.0,
+              "noise_floor_delta": -0.013188,
+              "exceeds_noise_floor": false
+            }
+          },
+          "mcc": {
+            "P2-P0": {
+              "first": 0.2488,
+              "second": 0.2787,
+              "delta": -0.029828,
+              "ci95": [
+                -0.056623,
+                -0.009346
+              ],
+              "p_permutation": 0.029497,
+              "p_holm": 0.088491,
+              "noise_floor_delta": -0.029828,
+              "exceeds_noise_floor": false
+            },
+            "P3-P0": {
+              "first": 0.2488,
+              "second": 0.2787,
+              "delta": -0.029828,
+              "ci95": [
+                -0.056623,
+                -0.009346
+              ],
+              "p_permutation": 0.029497,
+              "p_holm": 0.088491,
+              "noise_floor_delta": -0.029828,
+              "exceeds_noise_floor": false
+            },
+            "P3-P2": {
+              "first": 0.2488,
+              "second": 0.2488,
+              "delta": 0.0,
+              "ci95": [
+                0.0,
+                0.0
+              ],
+              "p_permutation": 1.0,
+              "p_holm": 1.0,
+              "noise_floor_delta": -0.029828,
+              "exceeds_noise_floor": false
+            }
+          },
+          "accuracy": {
+            "P2-P0": {
+              "first": 0.7613,
+              "second": 0.7764,
+              "delta": -0.015075,
+              "ci95": [
+                -0.027638,
+                -0.005025
+              ],
+              "p_permutation": 0.029497,
+              "p_holm": 0.088491,
+              "noise_floor_delta": -0.015075,
+              "exceeds_noise_floor": false
+            },
+            "P3-P0": {
+              "first": 0.7613,
+              "second": 0.7764,
+              "delta": -0.015075,
+              "ci95": [
+                -0.027638,
+                -0.005025
+              ],
+              "p_permutation": 0.029497,
+              "p_holm": 0.088491,
+              "noise_floor_delta": -0.015075,
+              "exceeds_noise_floor": false
+            },
+            "P3-P2": {
+              "first": 0.7613,
+              "second": 0.7613,
+              "delta": 0.0,
+              "ci95": [
+                0.0,
+                0.0
+              ],
+              "p_permutation": 1.0,
+              "p_holm": 1.0,
+              "noise_floor_delta": -0.015075,
+              "exceeds_noise_floor": false
+            }
+          }
+        },
+        "moscow": {
+          "f1_macro": {
+            "P2-P0": {
+              "first": 0.2511,
+              "second": 0.2333,
+              "delta": 0.017765,
+              "ci95": [
+                -0.008916,
+                0.05142
+              ],
+              "p_permutation": 0.189181,
+              "p_holm": 0.378362,
+              "noise_floor_delta": 0.036303,
+              "exceeds_noise_floor": false
+            },
+            "P3-P0": {
+              "first": 0.2742,
+              "second": 0.2333,
+              "delta": 0.040824,
+              "ci95": [
+                0.003672,
+                0.104881
+              ],
+              "p_permutation": 0.108389,
+              "p_holm": 0.325167,
+              "noise_floor_delta": 0.036303,
+              "exceeds_noise_floor": true
+            },
+            "P3-P2": {
+              "first": 0.2742,
+              "second": 0.2511,
+              "delta": 0.023059,
+              "ci95": [
+                -0.014497,
+                0.080684
+              ],
+              "p_permutation": 0.387861,
+              "p_holm": 0.387861,
+              "noise_floor_delta": 0.036303,
+              "exceeds_noise_floor": false
+            }
+          },
+          "kappa_nominal": {
+            "P2-P0": {
+              "first": 0.0559,
+              "second": -0.0069,
+              "delta": 0.062847,
+              "ci95": [
+                -0.023702,
+                0.150838
+              ],
+              "p_permutation": 0.163784,
+              "p_holm": 0.491352,
+              "noise_floor_delta": 0.065967,
+              "exceeds_noise_floor": false
+            },
+            "P3-P0": {
+              "first": 0.0652,
+              "second": -0.0069,
+              "delta": 0.072077,
+              "ci95": [
+                -0.028729,
+                0.175796
+              ],
+              "p_permutation": 0.208779,
+              "p_holm": 0.491352,
+              "noise_floor_delta": 0.065967,
+              "exceeds_noise_floor": true
+            },
+            "P3-P2": {
+              "first": 0.0652,
+              "second": 0.0559,
+              "delta": 0.009231,
+              "ci95": [
+                -0.084087,
+                0.10332
+              ],
+              "p_permutation": 0.861414,
+              "p_holm": 0.861414,
+              "noise_floor_delta": 0.065967,
+              "exceeds_noise_floor": false
+            },
+            "status": "primary"
+          },
+          "weighted_kappa": {
+            "P2-P0": {
+              "first": 0.0663,
+              "second": -0.0062,
+              "delta": 0.072521,
+              "ci95": [
+                -0.012042,
+                0.155862
+              ],
+              "p_permutation": 0.10449,
+              "p_holm": 0.31347,
+              "noise_floor_delta": 0.078824,
+              "exceeds_noise_floor": false
+            },
+            "P3-P0": {
+              "first": 0.0759,
+              "second": -0.0062,
+              "delta": 0.082041,
+              "ci95": [
+                -0.015604,
+                0.181855
+              ],
+              "p_permutation": 0.134087,
+              "p_holm": 0.31347,
+              "noise_floor_delta": 0.078824,
+              "exceeds_noise_floor": true
+            },
+            "P3-P2": {
+              "first": 0.0759,
+              "second": 0.0663,
+              "delta": 0.00952,
+              "ci95": [
+                -0.077821,
+                0.100895
+              ],
+              "p_permutation": 0.848615,
+              "p_holm": 0.848615,
+              "noise_floor_delta": 0.078824,
+              "exceeds_noise_floor": false
+            },
+            "status": "exploratory: ordinal mapping unverified"
+          },
+          "accuracy": {
+            "P2-P0": {
+              "first": 0.5126,
+              "second": 0.4874,
+              "delta": 0.025126,
+              "ci95": [
+                -0.020101,
+                0.070415
+              ],
+              "p_permutation": 0.344066,
+              "p_holm": 1.0,
+              "noise_floor_delta": 0.002513,
+              "exceeds_noise_floor": true
+            },
+            "P3-P0": {
+              "first": 0.4975,
+              "second": 0.4874,
+              "delta": 0.01005,
+              "ci95": [
+                -0.047739,
+                0.070352
+              ],
+              "p_permutation": 0.806119,
+              "p_holm": 1.0,
+              "noise_floor_delta": 0.002513,
+              "exceeds_noise_floor": true
+            },
+            "P3-P2": {
+              "first": 0.4975,
+              "second": 0.5126,
+              "delta": -0.015075,
+              "ci95": [
+                -0.067839,
+                0.042714
+              ],
+              "p_permutation": 0.661734,
+              "p_holm": 1.0,
+              "noise_floor_delta": 0.002513,
+              "exceeds_noise_floor": true
+            }
+          }
+        }
+      }
+    },
+    "noise_floor": {
+      "quality": {
+        "n_paired": 398,
+        "tasks": {
+          "type": {
+            "f1_macro": {
+              "P0R-P0": {
+                "first": 0.6231,
+                "second": 0.6363,
+                "delta": -0.013188,
+                "ci95": [
+                  -0.024994,
+                  -0.004151
+                ],
+                "p_permutation": 0.029497,
+                "p_holm": 0.029497
+              }
+            },
+            "mcc": {
+              "P0R-P0": {
+                "first": 0.2488,
+                "second": 0.2787,
+                "delta": -0.029828,
+                "ci95": [
+                  -0.056623,
+                  -0.009346
+                ],
+                "p_permutation": 0.029497,
+                "p_holm": 0.029497
+              }
+            },
+            "accuracy": {
+              "P0R-P0": {
+                "first": 0.7613,
+                "second": 0.7764,
+                "delta": -0.015075,
+                "ci95": [
+                  -0.027638,
+                  -0.005025
+                ],
+                "p_permutation": 0.029497,
+                "p_holm": 0.029497
+              }
+            }
+          },
+          "moscow": {
+            "f1_macro": {
+              "P0R-P0": {
+                "first": 0.2696,
+                "second": 0.2333,
+                "delta": 0.036303,
+                "ci95": [
+                  -0.00032,
+                  0.095942
+                ],
+                "p_permutation": 0.150885,
+                "p_holm": 0.150885
+              }
+            },
+            "kappa_nominal": {
+              "P0R-P0": {
+                "first": 0.059,
+                "second": -0.0069,
+                "delta": 0.065967,
+                "ci95": [
+                  -0.033408,
+                  0.167412
+                ],
+                "p_permutation": 0.249275,
+                "p_holm": 0.249275
+              },
+              "status": "primary"
+            },
+            "weighted_kappa": {
+              "P0R-P0": {
+                "first": 0.0726,
+                "second": -0.0062,
+                "delta": 0.078824,
+                "ci95": [
+                  -0.018482,
+                  0.178069
+                ],
+                "p_permutation": 0.149985,
+                "p_holm": 0.149985
+              },
+              "status": "exploratory: ordinal mapping unverified"
+            },
+            "accuracy": {
+              "P0R-P0": {
+                "first": 0.4899,
+                "second": 0.4874,
+                "delta": 0.002513,
+                "ci95": [
+                  -0.055276,
+                  0.062814
+                ],
+                "p_permutation": 1.0,
+                "p_holm": 1.0
+              }
+            }
+          }
+        }
+      },
+      "cost_mean_delta": {
+        "llm_calls": -0.02,
+        "tokens": 1.526,
+        "latency_ms": -1.849
+      }
+    },
+    "reliability": {
+      "universe_ids": 398,
+      "per_protocol": {
+        "P0": {
+          "n_total": 401,
+          "completed": 398,
+          "completion_rate": 0.9925,
+          "n_failed": 3,
+          "agents": {
+            "classifier": {
+              "termination": {
+                "submitted_by_tool": 396,
+                "submitted_by_text": 2,
+                "budget_exhausted": 3
+              },
+              "failures_per_100_calls": 1.816,
+              "invalid_action_rate": 0.0149
+            },
+            "prioritizer": {
+              "termination": {
+                "submitted_by_tool": 384,
+                "submitted_by_text": 14,
+                "budget_exhausted": 0
+              },
+              "failures_per_100_calls": 0.813,
+              "invalid_action_rate": 0.0073
+            }
+          }
+        },
+        "P2": {
+          "n_total": 401,
+          "completed": 398,
+          "completion_rate": 0.9925,
+          "n_failed": 3,
+          "agents": {
+            "classifier": {
+              "termination": {
+                "submitted_by_tool": 402,
+                "submitted_by_text": 1,
+                "budget_exhausted": 4
+              },
+              "failures_per_100_calls": 3.262,
+              "invalid_action_rate": 0.0281
+            },
+            "prioritizer": {
+              "termination": {
+                "submitted_by_tool": 383,
+                "submitted_by_text": 19,
+                "budget_exhausted": 1
+              },
+              "failures_per_100_calls": 1.724,
+              "invalid_action_rate": 0.0162
+            }
+          }
+        },
+        "P3": {
+          "n_total": 401,
+          "completed": 398,
+          "completion_rate": 0.9925,
+          "n_failed": 3,
+          "agents": {
+            "classifier": {
+              "termination": {
+                "submitted_by_tool": 397,
+                "submitted_by_text": 1,
+                "budget_exhausted": 3
+              },
+              "failures_per_100_calls": 1.636,
+              "invalid_action_rate": 0.0131
+            },
+            "prioritizer": {
+              "termination": {
+                "submitted_by_tool": 383,
+                "submitted_by_text": 15,
+                "budget_exhausted": 0
+              },
+              "failures_per_100_calls": 0.464,
+              "invalid_action_rate": 0.0042
+            }
+          }
+        }
+      },
+      "completion_mcnemar": {
+        "P2-P0": {
+          "only_P2_completed": 0,
+          "only_P0_completed": 0,
+          "p_value": 1.0
+        },
+        "P3-P0": {
+          "only_P3_completed": 0,
+          "only_P0_completed": 0,
+          "p_value": 1.0
+        },
+        "P3-P2": {
+          "only_P3_completed": 0,
+          "only_P2_completed": 0,
+          "p_value": 1.0
+        }
+      }
+    },
+    "cost": {
+      "n_paired": 401,
+      "by_phase": {
+        "P0": {
+          "work": {
+            "episodes": 799.0,
+            "llm_calls": 1907.0,
+            "tokens": 2397934.0,
+            "latency_ms": 25701341.22999996
+          },
+          "coordination_token_share": {
+            "value": 0.0
+          }
+        },
+        "P2": {
+          "work": {
+            "episodes": 799.0,
+            "llm_calls": 2008.0,
+            "tokens": 2606717.0,
+            "latency_ms": 25250862.689999994
+          },
+          "reply": {
+            "episodes": 6.0,
+            "llm_calls": 34.0,
+            "tokens": 58915.0,
+            "latency_ms": 181968.83000000002
+          },
+          "reconsideration": {
+            "episodes": 5.0,
+            "llm_calls": 17.0,
+            "tokens": 26100.0,
+            "latency_ms": 71376.34
+          },
+          "coordination_token_share": {
+            "value": 0.0316
+          }
+        },
+        "P3": {
+          "work": {
+            "episodes": 799.0,
+            "llm_calls": 1901.0,
+            "tokens": 2480797.0,
+            "latency_ms": 36248464.629999965
+          },
+          "coordination_token_share": {
+            "value": 0.0
+          }
+        }
+      },
+      "metrics": {
+        "llm_calls": {
+          "friedman": {
+            "statistic": 98.9698,
+            "p_value": 0.0
+          },
+          "contrasts": {
+            "P2-P0": {
+              "mean_first": 5.135,
+              "mean_second": 4.756,
+              "mean_delta": 0.379,
+              "p_wilcoxon": 0.0,
+              "p_holm": 0.0
+            },
+            "P3-P0": {
+              "mean_first": 4.741,
+              "mean_second": 4.756,
+              "mean_delta": -0.015,
+              "p_wilcoxon": 0.372067,
+              "p_holm": 0.372067
+            },
+            "P3-P2": {
+              "mean_first": 4.741,
+              "mean_second": 5.135,
+              "mean_delta": -0.394,
+              "p_wilcoxon": 0.0,
+              "p_holm": 0.0
+            }
+          }
+        },
+        "tokens": {
+          "friedman": {
+            "statistic": 273.0748,
+            "p_value": 0.0
+          },
+          "contrasts": {
+            "P2-P0": {
+              "mean_first": 6712.549,
+              "mean_second": 5979.885,
+              "mean_delta": 732.663,
+              "p_wilcoxon": 0.0,
+              "p_holm": 0.0
+            },
+            "P3-P0": {
+              "mean_first": 6186.526,
+              "mean_second": 5979.885,
+              "mean_delta": 206.641,
+              "p_wilcoxon": 0.003579,
+              "p_holm": 0.003579
+            },
+            "P3-P2": {
+              "mean_first": 6186.526,
+              "mean_second": 6712.549,
+              "mean_delta": -526.022,
+              "p_wilcoxon": 0.0,
+              "p_holm": 0.0
+            }
+          }
+        },
+        "latency_ms": {
+          "friedman": {
+            "statistic": 4.3441,
+            "p_value": 0.113942
+          },
+          "contrasts": {
+            "P2-P0": {
+              "mean_first": 63601.516,
+              "mean_second": 64093.12,
+              "mean_delta": -491.604,
+              "p_wilcoxon": 0.138604,
+              "p_holm": 0.277208
+            },
+            "P3-P0": {
+              "mean_first": 90395.174,
+              "mean_second": 64093.12,
+              "mean_delta": 26302.053,
+              "p_wilcoxon": 0.662858,
+              "p_holm": 0.662858
+            },
+            "P3-P2": {
+              "mean_first": 90395.174,
+              "mean_second": 63601.516,
+              "mean_delta": 26793.658,
+              "p_wilcoxon": 0.039015,
+              "p_holm": 0.117045
+            }
+          }
+        }
+      }
+    },
+    "interaction_effect": {
+      "P0": {
+        "requests": 0,
+        "type": {
+          "measured": 398,
+          "changed": 0,
+          "improved": 0,
+          "worsened": 0,
+          "neutral": 0
+        },
+        "priority": {
+          "measured": 398,
+          "changed": 0,
+          "improved": 0,
+          "worsened": 0,
+          "neutral": 0
+        }
+      },
+      "P2": {
+        "requests": 6,
+        "type": {
+          "measured": 398,
+          "changed": 0,
+          "improved": 0,
+          "worsened": 0,
+          "neutral": 0
+        },
+        "priority": {
+          "measured": 398,
+          "changed": 1,
+          "improved": 0,
+          "worsened": 1,
+          "neutral": 0,
+          "p_improved_vs_worsened": 1.0
+        }
+      },
+      "P3": {
+        "requests": 0,
+        "type": {
+          "measured": 398,
+          "changed": 0,
+          "improved": 0,
+          "worsened": 0,
+          "neutral": 0
+        },
+        "priority": {
+          "measured": 398,
+          "changed": 0,
+          "improved": 0,
+          "worsened": 0,
+          "neutral": 0
+        }
+      }
+    },
+    "manipulation_check": {
+      "P0": {
+        "offered_actions": {
+          "classifier/work": [
+            "check_consistency",
+            "lookup_nfr_taxonomy",
+            "recall_similar_cases",
+            "submit_classification"
+          ],
+          "prioritizer/work": [
+            "backlog_overview",
+            "recall_similar_cases",
+            "submit_priority"
+          ]
+        },
+        "request_reclassification_offered": false,
+        "interaction": {
+          "requests": 0,
+          "requests_by_sender": {},
+          "agree": 0,
+          "refuse": 0,
+          "failure": 0,
+          "unanswered": 0,
+          "agree_rate": null,
+          "refuse_rate": null
+        },
+        "message_flows": {
+          "classifier>prioritizer:inform:classification_report": 398
+        },
+        "mediator": null,
+        "action_sequence_entropy_bits": {
+          "classifier": 2.6347,
+          "prioritizer": 1.3324
+        }
+      },
+      "P2": {
+        "offered_actions": {
+          "classifier/reply": [
+            "check_consistency",
+            "lookup_nfr_taxonomy",
+            "recall_similar_cases",
+            "reply_to_request"
+          ],
+          "classifier/work": [
+            "check_consistency",
+            "lookup_nfr_taxonomy",
+            "recall_similar_cases",
+            "submit_classification"
+          ],
+          "prioritizer/reconsideration": [
+            "backlog_overview",
+            "recall_similar_cases",
+            "submit_priority"
+          ],
+          "prioritizer/work": [
+            "backlog_overview",
+            "recall_similar_cases",
+            "request_reclassification",
+            "submit_priority"
+          ]
+        },
+        "request_reclassification_offered": true,
+        "interaction": {
+          "requests": 6,
+          "requests_by_sender": {
+            "prioritizer": 6
+          },
+          "agree": 4,
+          "refuse": 1,
+          "failure": 1,
+          "unanswered": 0,
+          "agree_rate": 0.8,
+          "refuse_rate": 0.2
+        },
+        "message_flows": {
+          "classifier>prioritizer:agree:request_reply": 4,
+          "classifier>prioritizer:failure:request_reply": 1,
+          "classifier>prioritizer:inform:classification_report": 398,
+          "classifier>prioritizer:refuse:request_reply": 1,
+          "prioritizer>classifier:inform:priority_report": 4,
+          "prioritizer>classifier:request:reclassification_request": 6
+        },
+        "mediator": null,
+        "action_sequence_entropy_bits": {
+          "classifier": 2.7033,
+          "prioritizer": 1.816
+        }
+      },
+      "P3": {
+        "offered_actions": {
+          "classifier/work": [
+            "check_consistency",
+            "lookup_nfr_taxonomy",
+            "recall_similar_cases",
+            "submit_classification"
+          ],
+          "prioritizer/work": [
+            "backlog_overview",
+            "recall_similar_cases",
+            "submit_priority"
+          ]
+        },
+        "request_reclassification_offered": false,
+        "interaction": {
+          "requests": 0,
+          "requests_by_sender": {},
+          "agree": 0,
+          "refuse": 0,
+          "failure": 0,
+          "unanswered": 0,
+          "agree_rate": null,
+          "refuse_rate": null
+        },
+        "message_flows": {
+          "classifier>prioritizer:inform:classification_report": 398
+        },
+        "mediator": {
+          "conflicts": 0,
+          "must_inflation": 0,
+          "requests": 0,
+          "capped": false,
+          "must_share_before": 0.4899,
+          "must_share_after": 0.4899
+        },
+        "action_sequence_entropy_bits": {
+          "classifier": 2.5976,
+          "prioritizer": 1.3831
+        }
+      }
+    },
+    "tradeoff": [
+      {
+        "task": "type",
+        "metric": "f1_macro",
+        "contrast": "P2-P0",
+        "delta_quality": -0.013188,
+        "ci95": [
+          -0.024994,
+          -0.004151
+        ],
+        "delta_cost": {
+          "llm_calls": 0.379,
+          "tokens": 732.663,
+          "latency_ms": -491.604
+        },
+        "reading": "trade_off"
+      },
+      {
+        "task": "type",
+        "metric": "f1_macro",
+        "contrast": "P3-P0",
+        "delta_quality": -0.013188,
+        "ci95": [
+          -0.024994,
+          -0.004151
+        ],
+        "delta_cost": {
+          "llm_calls": -0.015,
+          "tokens": 206.641,
+          "latency_ms": 26302.053
+        },
+        "reading": "trade_off"
+      },
+      {
+        "task": "type",
+        "metric": "f1_macro",
+        "contrast": "P3-P2",
+        "delta_quality": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "delta_cost": {
+          "llm_calls": -0.394,
+          "tokens": -526.022,
+          "latency_ms": 26793.658
+        },
+        "reading": "quality_indistinguishable"
+      },
+      {
+        "task": "type",
+        "metric": "mcc",
+        "contrast": "P2-P0",
+        "delta_quality": -0.029828,
+        "ci95": [
+          -0.056623,
+          -0.009346
+        ],
+        "delta_cost": {
+          "llm_calls": 0.379,
+          "tokens": 732.663,
+          "latency_ms": -491.604
+        },
+        "reading": "trade_off"
+      },
+      {
+        "task": "type",
+        "metric": "mcc",
+        "contrast": "P3-P0",
+        "delta_quality": -0.029828,
+        "ci95": [
+          -0.056623,
+          -0.009346
+        ],
+        "delta_cost": {
+          "llm_calls": -0.015,
+          "tokens": 206.641,
+          "latency_ms": 26302.053
+        },
+        "reading": "trade_off"
+      },
+      {
+        "task": "type",
+        "metric": "mcc",
+        "contrast": "P3-P2",
+        "delta_quality": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "delta_cost": {
+          "llm_calls": -0.394,
+          "tokens": -526.022,
+          "latency_ms": 26793.658
+        },
+        "reading": "quality_indistinguishable"
+      },
+      {
+        "task": "type",
+        "metric": "accuracy",
+        "contrast": "P2-P0",
+        "delta_quality": -0.015075,
+        "ci95": [
+          -0.027638,
+          -0.005025
+        ],
+        "delta_cost": {
+          "llm_calls": 0.379,
+          "tokens": 732.663,
+          "latency_ms": -491.604
+        },
+        "reading": "trade_off"
+      },
+      {
+        "task": "type",
+        "metric": "accuracy",
+        "contrast": "P3-P0",
+        "delta_quality": -0.015075,
+        "ci95": [
+          -0.027638,
+          -0.005025
+        ],
+        "delta_cost": {
+          "llm_calls": -0.015,
+          "tokens": 206.641,
+          "latency_ms": 26302.053
+        },
+        "reading": "trade_off"
+      },
+      {
+        "task": "type",
+        "metric": "accuracy",
+        "contrast": "P3-P2",
+        "delta_quality": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "delta_cost": {
+          "llm_calls": -0.394,
+          "tokens": -526.022,
+          "latency_ms": 26793.658
+        },
+        "reading": "quality_indistinguishable"
+      },
+      {
+        "task": "moscow",
+        "metric": "f1_macro",
+        "contrast": "P2-P0",
+        "delta_quality": 0.017765,
+        "ci95": [
+          -0.008916,
+          0.05142
+        ],
+        "delta_cost": {
+          "llm_calls": 0.379,
+          "tokens": 732.663,
+          "latency_ms": -491.604
+        },
+        "reading": "quality_indistinguishable"
+      },
+      {
+        "task": "moscow",
+        "metric": "f1_macro",
+        "contrast": "P3-P0",
+        "delta_quality": 0.040824,
+        "ci95": [
+          0.003672,
+          0.104881
+        ],
+        "delta_cost": {
+          "llm_calls": -0.015,
+          "tokens": 206.641,
+          "latency_ms": 26302.053
+        },
+        "reading": "trade_off"
+      },
+      {
+        "task": "moscow",
+        "metric": "f1_macro",
+        "contrast": "P3-P2",
+        "delta_quality": 0.023059,
+        "ci95": [
+          -0.014497,
+          0.080684
+        ],
+        "delta_cost": {
+          "llm_calls": -0.394,
+          "tokens": -526.022,
+          "latency_ms": 26793.658
+        },
+        "reading": "quality_indistinguishable"
+      },
+      {
+        "task": "moscow",
+        "metric": "kappa_nominal",
+        "contrast": "P2-P0",
+        "delta_quality": 0.062847,
+        "ci95": [
+          -0.023702,
+          0.150838
+        ],
+        "delta_cost": {
+          "llm_calls": 0.379,
+          "tokens": 732.663,
+          "latency_ms": -491.604
+        },
+        "reading": "quality_indistinguishable"
+      },
+      {
+        "task": "moscow",
+        "metric": "kappa_nominal",
+        "contrast": "P3-P0",
+        "delta_quality": 0.072077,
+        "ci95": [
+          -0.028729,
+          0.175796
+        ],
+        "delta_cost": {
+          "llm_calls": -0.015,
+          "tokens": 206.641,
+          "latency_ms": 26302.053
+        },
+        "reading": "quality_indistinguishable"
+      },
+      {
+        "task": "moscow",
+        "metric": "kappa_nominal",
+        "contrast": "P3-P2",
+        "delta_quality": 0.009231,
+        "ci95": [
+          -0.084087,
+          0.10332
+        ],
+        "delta_cost": {
+          "llm_calls": -0.394,
+          "tokens": -526.022,
+          "latency_ms": 26793.658
+        },
+        "reading": "quality_indistinguishable"
+      },
+      {
+        "task": "moscow",
+        "metric": "weighted_kappa",
+        "contrast": "P2-P0",
+        "delta_quality": 0.072521,
+        "ci95": [
+          -0.012042,
+          0.155862
+        ],
+        "delta_cost": {
+          "llm_calls": 0.379,
+          "tokens": 732.663,
+          "latency_ms": -491.604
+        },
+        "reading": "quality_indistinguishable"
+      },
+      {
+        "task": "moscow",
+        "metric": "weighted_kappa",
+        "contrast": "P3-P0",
+        "delta_quality": 0.082041,
+        "ci95": [
+          -0.015604,
+          0.181855
+        ],
+        "delta_cost": {
+          "llm_calls": -0.015,
+          "tokens": 206.641,
+          "latency_ms": 26302.053
+        },
+        "reading": "quality_indistinguishable"
+      },
+      {
+        "task": "moscow",
+        "metric": "weighted_kappa",
+        "contrast": "P3-P2",
+        "delta_quality": 0.00952,
+        "ci95": [
+          -0.077821,
+          0.100895
+        ],
+        "delta_cost": {
+          "llm_calls": -0.394,
+          "tokens": -526.022,
+          "latency_ms": 26793.658
+        },
+        "reading": "quality_indistinguishable"
+      },
+      {
+        "task": "moscow",
+        "metric": "accuracy",
+        "contrast": "P2-P0",
+        "delta_quality": 0.025126,
+        "ci95": [
+          -0.020101,
+          0.070415
+        ],
+        "delta_cost": {
+          "llm_calls": 0.379,
+          "tokens": 732.663,
+          "latency_ms": -491.604
+        },
+        "reading": "quality_indistinguishable"
+      },
+      {
+        "task": "moscow",
+        "metric": "accuracy",
+        "contrast": "P3-P0",
+        "delta_quality": 0.01005,
+        "ci95": [
+          -0.047739,
+          0.070352
+        ],
+        "delta_cost": {
+          "llm_calls": -0.015,
+          "tokens": 206.641,
+          "latency_ms": 26302.053
+        },
+        "reading": "quality_indistinguishable"
+      },
+      {
+        "task": "moscow",
+        "metric": "accuracy",
+        "contrast": "P3-P2",
+        "delta_quality": -0.015075,
+        "ci95": [
+          -0.067839,
+          0.042714
+        ],
+        "delta_cost": {
+          "llm_calls": -0.394,
+          "tokens": -526.022,
+          "latency_ms": 26793.658
+        },
+        "reading": "quality_indistinguishable"
+      }
+    ],
+    "limitations": [
+      "One run per protocol plus one repeat of P0: the CIs describe the variation across requirements, not across repeated runs; the P0 repeat gives a single estimate of run-to-run noise, not its distribution, and temperature 0 does not guarantee identical repeated outputs.",
+      "The benchmark labels are automatic reference criteria, not independent human truth: agreement means agreement with the benchmark.",
+      "Census of one benchmark (PrioReSpa, Spanish, one GIS project) with one model: no claim about other requirement sets or other LLMs.",
+      "MoSCoW is a priority categorisation, a subset of requirements prioritisation."
+    ]
+  }
+}

@@ -1,0 +1,620 @@
+{
+  "manifest": {
+    "script": "analyze_agency",
+    "git_commit": "f3d913e2bcf47a9283da1c6b4df2eb43a8620ed7",
+    "timestamp_utc": "2026-10-19T21:52:56.164785+00:00",
+    "information_regime": "zero_shot",
+    "python": "3.13.3",
+    "libraries": {
+      "numpy": "2.3.0",
+      "scikit-learn": "1.7.0",
+      "pandas": "2.3.0",
+      "scipy": "1.15.3",
+      "langgraph": "1.1.6"
+    },
+    "dataset": "D:\\mas4re\\datasets\\data\\priorespa\\PrioReSpa.csv",
+    "dataset_md5": "050ba11f931d1f8354291831b5a50b0d",
+    "parameters": {
+      "agentic": [
+        "experiments\\results\\pipeline_agentic_ollama-qwen2.5-7b-ollama-qwen2.5-7b_es-es_n401_20261018-132249",
+        "experiments\\results\\pipeline_agentic_p2_ollama-qwen2.5-7b-ollama-qwen2.5-7b_es-es_n401_20261018-221030",
+        "experiments\\results\\pipeline_agentic_p3_ollama-qwen2.5-7b-ollama-qwen2.5-7b_es-es_n401_20261019-071626"
+      ],
+      "workflow": "experiments\\results\\pipeline_ollama-qwen2.5-7b-ollama-qwen2.5-7b_es-es_n401_20261019-171312",
+      "bootstrap": 2000,
+      "seed": 42,
+      "alpha": 0.05,
+      "min_observations": 20
+    }
+  },
+  "results": {
+    "cell": {
+      "dataset": "priorespa",
+      "data_lang": "es",
+      "prompt_lang": "es",
+      "status": "primary"
+    },
+    "runs": [
+      {
+        "run": "pipeline_agentic_ollama-qwen2.5-7b-ollama-qwen2.5-7b_es-es_n401_20261018-132249",
+        "strategy": "pipeline_agentic",
+        "protocol": "p0",
+        "model": "ollama/qwen2.5:7b+ollama/qwen2.5:7b",
+        "c1_c2": {
+          "classifier": {
+            "episodes": 401,
+            "distinct_action_sequences": 21,
+            "action_sequence_entropy_bits": 2.6347,
+            "entropy_above_zero": true,
+            "budget_exhaustion_rate": 0.0075,
+            "invalid_action_rate": 0.0149
+          },
+          "prioritizer": {
+            "episodes": 398,
+            "distinct_action_sequences": 4,
+            "action_sequence_entropy_bits": 1.3324,
+            "entropy_above_zero": true,
+            "budget_exhaustion_rate": 0.0,
+            "invalid_action_rate": 0.0073
+          }
+        },
+        "c4": {
+          "requests": 0,
+          "requests_by_sender": {},
+          "agree": 0,
+          "refuse": 0,
+          "failure": 0,
+          "unanswered": 0,
+          "agree_rate": null,
+          "refuse_rate": null,
+          "both_rates_positive": null
+        },
+        "c5": {
+          "classifier": {
+            "check_consistency": {
+              "table": {
+                "consistent": {
+                  "calls_another_tool": 7,
+                  "submits_checked_answer": 203,
+                  "submits_different_answer": 8
+                },
+                "inconsistent": {
+                  "calls_another_tool": 21,
+                  "submits_checked_answer": 1,
+                  "submits_different_answer": 37
+                }
+              },
+              "n": 277,
+              "test": "chi2",
+              "p_value": 0.0,
+              "cramers_v": 0.8508,
+              "verdict": "associated",
+              "reason": null
+            },
+            "recall_similar_cases": {
+              "table": {
+                "no_similar_cases": {
+                  "calls_another_tool": 49,
+                  "submits": 2
+                },
+                "similar_cases_found": {
+                  "calls_another_tool": 96,
+                  "submits": 126
+                }
+              },
+              "n": 273,
+              "test": "fisher_exact",
+              "p_value": 0.0,
+              "cramers_v": 0.4127,
+              "verdict": "associated",
+              "reason": null
+            }
+          },
+          "prioritizer": {
+            "backlog_overview": {
+              "table": {
+                "must_share_low": {
+                  "calls_another_tool": 49,
+                  "submits_must": 19,
+                  "submits_not_must": 85
+                },
+                "no_priorities_yet": {
+                  "submits_not_must": 1
+                }
+              },
+              "n": 154,
+              "test": null,
+              "p_value": null,
+              "cramers_v": null,
+              "verdict": "insufficient_data",
+              "reason": "expected counts below 5 in a table larger than 2x2"
+            },
+            "recall_similar_cases": {
+              "table": {
+                "no_similar_cases": {
+                  "calls_another_tool": 27,
+                  "submits": 10
+                },
+                "similar_cases_found": {
+                  "calls_another_tool": 77,
+                  "submits": 283
+                }
+              },
+              "n": 397,
+              "test": "fisher_exact",
+              "p_value": 0.0,
+              "cramers_v": 0.341,
+              "verdict": "associated",
+              "reason": null
+            }
+          }
+        }
+      },
+      {
+        "run": "pipeline_agentic_p2_ollama-qwen2.5-7b-ollama-qwen2.5-7b_es-es_n401_20261018-221030",
+        "strategy": "pipeline_agentic_p2",
+        "protocol": "p2",
+        "model": "ollama/qwen2.5:7b+ollama/qwen2.5:7b",
+        "c1_c2": {
+          "classifier": {
+            "episodes": 407,
+            "distinct_action_sequences": 24,
+            "action_sequence_entropy_bits": 2.7033,
+            "entropy_above_zero": true,
+            "budget_exhaustion_rate": 0.0098,
+            "invalid_action_rate": 0.0281
+          },
+          "prioritizer": {
+            "episodes": 403,
+            "distinct_action_sequences": 11,
+            "action_sequence_entropy_bits": 1.816,
+            "entropy_above_zero": true,
+            "budget_exhaustion_rate": 0.0025,
+            "invalid_action_rate": 0.0162
+          }
+        },
+        "c4": {
+          "requests": 6,
+          "requests_by_sender": {
+            "prioritizer": 6
+          },
+          "agree": 4,
+          "refuse": 1,
+          "failure": 1,
+          "unanswered": 0,
+          "agree_rate": 0.8,
+          "refuse_rate": 0.2,
+          "both_rates_positive": true
+        },
+        "c5": {
+          "classifier": {
+            "check_consistency": {
+              "table": {
+                "consistent": {
+                  "calls_another_tool": 6,
+                  "submits_checked_answer": 197,
+                  "submits_different_answer": 8
+                },
+                "inconsistent": {
+                  "calls_another_tool": 21,
+                  "submits_checked_answer": 1,
+                  "submits_different_answer": 40
+                }
+              },
+              "n": 273,
+              "test": "chi2",
+              "p_value": 0.0,
+              "cramers_v": 0.8618,
+              "verdict": "associated",
+              "reason": null
+            },
+            "recall_similar_cases": {
+              "table": {
+                "no_similar_cases": {
+                  "calls_another_tool": 47,
+                  "submits": 3
+                },
+                "similar_cases_found": {
+                  "calls_another_tool": 98,
+                  "submits": 128
+                }
+              },
+              "n": 276,
+              "test": "fisher_exact",
+              "p_value": 0.0,
+              "cramers_v": 0.3906,
+              "verdict": "associated",
+              "reason": null
+            }
+          },
+          "prioritizer": {
+            "backlog_overview": {
+              "table": {
+                "must_share_low": {
+                  "calls_another_tool": 99,
+                  "submits_must": 19,
+                  "submits_not_must": 48
+                },
+                "no_priorities_yet": {
+                  "submits_not_must": 1
+                }
+              },
+              "n": 167,
+              "test": null,
+              "p_value": null,
+              "cramers_v": null,
+              "verdict": "insufficient_data",
+              "reason": "expected counts below 5 in a table larger than 2x2"
+            },
+            "recall_similar_cases": {
+              "table": {
+                "no_similar_cases": {
+                  "calls_another_tool": 42,
+                  "submits": 14
+                },
+                "similar_cases_found": {
+                  "calls_another_tool": 37,
+                  "submits": 297
+                }
+              },
+              "n": 390,
+              "test": "fisher_exact",
+              "p_value": 0.0,
+              "cramers_v": 0.5577,
+              "verdict": "associated",
+              "reason": null
+            }
+          }
+        }
+      },
+      {
+        "run": "pipeline_agentic_p3_ollama-qwen2.5-7b-ollama-qwen2.5-7b_es-es_n401_20261019-071626",
+        "strategy": "pipeline_agentic_p3",
+        "protocol": "p3",
+        "model": "ollama/qwen2.5:7b+ollama/qwen2.5:7b",
+        "c1_c2": {
+          "classifier": {
+            "episodes": 401,
+            "distinct_action_sequences": 19,
+            "action_sequence_entropy_bits": 2.5976,
+            "entropy_above_zero": true,
+            "budget_exhaustion_rate": 0.0075,
+            "invalid_action_rate": 0.0131
+          },
+          "prioritizer": {
+            "episodes": 398,
+            "distinct_action_sequences": 4,
+            "action_sequence_entropy_bits": 1.3831,
+            "entropy_above_zero": true,
+            "budget_exhaustion_rate": 0.0,
+            "invalid_action_rate": 0.0042
+          }
+        },
+        "c4": {
+          "requests": 0,
+          "requests_by_sender": {},
+          "agree": 0,
+          "refuse": 0,
+          "failure": 0,
+          "unanswered": 0,
+          "agree_rate": null,
+          "refuse_rate": null,
+          "both_rates_positive": null
+        },
+        "c5": {
+          "classifier": {
+            "check_consistency": {
+              "table": {
+                "consistent": {
+                  "calls_another_tool": 6,
+                  "submits_checked_answer": 197,
+                  "submits_different_answer": 8
+                },
+                "inconsistent": {
+                  "calls_another_tool": 21,
+                  "submits_checked_answer": 1,
+                  "submits_different_answer": 40
+                }
+              },
+              "n": 273,
+              "test": "chi2",
+              "p_value": 0.0,
+              "cramers_v": 0.8618,
+              "verdict": "associated",
+              "reason": null
+            },
+            "recall_similar_cases": {
+              "table": {
+                "no_similar_cases": {
+                  "calls_another_tool": 47,
+                  "submits": 3
+                },
+                "similar_cases_found": {
+                  "calls_another_tool": 98,
+                  "submits": 128
+                }
+              },
+              "n": 276,
+              "test": "fisher_exact",
+              "p_value": 0.0,
+              "cramers_v": 0.3906,
+              "verdict": "associated",
+              "reason": null
+            }
+          },
+          "prioritizer": {
+            "backlog_overview": {
+              "table": {
+                "must_share_high": {
+                  "calls_another_tool": 53,
+                  "submits_must": 29,
+                  "submits_not_must": 73
+                },
+                "must_share_low": {
+                  "calls_another_tool": 1
+                },
+                "no_priorities_yet": {
+                  "submits_not_must": 1
+                }
+              },
+              "n": 157,
+              "test": null,
+              "p_value": null,
+              "cramers_v": null,
+              "verdict": "insufficient_data",
+              "reason": "expected counts below 5 in a table larger than 2x2"
+            },
+            "recall_similar_cases": {
+              "table": {
+                "no_similar_cases": {
+                  "calls_another_tool": 27,
+                  "submits": 8
+                },
+                "similar_cases_found": {
+                  "calls_another_tool": 73,
+                  "submits": 287
+                }
+              },
+              "n": 395,
+              "test": "fisher_exact",
+              "p_value": 0.0,
+              "cramers_v": 0.3716,
+              "verdict": "associated",
+              "reason": null
+            }
+          }
+        }
+      }
+    ],
+    "c7": [
+      {
+        "workflow": "pipeline_ollama-qwen2.5-7b-ollama-qwen2.5-7b_es-es_n401_20261019-171312",
+        "agentic": "pipeline_agentic_ollama-qwen2.5-7b-ollama-qwen2.5-7b_es-es_n401_20261018-132249",
+        "interpretation": "external architectural contrast: ReAct agents against an LLM workflow differ in more than the coordination protocol, so this is not an estimate of its effect",
+        "strategy": "pipeline_agentic",
+        "protocol": "p0",
+        "n_paired": 398,
+        "only_workflow": 3,
+        "only_agentic": 0,
+        "type_accuracy": {
+          "workflow": 0.7663,
+          "agentic": 0.7764,
+          "delta": 0.01005,
+          "ci95": [
+            -0.030151,
+            0.052764
+          ],
+          "mcnemar": {
+            "only_agentic_correct": 39,
+            "only_workflow_correct": 35,
+            "p_value": 0.727547
+          },
+          "strict": {
+            "workflow": 0.7681,
+            "agentic": 0.7706
+          }
+        },
+        "moscow": {
+          "n_paired": 398,
+          "accuracy": {
+            "workflow": 0.5477,
+            "agentic": 0.4874,
+            "delta": -0.060302,
+            "ci95": [
+              -0.115641,
+              -0.002513
+            ],
+            "mcnemar": {
+              "only_agentic_correct": 58,
+              "only_workflow_correct": 82,
+              "p_value": 0.051524
+            }
+          },
+          "weighted_kappa": {
+            "workflow": 0.1306,
+            "agentic": -0.0062,
+            "delta": -0.136767,
+            "ci95": [
+              -0.239832,
+              -0.034168
+            ],
+            "valid_resamples": 2000
+          }
+        },
+        "cost": {
+          "workflow": {
+            "n_total": 401,
+            "n_processed": 401,
+            "n_failed": 0,
+            "coverage": 1.0,
+            "seconds_per_item": 11.817,
+            "llm_calls_per_item": null,
+            "tokens_per_item": null
+          },
+          "agentic": {
+            "n_total": 401,
+            "n_processed": 398,
+            "n_failed": 3,
+            "coverage": 0.9925,
+            "seconds_per_item": 21.867,
+            "llm_calls_per_item": 4.756,
+            "tokens_per_item": 5979.9
+          },
+          "seconds_ratio": 1.85
+        }
+      },
+      {
+        "workflow": "pipeline_ollama-qwen2.5-7b-ollama-qwen2.5-7b_es-es_n401_20261019-171312",
+        "agentic": "pipeline_agentic_p2_ollama-qwen2.5-7b-ollama-qwen2.5-7b_es-es_n401_20261018-221030",
+        "interpretation": "external architectural contrast: ReAct agents against an LLM workflow differ in more than the coordination protocol, so this is not an estimate of its effect",
+        "strategy": "pipeline_agentic_p2",
+        "protocol": "p2",
+        "n_paired": 398,
+        "only_workflow": 3,
+        "only_agentic": 0,
+        "type_accuracy": {
+          "workflow": 0.7663,
+          "agentic": 0.7613,
+          "delta": -0.005025,
+          "ci95": [
+            -0.047739,
+            0.040201
+          ],
+          "mcnemar": {
+            "only_agentic_correct": 37,
+            "only_workflow_correct": 39,
+            "p_value": 0.908777
+          },
+          "strict": {
+            "workflow": 0.7681,
+            "agentic": 0.7556
+          }
+        },
+        "moscow": {
+          "n_paired": 398,
+          "accuracy": {
+            "workflow": 0.5477,
+            "agentic": 0.5126,
+            "delta": -0.035176,
+            "ci95": [
+              -0.095477,
+              0.025126
+            ],
+            "mcnemar": {
+              "only_agentic_correct": 63,
+              "only_workflow_correct": 77,
+              "p_value": 0.271842
+            }
+          },
+          "weighted_kappa": {
+            "workflow": 0.1306,
+            "agentic": 0.0663,
+            "delta": -0.064246,
+            "ci95": [
+              -0.165571,
+              0.037566
+            ],
+            "valid_resamples": 2000
+          }
+        },
+        "cost": {
+          "workflow": {
+            "n_total": 401,
+            "n_processed": 401,
+            "n_failed": 0,
+            "coverage": 1.0,
+            "seconds_per_item": 11.817,
+            "llm_calls_per_item": null,
+            "tokens_per_item": null
+          },
+          "agentic": {
+            "n_total": 401,
+            "n_processed": 398,
+            "n_failed": 3,
+            "coverage": 0.9925,
+            "seconds_per_item": 22.083,
+            "llm_calls_per_item": 5.135,
+            "tokens_per_item": 6712.5
+          },
+          "seconds_ratio": 1.87
+        }
+      },
+      {
+        "workflow": "pipeline_ollama-qwen2.5-7b-ollama-qwen2.5-7b_es-es_n401_20261019-171312",
+        "agentic": "pipeline_agentic_p3_ollama-qwen2.5-7b-ollama-qwen2.5-7b_es-es_n401_20261019-071626",
+        "interpretation": "external architectural contrast: ReAct agents against an LLM workflow differ in more than the coordination protocol, so this is not an estimate of its effect",
+        "strategy": "pipeline_agentic_p3",
+        "protocol": "p3",
+        "n_paired": 398,
+        "only_workflow": 3,
+        "only_agentic": 0,
+        "type_accuracy": {
+          "workflow": 0.7663,
+          "agentic": 0.7613,
+          "delta": -0.005025,
+          "ci95": [
+            -0.047739,
+            0.040201
+          ],
+          "mcnemar": {
+            "only_agentic_correct": 37,
+            "only_workflow_correct": 39,
+            "p_value": 0.908777
+          },
+          "strict": {
+            "workflow": 0.7681,
+            "agentic": 0.7556
+          }
+        },
+        "moscow": {
+          "n_paired": 398,
+          "accuracy": {
+            "workflow": 0.5477,
+            "agentic": 0.4975,
+            "delta": -0.050251,
+            "ci95": [
+              -0.10804,
+              0.005025
+            ],
+            "mcnemar": {
+              "only_agentic_correct": 59,
+              "only_workflow_correct": 79,
+              "p_value": 0.105454
+            }
+          },
+          "weighted_kappa": {
+            "workflow": 0.1306,
+            "agentic": 0.0759,
+            "delta": -0.054727,
+            "ci95": [
+              -0.159795,
+              0.044386
+            ],
+            "valid_resamples": 2000
+          }
+        },
+        "cost": {
+          "workflow": {
+            "n_total": 401,
+            "n_processed": 401,
+            "n_failed": 0,
+            "coverage": 1.0,
+            "seconds_per_item": 11.817,
+            "llm_calls_per_item": null,
+            "tokens_per_item": null
+          },
+          "agentic": {
+            "n_total": 401,
+            "n_processed": 398,
+            "n_failed": 3,
+            "coverage": 0.9925,
+            "seconds_per_item": 30.575,
+            "llm_calls_per_item": 4.741,
+            "tokens_per_item": 6186.5
+          },
+          "seconds_ratio": 2.59
+        }
+      }
+    ]
+  }
+}
