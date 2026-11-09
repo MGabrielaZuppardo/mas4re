@@ -4,6 +4,9 @@ from __future__ import annotations
 
 import csv
 import json
+import re
+from dataclasses import replace
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -106,7 +109,7 @@ def test_manifest_deterministic_fields(tmp_path: Path, fake_requirements) -> Non
             seed=42,
         )
         r1 = runner.execute(FakeStrategy(), config)
-        r2 = runner.execute(FakeStrategy(), config)
+        r2 = runner.execute(FakeStrategy(), replace(config, tag="again"))
 
     for key in ("strategy", "model", "seed", "temperature", "prompt_version"):
         assert r1.manifest[key] == r2.manifest[key]
@@ -356,10 +359,73 @@ class TestBacklogArtifacts:
             tmp_path,
             ProcessingStrategy(lose_last=True),
             backlog_delimiter=",",
-            include_ground_truth=False,
+            include_reference=False,
         )
 
         backlog = _read_csv(result.backlog_path, delimiter=",")
         failed = _read_csv(result.failed_path, delimiter=",")
-        assert "gold_type" not in backlog[0] and "gold_type" not in failed[0]
+        assert "reference_type" not in backlog[0] and "reference_type" not in failed[0]
         assert backlog[0]["requirement_type"] == "F"
+
+
+class _FrozenClock(datetime):
+    @classmethod
+    def now(cls, tz=None):
+        return datetime(2026, 10, 18, 15, 30, 12, tzinfo=timezone(timedelta(hours=-3)))
+
+
+def _dated_config(**overrides) -> RunConfig:
+    return RunConfig(
+        strategy_name="fake",
+        model="fake/model",
+        dataset_path="datasets/data/promise_nfr/promise_nfr_pt.csv",
+        n_samples=5,
+        **overrides,
+    )
+
+
+def test_run_id_e_trace_trazem_a_data_de_inicio_legivel(tmp_path: Path, fake_requirements) -> None:
+    with _patch_adapter(fake_requirements), patch("experiments.runner.datetime", _FrozenClock):
+        runner = ExperimentRunner(out_dir=str(tmp_path), trace_dir=str(tmp_path / "traces"))
+        result = runner.execute(FakeStrategy(), _dated_config())
+
+    assert result.run_id.endswith("_20261018-153012")
+    assert re.search(r"_n5_\d{8}-\d{6}$", result.run_id)
+    assert (tmp_path / "traces" / f"{result.run_id}.jsonl").exists()
+
+
+def test_manifest_e_results_guardam_inicio_e_fim_com_fuso(
+    tmp_path: Path, fake_requirements
+) -> None:
+    with _patch_adapter(fake_requirements), patch("experiments.runner.datetime", _FrozenClock):
+        runner = ExperimentRunner(out_dir=str(tmp_path), trace_dir=str(tmp_path / "traces"))
+        result = runner.execute(FakeStrategy(), _dated_config())
+
+    manifest = result.manifest
+    results = json.loads((tmp_path / result.run_id / "results.json").read_text(encoding="utf-8"))
+    assert manifest["started_at"] == "2026-10-18T15:30:12-03:00"
+    assert manifest["finished_at"] == "2026-10-18T15:30:12-03:00"
+    assert results["executed_at"] == manifest["started_at"]
+    assert results["finished_at"] == manifest["finished_at"]
+    assert "timestamp_utc" in manifest
+
+
+def test_inicio_nunca_vem_depois_do_fim(tmp_path: Path, fake_requirements) -> None:
+    with _patch_adapter(fake_requirements):
+        runner = ExperimentRunner(out_dir=str(tmp_path), trace_dir=str(tmp_path / "traces"))
+        result = runner.execute(FakeStrategy(), _dated_config())
+
+    started = datetime.fromisoformat(result.manifest["started_at"])
+    finished = datetime.fromisoformat(result.manifest["finished_at"])
+    assert started <= finished
+
+
+def test_duas_execucoes_no_mesmo_segundo_com_a_mesma_configuracao_falham(
+    tmp_path: Path, fake_requirements
+) -> None:
+    with _patch_adapter(fake_requirements), patch("experiments.runner.datetime", _FrozenClock):
+        runner = ExperimentRunner(out_dir=str(tmp_path), trace_dir=str(tmp_path / "traces"))
+        runner.execute(FakeStrategy(), _dated_config())
+
+        with pytest.raises(FileExistsError):
+            runner.execute(FakeStrategy(), _dated_config())

@@ -128,12 +128,20 @@ def test_cli_backlog_aceita_saida_separador_e_sem_gabarito(tmp_path: Path) -> No
 
     result = runner.invoke(
         app,
-        ["backlog", str(run_dir), "--out", str(target), "--delimiter", ",", "--no-ground-truth"],
+        [
+            "backlog",
+            str(run_dir),
+            "--out",
+            str(target),
+            "--delimiter",
+            ",",
+            "--no-reference-labels",
+        ],
     )
 
     assert result.exit_code == 0
     header = target.read_text(encoding="utf-8-sig").splitlines()[0]
-    assert header.startswith("run_id,requirement_id") and "gold_type" not in header
+    assert header.startswith("run_id,requirement_id") and "reference_type" not in header
 
 
 def test_cli_backlog_sem_results_json_falha(tmp_path: Path) -> None:
@@ -151,4 +159,4 @@ def test_cli_backlog_recusa_separador_invalido(tmp_path: Path) -> None:
 def test_cli_run_expoe_as_opcoes_do_backlog() -> None:
     params = {p.name for p in typer.main.get_command(app).commands["run"].params}
 
-    assert {"backlog_delimiter", "no_ground_truth"} <= params
+    assert {"backlog_delimiter", "no_reference_labels"} <= params

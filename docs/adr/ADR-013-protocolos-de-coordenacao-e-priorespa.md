@@ -16,7 +16,7 @@ classificador, sem dizer o que está errado e sem que ninguém possa recusar, ou
 entre componentes, não entre agentes.
 
 Falta ainda o dataset da dissertação. O PrioReSpa (401 requisitos em espanhol, com tipo, categoria
-PROMISE e **MoSCoW humano**) tem gabarito de prioridade; o PROMISE não tem. Seu gabarito é
+PROMISE e **MoSCoW de referência**, derivado automaticamente de padrões linguísticos, não rotulado por humanos) tem referência de prioridade; o PROMISE não tem. Seu gabarito é
 desbalanceado (Must 182, Should 205, Could 13, Won't 1; 51% para o baseline de maioria) e
 `relevance` quase não se correlaciona com MoSCoW (Spearman −0,06).
 
@@ -52,7 +52,7 @@ tem nada pendente não faz nada, e cada protocolo troca no máximo **uma rodada*
 **Dataset e idiomas.** `PrioReSpaAdapter` com `moscow_categorization` 4=Must, 3=Should, 2=Could,
 1=Won't; ids de texto (`1035-2` existe). O registro `datasets/registry.py` e `RunConfig.dataset_name`
 tiram o runner do acoplamento ao PROMISE. As métricas contra o gabarito ordinal
-(`compute_priority_gold_metrics`) são: acurácia ao lado do baseline de maioria, κ ponderado linear,
+(`compute_priority_reference_metrics`) são: acurácia ao lado do baseline de maioria, κ ponderado linear,
 Spearman, Kendall τ-b, MAE ordinal, precisão/revocação por classe, matriz de confusão e cobertura.
 
 Os prompts existem em PT, EN e **ES** (`Lang.ES`), em dicionários `Lang → texto` lidos por

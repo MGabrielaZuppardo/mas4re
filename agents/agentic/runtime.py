@@ -36,7 +36,7 @@ from llm.json_parser import extract_first_json
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_MAX_STEPS = 5
+DEFAULT_MAX_STEPS = 8
 _RECORDED = "Recorded."
 
 
@@ -125,6 +125,7 @@ class AgentRuntime:
             goal=task.goal,
             beliefs=list(task.beliefs),
             phase=task.phase,
+            available_actions=sorted(self._tools),
         )
         messages: list[BaseMessage] = [
             SystemMessage(content=task.system_prompt),

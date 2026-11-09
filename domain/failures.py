@@ -27,6 +27,10 @@ class FailureMode(StrEnum):
     GROUNDING_MISSING = "grounding_missing"
     AMBIGUOUS = "ambiguous"
     INTER_AGENT_CONFLICT = "inter_agent_conflict"
+    # Between agents that exchange messages (the inter-agent misalignment family of Cemri et al.,
+    # 2025): a request nobody answered, or an answer the behaviour contradicts.
+    INTERACTION_UNANSWERED = "interaction_unanswered"
+    INTERACTION_INCONSISTENT = "interaction_inconsistent"
 
 
 class FailureSeverity(StrEnum):

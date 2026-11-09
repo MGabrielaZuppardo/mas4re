@@ -20,6 +20,8 @@ class TestFailureMode:
             "grounding_missing",
             "ambiguous",
             "inter_agent_conflict",
+            "interaction_unanswered",
+            "interaction_inconsistent",
         }
         assert {m.value for m in FailureMode} == expected
 

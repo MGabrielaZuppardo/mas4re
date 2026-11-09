@@ -1,0 +1,47 @@
+# Exploratory studies (ADR-016). NOTHING here is confirmatory: these runs are written to
+# experiments/exploratory/, carry an `exploratory` block in their manifest and never enter
+# analyze_protocols. The confirmatory design (confirmatory.yml) is not changed by this file.
+# Hypotheses are written before the runs; the sha256 of this file goes in every manifest.
+version: 1
+status: exploratory
+warmup_size: 10          # the first items processed one by one, whose outcome seeds the memory
+variants:
+  x1-pinned-qwen:
+    question: Do P0, P2 and P3 still differ once the warm-up that seeds the memory is the same?
+    hypothesis: >
+      With the prioritizer's warm-up pinned to the P0 repeat, P0, P2 and P3 stop landing in different
+      Must regimes, and what remains is the effect of the protocol.
+    model: null          # inherit the confirmatory model
+    arms: [p0, p2, p3]
+    must_limit: null     # inherit the mediator's confirmatory limit
+    pin_warmup_from: P0R # confirmatory arm whose warm-up is copied
+  x2-mediator-active:
+    question: Does a mediator that actually intervenes change decisions, and toward the reference?
+    hypothesis: >
+      With the Must limit at 0.40 (the confirmatory runs showed 0.28 and 0.49), the mediator sends
+      requests; among the decisions it changes, those that start agreeing with the reference
+      outnumber those that stop. The limit was chosen after seeing the confirmatory runs.
+    model: null
+    arms: [p3]
+    must_limit: 0.40
+    pin_warmup_from: P0R
+  x3-gpt41mini:
+    question: Does a stronger model make P2 and P3 exchange more, and lose the warm-up dependence?
+    hypothesis: >
+      With foundry/gpt-4.1-mini, P2 and P3 exchange more messages than with qwen2.5:7b and the Must
+      regime no longer depends on the first items. Own noise floor (P0 repeated), own cell.
+    model: "foundry/gpt-4.1-mini+foundry/gpt-4.1-mini"
+    arms: [p0, p0-repeat, p2, p3]
+    must_limit: null
+    pin_warmup_from: null
+  x4-llama31:
+    question: Does another local model change the stability of the priorities and the agency?
+    hypothesis: >
+      With ollama/llama3.1:8b the prioritizer varies its actions less than qwen2.5:7b did (it tends
+      to go straight to submit_priority), and the Must regime still depends on the first items.
+      Own cell, own noise floor (P0 repeated). P2 and P3 are added only if P0 and its repeat
+      justify them.
+    model: "ollama/llama3.1:8b+ollama/llama3.1:8b"
+    arms: [p0, p0-repeat]
+    must_limit: null
+    pin_warmup_from: null

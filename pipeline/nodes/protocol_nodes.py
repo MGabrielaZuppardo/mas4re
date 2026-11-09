@@ -7,7 +7,7 @@ from agents.agentic.classifier import AgenticClassifier
 from agents.agentic.prioritizer import AgenticPrioritizer
 from domain.enums import Lang
 from domain.models import PipelineState
-from pipeline.mediation import mediate, must_share, request_for
+from pipeline.mediation import MUST_SHARE_LIMIT, mediate, must_share, request_for
 
 
 def classifier_answers_node(state: PipelineState, agent: AgenticClassifier) -> PipelineState:
@@ -20,15 +20,18 @@ def prioritizer_reconsiders_node(state: PipelineState, agent: AgenticPrioritizer
     return agent.reconsider(state)
 
 
-def mediator_node(state: PipelineState, lang: Lang, max_requests: int) -> PipelineState:
+def mediator_node(
+    state: PipelineState, lang: Lang, max_requests: int, must_limit: float = MUST_SHARE_LIMIT
+) -> PipelineState:
     """P3: the mediator reads the finished backlog and sends the requests it justifies."""
-    report = mediate(state.prioritized_requirements, lang, max_requests)
+    report = mediate(state.prioritized_requirements, lang, max_requests, must_limit)
     state.messages.extend(request_for(finding, lang) for finding in report.findings)
     state.metrics["mediator"] = {
         "conflicts": report.conflicts,
         "must_inflation": report.must_inflation,
         "requests": len(report.findings),
         "capped": report.capped,
+        "must_limit": must_limit,
         "must_share_before": round(report.must_share, 4),
     }
     return state

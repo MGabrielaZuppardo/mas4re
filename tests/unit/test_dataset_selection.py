@@ -139,8 +139,8 @@ class TestBacklogGoldPriority:
     def test_linha_traz_gabarito_e_acerto_da_prioridade(self):
         rows = {row.requirement_id: row for row in self._backlog().rows}
 
-        assert (rows["r0"].gold_priority, rows["r0"].priority_correct) == ("M", True)
-        assert (rows["r1"].gold_priority, rows["r1"].priority_correct) == ("S", False)
+        assert (rows["r0"].reference_priority, rows["r0"].priority_correct) == ("M", True)
+        assert (rows["r1"].reference_priority, rows["r1"].priority_correct) == ("S", False)
 
     def test_csv_ganha_as_colunas_de_gabarito_de_prioridade(self, tmp_path):
         path = write_backlog_csv(self._backlog().rows, tmp_path / "backlog.csv")
@@ -148,16 +148,16 @@ class TestBacklogGoldPriority:
         with path.open(encoding="utf-8-sig", newline="") as handle:
             rows = list(csv.DictReader(handle, delimiter=";"))
 
-        assert {"gold_priority", "priority_correct"} <= set(rows[0])
-        assert {row["gold_priority"] for row in rows} == {"M", "S", "C"}
+        assert {"reference_priority", "priority_correct"} <= set(rows[0])
+        assert {row["reference_priority"] for row in rows} == {"M", "S", "C"}
 
     def test_sem_gabarito_as_colunas_saem_do_csv(self, tmp_path):
         path = write_backlog_csv(
-            self._backlog().rows, tmp_path / "backlog.csv", include_ground_truth=False
+            self._backlog().rows, tmp_path / "backlog.csv", include_reference=False
         )
 
         header = path.read_text(encoding="utf-8-sig").splitlines()[0]
-        assert "gold_priority" not in header and "priority_correct" not in header
+        assert "reference_priority" not in header and "priority_correct" not in header
 
 
 class TestCli:
@@ -170,7 +170,9 @@ class TestCli:
             runner.return_value.execute.return_value = MagicMock(
                 metrics={}, backlog_path="b.csv", failed_path=None, actions_path=None
             )
-            result = CliRunner().invoke(app, ["run", "--strategy", "pipeline", *args])
+            result = CliRunner().invoke(
+                app, ["run", "--strategy", "pipeline", "--no-preflight", *args]
+            )
         return result, runner
 
     def test_priorespa_usa_o_arquivo_e_o_idioma_originais(self):

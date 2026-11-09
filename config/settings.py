@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     foundry_api_key: str = Field(default="")
     foundry_endpoint: str = Field(default="")
 
+    deepseek_api_key: str = Field(default="")
+    deepseek_base_url: str = Field(default="https://api.deepseek.com")
+
     ollama_base_url: str = Field(default="http://localhost:11434")
     ollama_classifier_model: str = Field(default="qwen2.5:7b")
     ollama_prioritizer_model: str = Field(default="llama3.1:8b")

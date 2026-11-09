@@ -37,6 +37,16 @@ class MemoryItem:
     justification: str
 
 
+@dataclass(frozen=True)
+class WarmupSeed:
+    """The outcome of a batch's warm-up, taken from another run instead of produced by this one:
+    the memory entries and the priorities decided so far. It pins the state that the frozen memory
+    would otherwise inherit from the first few items (exploratory studies only)."""
+
+    items: tuple[MemoryItem, ...]
+    decided: tuple[tuple[str, int], ...]
+
+
 @dataclass
 class EpisodicMemory:
     """Episodic memory of items already processed earlier in this batch."""
@@ -51,6 +61,12 @@ class EpisodicMemory:
             return
         item = MemoryItem(requirement_id, text, output_summary, justification)
         self._items.append((item, _tokenize(text)))
+
+    def seed(self, warmup: WarmupSeed) -> None:
+        """Load a warm-up produced elsewhere and freeze: no further writes in this batch."""
+        for item in warmup.items:
+            self.add(item.requirement_id, item.text, item.output_summary, item.justification)
+        self.freeze()
 
     def freeze(self) -> None:
         """Stop accepting writes -- makes concurrent reads race-free."""

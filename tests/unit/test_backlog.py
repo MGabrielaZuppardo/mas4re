@@ -23,8 +23,10 @@ from evaluation.backlog import (
 )
 
 
-def _requirement(index: int, gold_type: str | None = "F", **overrides) -> Requirement:
-    metadata = {} if gold_type is None else {"label_type": gold_type, "label_category": "F"}
+def _requirement(index: int, reference_type: str | None = "F", **overrides) -> Requirement:
+    metadata = (
+        {} if reference_type is None else {"label_type": reference_type, "label_category": "F"}
+    )
     fields = {
         "id": f"r{index}",
         "text": f"Requisito {index} do sistema.",
@@ -188,18 +190,18 @@ class TestBuildBacklog:
 
         rows = {r.requirement_id: r for r in build_backlog(state, "run-1").rows}
 
-        assert rows["r1"].gold_type == "F" and rows["r1"].type_correct is True
-        assert rows["r2"].gold_type == "NF" and rows["r2"].type_correct is False
+        assert rows["r1"].reference_type == "F" and rows["r1"].type_correct is True
+        assert rows["r2"].reference_type == "NF" and rows["r2"].type_correct is False
 
     def test_sem_gabarito_o_acerto_fica_indefinido(self):
-        source = _requirement(1, gold_type=None)
+        source = _requirement(1, reference_type=None)
         state = PipelineState(
             raw_requirements=[source], classified_requirements=[_classified(source)]
         )
 
         [row] = build_backlog(state, "run-1").rows
 
-        assert row.gold_type is None and row.type_correct is None
+        assert row.reference_type is None and row.type_correct is None
 
 
 class TestBacklogFromResults:
@@ -216,7 +218,7 @@ class TestBacklogFromResults:
         assert backlog.failed == []
         [row] = backlog.rows
         assert (row.run_id, row.nfr_category, row.priority) == ("run-old", "PE", "M")
-        assert row.gold_type == "NF" and row.type_correct is True
+        assert row.reference_type == "NF" and row.type_correct is True
 
     def test_predicao_sem_prioridade_vira_so_classificacao(self):
         classified = _classified(_requirement(1))
@@ -276,22 +278,22 @@ class TestWriteBacklogCsv:
         assert row["priority"] == "" and row["priority_rank"] == ""
         assert row["type_correct"] == "true"
 
-    def test_sem_a_opcao_de_gabarito_as_colunas_gold_somem(self, tmp_path):
-        path = write_backlog_csv(self._rows(), tmp_path / "b.csv", include_ground_truth=False)
+    def test_sem_a_opcao_de_gabarito_as_colunas_de_referencia_somem(self, tmp_path):
+        path = write_backlog_csv(self._rows(), tmp_path / "b.csv", include_reference=False)
 
         columns = _read_csv(path)[0].keys()
 
-        assert not {"gold_type", "gold_category", "type_correct"} & set(columns)
+        assert not {"reference_type", "reference_category", "type_correct"} & set(columns)
 
     def test_dataset_sem_gabarito_nao_gera_colunas_gold(self, tmp_path):
-        source = _requirement(1, gold_type=None)
+        source = _requirement(1, reference_type=None)
         state = PipelineState(
             raw_requirements=[source], classified_requirements=[_classified(source)]
         )
 
         path = write_backlog_csv(build_backlog(state, "r").rows, tmp_path / "b.csv")
 
-        assert "gold_type" not in _read_csv(path)[0]
+        assert "reference_type" not in _read_csv(path)[0]
 
 
 class TestWriteFailedCsv:
@@ -315,4 +317,4 @@ class TestWriteFailedCsv:
             "classify:schema_invalid:fatal - parser fell back"
             " | classify:low_confidence:degraded - baixa confiança"
         )
-        assert row["gold_type"] == "F"
+        assert row["reference_type"] == "F"

@@ -99,9 +99,10 @@ def mediate(
     items: Sequence[PrioritizedRequirement],
     lang: Lang,
     max_requests: int = DEFAULT_MAX_REQUESTS,
+    must_limit: float = MUST_SHARE_LIMIT,
 ) -> MediationReport:
     conflicts = find_conflicts(items, lang)
-    inflation = find_must_inflation(items, lang)
+    inflation = find_must_inflation(items, lang, must_limit)
     first_finding_per_item: dict[str, Finding] = {}
     for finding in [*conflicts, *inflation]:
         first_finding_per_item.setdefault(finding.requirement_id, finding)

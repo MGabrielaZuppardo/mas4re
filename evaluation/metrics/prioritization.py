@@ -9,7 +9,12 @@ from typing import Any
 
 import numpy as np
 from scipy.stats import kendalltau, spearmanr
-from sklearn.metrics import cohen_kappa_score, confusion_matrix, precision_recall_fscore_support
+from sklearn.metrics import (
+    cohen_kappa_score,
+    confusion_matrix,
+    f1_score,
+    precision_recall_fscore_support,
+)
 
 from domain.enums import MoSCoWPriority
 from domain.models import PrioritizedRequirement, Requirement
@@ -23,6 +28,10 @@ _ORDER = (
     MoSCoWPriority.MUST_HAVE,
 )
 _ORDINALS = [priority.ordinal for priority in _ORDER]
+
+# Whether the reference codes 1..4 of the dataset were shown to mean Won't..Must (ADR-014). Until
+# they are, the weighted kappa is exploratory and the nominal kappa is the primary agreement.
+ORDINAL_MAPPING_VERIFIED = False
 
 
 def _finite(value: float) -> float | None:
@@ -72,19 +81,22 @@ def _confusion(y_true: list[int], y_pred: list[int]) -> dict[str, dict[str, int]
     }
 
 
-def compute_priority_gold_metrics(
+def compute_priority_reference_metrics(
     prioritized: Sequence[PrioritizedRequirement],
     requirements: Sequence[Requirement],
 ) -> dict[str, Any]:
-    """Priorities against the human MoSCoW labels of the dataset.
+    """Priorities against the MoSCoW reference labels of the dataset.
 
-    The gold lives in `Requirement.metadata["ground_truth_priority"]`; datasets without it get
-    an empty result. Requirements the agents could not process are not in `prioritized`, so
-    `coverage` is reported next to every figure. MoSCoW is ordinal, hence the weighted kappa and
-    the rank correlations next to accuracy; `majority_baseline_accuracy` is what always answering
-    the most frequent class would score on the same items.
+    The reference lives in `Requirement.metadata["ground_truth_priority"]`; datasets without it
+    get an empty result. The labels are the benchmark's criteria, not independent human truth:
+    agreement here means agreement with the benchmark. Requirements the agents could not
+    process are not in `prioritized`, so `coverage` is reported next to every figure. MoSCoW is
+    ordinal, hence the weighted kappa and the rank correlations next to accuracy, but only once
+    the code-to-priority mapping is verified (`ORDINAL_MAPPING_VERIFIED`);
+    `majority_baseline_accuracy` is what always answering the most frequent class would score on
+    the same items.
     """
-    gold = {r.id: g for r in requirements if (g := r.gold_priority) is not None}
+    gold = {r.id: g for r in requirements if (g := r.reference_priority) is not None}
     if not gold:
         return {}
     relevance = {r.id: r.metadata.get("ground_truth_relevance") for r in requirements}
@@ -107,9 +119,12 @@ def compute_priority_gold_metrics(
     result.update(
         accuracy=round(float(np.mean(np.array(y_true) == np.array(y_pred))), 4),
         majority_baseline_accuracy=round(max(Counter(y_true).values()) / len(y_true), 4),
+        f1_macro=_quietly(lambda: f1_score(y_true, y_pred, average="macro", zero_division=0)),
+        kappa_nominal=_quietly(lambda: cohen_kappa_score(y_true, y_pred, labels=_ORDINALS)),
         weighted_kappa=_quietly(
             lambda: cohen_kappa_score(y_true, y_pred, weights="linear", labels=_ORDINALS)
         ),
+        ordinal_mapping_verified=ORDINAL_MAPPING_VERIFIED,
         mae_ordinal=round(float(np.mean(np.abs(np.array(y_true) - np.array(y_pred)))), 4),
         spearman=_correlation(spearmanr, y_true, y_pred),
         kendall_tau_b=_correlation(kendalltau, y_true, y_pred),

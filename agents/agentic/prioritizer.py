@@ -18,7 +18,7 @@ from agents.agentic.toolkit import (
     make_terminal_tool,
 )
 from agents.base import rank_by_priority
-from agents.memory import EpisodicMemory
+from agents.memory import EpisodicMemory, WarmupSeed
 from domain.agent_actions import Belief, EpisodePhase, Goal
 from domain.enums import CoordinationProtocol, Lang, MoSCoWPriority
 from domain.messages import (
@@ -39,6 +39,7 @@ from domain.models import (
     PrioritizedRequirement,
     Requirement,
 )
+from evaluation.decisions import snapshot_decisions
 from evaluation.failure_detectors import DetectionContext
 from llm.factory import build_llm
 from prompts.v2.agent_prioritization import (
@@ -115,8 +116,10 @@ class AgenticPrioritizer(AgenticAgent[Handoff, PrioritizedRequirement]):
         peer: str = "classifier",
         max_steps: int = DEFAULT_MAX_STEPS,
         protocol: CoordinationProtocol = CoordinationProtocol.FIXED,
+        warmup_seed: WarmupSeed | None = None,
     ) -> None:
         super().__init__(model=model, temperature=temperature, trace_writer=trace_writer)
+        self._warmup_seed = warmup_seed
         self._lang = lang
         self._peer = peer
         self._protocol = protocol
@@ -183,6 +186,7 @@ class AgenticPrioritizer(AgenticAgent[Handoff, PrioritizedRequirement]):
         state.prioritized_requirements = [
             self._with_provenance(item, sources.get(item.id)) for item in prioritized
         ]
+        state.metrics["initial_decisions"] = snapshot_decisions(state.prioritized_requirements)
         state.messages.extend(self._outbox)
         self._outbox = []
         self._persist_failure_records(state)
@@ -200,6 +204,9 @@ class AgenticPrioritizer(AgenticAgent[Handoff, PrioritizedRequirement]):
             by_category=Counter(h.report.nfr_category for h in handoffs if h.report.nfr_category),
             memory=self._memory,
         )
+        if self._warmup_seed is not None:
+            self._memory.seed(self._warmup_seed)
+            self._view.decided.update(dict(self._warmup_seed.decided))
         ordered = self._run_batch(handoffs, stage="prioritize", max_workers=max_workers)
         return rank_by_priority(ordered)
 

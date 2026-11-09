@@ -26,11 +26,12 @@ Output:
 from __future__ import annotations
 
 import argparse
+import json
 import math
 import re
 from collections import Counter, defaultdict
 from collections.abc import Callable, Iterable, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -47,8 +48,10 @@ from agents.agentic.toolkit import (
 )
 from domain.agent_actions import ActionKind, ActionRecord, AgentEpisode, EpisodePhase
 from domain.enums import InformationRegime, MoSCoWPriority
+from domain.messages import Message
 from domain.models import PrioritizedRequirement
-from evaluation.agent_activity import ACTIONS_FILENAME, summarize_episodes
+from evaluation.agent_activity import ACTIONS_FILENAME, MESSAGES_FILENAME, summarize_episodes
+from evaluation.decisions import DECISIONS_FILENAME
 from evaluation.metrics.statistical import (
     bootstrap_ci,
     bootstrap_statistic_difference,
@@ -119,6 +122,8 @@ class AgencyRun:
     results: dict[str, Any]
     items: dict[str, PrioritizedRequirement]
     episodes: list[AgentEpisode]
+    messages: list[Message] = field(default_factory=list)
+    decisions: list[dict[str, Any]] = field(default_factory=list)
 
     @property
     def strategy(self) -> str:
@@ -158,7 +163,18 @@ def load_run(run_dir: str | Path) -> AgencyRun:
     actions = run_dir / ACTIONS_FILENAME
     lines = actions.read_text(encoding="utf-8").splitlines() if actions.exists() else []
     episodes = [AgentEpisode.model_validate_json(line) for line in lines if line.strip()]
-    return AgencyRun(run_dir, manifest, results, items, episodes)
+    messages_file = run_dir / MESSAGES_FILENAME
+    message_lines = (
+        messages_file.read_text(encoding="utf-8").splitlines() if messages_file.exists() else []
+    )
+    messages = [Message.model_validate_json(line) for line in message_lines if line.strip()]
+    decisions_file = run_dir / DECISIONS_FILENAME
+    decisions = (
+        [json.loads(line) for line in decisions_file.read_text(encoding="utf-8").splitlines()]
+        if decisions_file.exists()
+        else []
+    )
+    return AgencyRun(run_dir, manifest, results, items, episodes, messages, decisions)
 
 
 def single_cell(runs: Sequence[AgencyRun]) -> Cell:
@@ -390,12 +406,12 @@ def _accuracy_block(
     }
 
 
-def _gold_ordinals(run: AgencyRun, ids: Sequence[str]) -> np.ndarray:
+def _reference_ordinals(run: AgencyRun, ids: Sequence[str]) -> np.ndarray:
     return np.array([_gold(run.items[i]) for i in ids])
 
 
 def _gold(item: PrioritizedRequirement) -> int:
-    gold = item.gold_priority
+    gold = item.reference_priority
     assert gold is not None
     return gold.ordinal
 
@@ -419,7 +435,7 @@ def _moscow_comparison(
     ids = sorted(
         i
         for i in workflow.items.keys() & agentic.items.keys()
-        if workflow.items[i].gold_priority is not None
+        if workflow.items[i].reference_priority is not None
         and workflow.items[i].priority is not None
         and agentic.items[i].priority is not None
     )
@@ -427,7 +443,7 @@ def _moscow_comparison(
     if len(ids) < 2:
         return {**result, "verdict": "insufficient_data"}
 
-    gold = _gold_ordinals(workflow, ids)
+    gold = _reference_ordinals(workflow, ids)
     by_workflow, by_agentic = _predicted_ordinals(workflow, ids), _predicted_ordinals(agentic, ids)
     result["accuracy"] = _accuracy_block(
         list(by_workflow == gold), list(by_agentic == gold), n_bootstrap, seed
@@ -505,6 +521,10 @@ def compare_to_workflow(
     return {
         "workflow": workflow.path.name,
         "agentic": agentic.path.name,
+        "interpretation": (
+            "external architectural contrast: ReAct agents against an LLM workflow differ in "
+            "more than the coordination protocol, so this is not an estimate of its effect"
+        ),
         "strategy": agentic.strategy,
         "protocol": agentic.protocol,
         "n_paired": len(paired),

@@ -13,6 +13,8 @@ pergunta: **quem decide o próximo passo?** Se é o código, é workflow; se é 
 | C4 | O agente pode recusar um pedido | Aceite e recusa possíveis, decididos só pelo modelo; taxas de aceite e recusa, ambas > 0, em execuções reais | aceita sempre: o "conselho" é ordem disfarçada |
 | C5 | Uma observação altera a ação seguinte | Unitário: a observação chega ao modelo e a resposta a ela muda a ação. Em execuções reais: associação estatística entre resultado da ferramenta e ação escolhida | a ação não depende do que foi observado |
 | C6 | Objetivos e crenças explícitos e inspecionáveis | `Goal` e `Belief` no episódio (`actions.jsonl`) e presença comprovada no prompt | não há onde inspecionar |
+| C8 | A execução obedeceu à arquitetura do protocolo | Canais e atos permitidos descritos em `pipeline/protocol_spec.py`; `evaluation/protocol_conformance.py` confere as mensagens (canal, participante, resposta ligada a pedido, limite por requisito) | mensagens fora do spec: a arquitetura que rodou não é a descrita |
+| C9 | A interação mudou decisões, e isso é mensurável | `decisions.jsonl` (decisão inicial e final) e `analyze_protocols` (`interaction_effect`); falhas em `interaction_failures` | o canal existe mas nada muda: protocolo indistinguível do P0 |
 | C7 | Ablação contra o workflow nos mesmos itens | `pipeline` (workflow) × `pipeline_agentic`, com custo, mesmo que o ganho seja nulo | a comparação não existe |
 
 ## Estado

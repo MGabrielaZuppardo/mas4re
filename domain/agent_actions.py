@@ -69,6 +69,7 @@ class AgentEpisode(BaseModel):
     outcome: EpisodeOutcome = EpisodeOutcome.BUDGET_EXHAUSTED
     submitted_via: Literal["tool", "text"] | None = None
     phase: EpisodePhase = EpisodePhase.WORK
+    available_actions: list[str] = Field(default_factory=list)
 
     @property
     def llm_calls(self) -> int:

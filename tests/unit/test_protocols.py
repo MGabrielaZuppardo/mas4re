@@ -443,6 +443,7 @@ class TestMediatedProtocol:
             "must_inflation": 1,
             "requests": 1,
             "capped": False,
+            "must_limit": 0.6,
             "must_share_before": 1.0,
             "must_share_after": 0.0,
         }
@@ -632,3 +633,52 @@ class TestPrioritizerAnswers:
         [item] = state.prioritized_requirements
         assert (item.priority, item.priority_score) == (MoSCoWPriority.SHOULD_HAVE, 0.6)
         assert item.priority_justification == "rebaixado"
+
+
+class TestMediatorLimit:
+    @staticmethod
+    def _backlog(musts: int, total: int):
+        from domain.enums import Lang, MoSCoWPriority, RequirementType
+        from domain.models import PrioritizedRequirement
+
+        return [
+            PrioritizedRequirement(
+                id=f"r{i}",
+                text=f"Requisito {i}",
+                requirement_type=RequirementType.FUNCTIONAL,
+                confidence=0.9,
+                priority=MoSCoWPriority.MUST_HAVE if i < musts else MoSCoWPriority.SHOULD_HAVE,
+                priority_score=1.0 - i / 100,
+                priority_rank=i + 1,
+            )
+            for i in range(total)
+        ], Lang.PT
+
+    def test_limite_padrao_e_60_por_cento(self):
+        from pipeline.mediation import MUST_SHARE_LIMIT, mediate
+
+        items, lang = self._backlog(musts=5, total=10)
+
+        assert MUST_SHARE_LIMIT == 0.60
+        assert mediate(items, lang).must_inflation == 0
+
+    def test_limite_menor_gera_pedidos_so_para_o_excesso(self):
+        from pipeline.mediation import mediate
+
+        items, lang = self._backlog(musts=5, total=10)
+
+        report = mediate(items, lang, must_limit=0.40)
+
+        assert report.must_inflation == 1 and len(report.findings) == 1
+
+    def test_mediador_registra_o_limite_usado(self):
+        from domain.models import PipelineState
+        from pipeline.nodes.protocol_nodes import mediator_node
+
+        items, lang = self._backlog(musts=5, total=10)
+        state = PipelineState(raw_requirements=[], prioritized_requirements=items)
+
+        mediator_node(state, lang, max_requests=25, must_limit=0.30)
+
+        assert state.metrics["mediator"]["must_limit"] == 0.30
+        assert state.metrics["mediator"]["must_inflation"] == 2

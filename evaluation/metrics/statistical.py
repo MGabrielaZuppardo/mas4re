@@ -278,6 +278,103 @@ def mcnemar_exact(a_correct: Sequence[bool], b_correct: Sequence[bool]) -> McNem
 
 
 # ---------------------------------------------------------------------------
+# Paired permutation test, Friedman and Holm (protocol contrasts, ADR-014)
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class PermutationResult:
+    observed_difference: float
+    p_value: float
+    n_permutations: int
+
+
+@dataclass(frozen=True)
+class FriedmanResult:
+    statistic: float
+    p_value: float
+    n: int
+    conditions: int
+
+
+def paired_permutation_test(
+    difference: Callable[[np.ndarray], float],
+    n: int,
+    n_permutations: int = 10_000,
+    seed: int = 42,
+) -> PermutationResult:
+    """Two-sided permutation test for a corpus metric on paired outputs.
+
+    Under the null the two protocols are exchangeable on each requirement, so the test swaps,
+    requirement by requirement, which protocol produced which output. `difference` receives a
+    boolean mask of the requirements whose outputs are swapped and returns the metric of A minus
+    that of B after the swap; an all-False mask is the observed difference. Permutations where
+    the metric is undefined (NaN) are skipped. The p-value counts the observed result as one
+    permutation, so it is never zero.
+
+    Raises:
+        ValueError: if n < 2 or no permutation had a defined statistic.
+    """
+    if n < 2:
+        raise ValueError("Need at least 2 paired observations")
+
+    observed = float(difference(np.zeros(n, dtype=bool)))
+    rng = np.random.default_rng(seed)
+    permuted = np.array(
+        [difference(rng.random(n) < 0.5) for _ in range(n_permutations)], dtype=float
+    )
+    defined = permuted[~np.isnan(permuted)]
+    if defined.size == 0:
+        raise ValueError("The statistic is undefined in every permutation")
+
+    extreme = int(np.sum(np.abs(defined) >= abs(observed) - 1e-12))
+    return PermutationResult(
+        observed_difference=round(observed, 6),
+        p_value=float((extreme + 1) / (defined.size + 1)),
+        n_permutations=int(defined.size),
+    )
+
+
+def friedman_test(conditions: Sequence[Sequence[float]]) -> FriedmanResult:
+    """Friedman test over the same requirements measured under three or more conditions.
+
+    Raises:
+        ValueError: if fewer than three conditions or the samples are not paired.
+    """
+    from scipy.stats import friedmanchisquare
+
+    if len(conditions) < 3:
+        raise ValueError("Friedman needs at least 3 conditions")
+    sizes = {len(c) for c in conditions}
+    if len(sizes) != 1 or sizes.pop() < 2:
+        raise ValueError("Conditions must be paired with at least 2 observations")
+
+    columns = [np.asarray(c, dtype=float) for c in conditions]
+    if all(np.array_equal(columns[0], other) for other in columns[1:]):
+        return FriedmanResult(
+            statistic=0.0, p_value=1.0, n=len(columns[0]), conditions=len(columns)
+        )
+    statistic, p_value = friedmanchisquare(*columns)
+    return FriedmanResult(
+        statistic=float(statistic),
+        p_value=float(p_value),
+        n=len(columns[0]),
+        conditions=len(columns),
+    )
+
+
+def holm_adjust(p_values: Sequence[float]) -> list[float]:
+    """Holm step-down adjusted p-values, in the order given."""
+    order = sorted(range(len(p_values)), key=lambda i: p_values[i])
+    adjusted = [0.0] * len(p_values)
+    running = 0.0
+    for rank, index in enumerate(order):
+        running = max(running, (len(p_values) - rank) * p_values[index])
+        adjusted[index] = min(1.0, running)
+    return adjusted
+
+
+# ---------------------------------------------------------------------------
 # Full pairwise report (convenience wrapper for notebooks)
 # ---------------------------------------------------------------------------
 

@@ -1,0 +1,39 @@
+# Confirmatory design, frozen before any confirmatory run (ADR-014).
+# A run is confirmatory only if every field below holds; the sha256 of this file goes in its manifest.
+version: 1
+factor: coordination_protocol
+dataset_name: priorespa
+data_lang: es
+lang: es
+n_samples: null          # census of the benchmark, no sampling
+expected_n: 401
+seed: 42
+temperature: 0.0
+model: "ollama/qwen2.5:7b+ollama/qwen2.5:7b"
+information_regime: zero_shot
+max_steps: 8             # model calls per agent episode; raised from 5 before any collection (ADR-014)
+replicates: 1            # per protocol; the noise floor below is the only repeat
+noise_floor:
+  tag: p0-repeat         # run label that marks the repeat in manifest and folder name
+  protocol: P0           # P0 run a second time under the identical configuration
+  repeats: 1             # never a level of the factor, only the size an effect must exceed
+protocols:
+  P0: pipeline_agentic
+  P2: pipeline_agentic_p2
+  P3: pipeline_agentic_p3
+control: pipeline        # external architectural control, never a level of the factor
+contrasts:
+  - [P2, P0]
+  - [P3, P0]
+  - [P3, P2]
+architecture_claim:     # when the data support calling a run a multi-agent architecture (ADR-015)
+  min_requests_p2_p3: 1            # the protocol's channel was used at least this many times
+  max_conformance_violations: 0    # every message fits the protocol's spec
+  min_action_entropy_bits: 0.0     # agents chose different action sequences (exclusive bound)
+  max_budget_exhaustion_rate: 0.2  # agents mostly finish on their own
+inference:
+  alpha: 0.05
+  multiplicity: holm
+  n_permutations: 10000
+  n_bootstrap: 2000
+  confidence: 0.95

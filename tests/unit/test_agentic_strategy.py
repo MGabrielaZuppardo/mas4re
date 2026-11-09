@@ -178,6 +178,86 @@ class TestRunnerArtifacts:
         assert result.metrics["interaction"]["requests_by_sender"] == {"mediator": 1}
         assert result.metrics["interaction"]["refuse"] == 1
         assert result.metrics["mediator"]["must_inflation"] == 1
+        assert result.metrics["conformance"]["violations"] == 0
+        assert result.manifest["architecture"]["protocol"] == "p3"
+
+    def test_mensagens_trocadas_vao_para_o_messages_jsonl(self, tmp_path):
+        classifier_llm = ScriptedChatModel(script=[_classify("PE")])
+        prioritizer_llm = ScriptedChatModel(script=[_prioritize("M"), _refuse_request()])
+        with (
+            patch("agents.agentic.classifier.build_llm", return_value=classifier_llm),
+            patch("agents.agentic.prioritizer.build_llm", return_value=prioritizer_llm),
+        ):
+            strategy = AgenticPipelineStrategy(
+                "ollama/clf", "ollama/pri", max_steps=4, protocol=CoordinationProtocol.MEDIATED
+            )
+
+        result = self._run(tmp_path, strategy)
+
+        lines = result.messages_path.read_text(encoding="utf-8").splitlines()
+        assert [json.loads(line)["performative"] for line in lines] == [
+            "inform",
+            "request",
+            "refuse",
+        ]
+        data = json.loads(next(tmp_path.glob("**/results.json")).read_text(encoding="utf-8"))
+        assert data["messages_path"] == str(result.messages_path)
+
+    @staticmethod
+    def _mediated_run(tmp_path):
+        classifier_llm = ScriptedChatModel(script=[_classify("PE")])
+        prioritizer_llm = ScriptedChatModel(script=[_prioritize("M"), _refuse_request()])
+        with (
+            patch("agents.agentic.classifier.build_llm", return_value=classifier_llm),
+            patch("agents.agentic.prioritizer.build_llm", return_value=prioritizer_llm),
+        ):
+            strategy = AgenticPipelineStrategy(
+                "ollama/clf", "ollama/pri", max_steps=4, protocol=CoordinationProtocol.MEDIATED
+            )
+        return TestRunnerArtifacts._run(tmp_path, strategy)
+
+    def test_replay_reconstroi_as_metricas_so_dos_registros(self, tmp_path):
+        from experiments.replay_metrics import replay
+
+        result = self._mediated_run(tmp_path)
+
+        report = replay(tmp_path / result.run_id)
+
+        assert report["ok"], report
+        assert {"agent_activity", "interaction", "conformance", "interaction_failures"} <= set(
+            report["checked"]
+        )
+
+    def test_replay_acusa_metrica_adulterada(self, tmp_path):
+        from experiments.replay_metrics import replay
+
+        result = self._mediated_run(tmp_path)
+        path = tmp_path / result.run_id / "results.json"
+        data = json.loads(path.read_text(encoding="utf-8"))
+        data["metrics"]["interaction"]["requests"] += 5
+        path.write_text(json.dumps(data), encoding="utf-8")
+
+        report = replay(tmp_path / result.run_id)
+
+        assert not report["ok"] and report["checked"]["interaction"]["match"] is False
+
+    def test_execucao_mediada_grava_as_decisoes_iniciais_e_finais(self, tmp_path):
+        result = self._mediated_run(tmp_path)
+
+        rows = [
+            json.loads(line)
+            for line in (tmp_path / result.run_id / "decisions.jsonl")
+            .read_text("utf-8")
+            .splitlines()
+        ]
+
+        assert rows[0]["initial_priority"] == "M" and rows[0]["id"] == "r1"
+
+    def test_protocolo_fixo_so_registra_o_repasse_do_classificador(self, tmp_path):
+        result = self._run(tmp_path, _strategy())
+
+        lines = result.messages_path.read_text(encoding="utf-8").splitlines()
+        assert [json.loads(line)["performative"] for line in lines] == ["inform"]
 
     def test_protocolo_fixo_nao_gera_interacao_nem_mediador(self, tmp_path):
         result = self._run(tmp_path, _strategy())
@@ -216,7 +296,17 @@ class TestCli:
                 metrics={}, backlog_path="b.csv", failed_path=None, actions_path="a.jsonl"
             )
             result = CliRunner().invoke(
-                app, ["run", "--strategy", "pipeline_agentic", "--n", "1", "--max-steps", "7"]
+                app,
+                [
+                    "run",
+                    "--strategy",
+                    "pipeline_agentic",
+                    "--n",
+                    "1",
+                    "--max-steps",
+                    "7",
+                    "--no-preflight",
+                ],
             )
 
         assert result.exit_code == 0, result.output
@@ -240,7 +330,9 @@ class TestCli:
             experiment_runner.return_value.execute.return_value = MagicMock(
                 metrics={}, backlog_path="b.csv", failed_path=None, actions_path=None
             )
-            result = CliRunner().invoke(app, ["run", "--strategy", name, "--n", "1"])
+            result = CliRunner().invoke(
+                app, ["run", "--strategy", name, "--n", "1", "--no-preflight"]
+            )
 
         assert result.exit_code == 0, result.output
         assert strategy.call_args.kwargs["protocol"] is protocol

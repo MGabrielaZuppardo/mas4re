@@ -195,17 +195,21 @@ class ClassificationAgent(BaseAgent[Requirement, ClassifiedRequirement]):
         )
 
         # ReAct (Yao et al., 2023): the model decides whether to call the
-        # taxonomy tool; bounded to at most one call -- the follow-up
+        # taxonomy tool; bounded to one round of calls (every call in it is answered,
+        # as providers reject an unanswered tool_call_id) -- the follow-up
         # generation uses the unbound _llm, not _llm_with_tools, so it must
         # produce a final answer instead of requesting another tool call.
         response = self._llm_with_tools.invoke(messages)
         if response.tool_calls:
-            call = response.tool_calls[0]
-            tool_result = self._tool.invoke(call["args"])
             followup: list[dict[str, str] | BaseMessage] = [
                 *messages,
                 response,
-                ToolMessage(content=str(tool_result), tool_call_id=call["id"]),
+                *(
+                    ToolMessage(
+                        content=str(self._tool.invoke(call["args"])), tool_call_id=call["id"]
+                    )
+                    for call in response.tool_calls
+                ),
             ]
             response = self._llm.invoke(followup)
 

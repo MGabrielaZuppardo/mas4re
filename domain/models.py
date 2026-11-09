@@ -29,8 +29,8 @@ class Requirement(BaseModel):
         return v.strip()
 
     @property
-    def gold_priority(self) -> MoSCoWPriority | None:
-        """The dataset's human MoSCoW label, if it has one (also when read back from JSON)."""
+    def reference_priority(self) -> MoSCoWPriority | None:
+        """The dataset's MoSCoW reference label, if it has one (also when read back from JSON)."""
         value = self.metadata.get("ground_truth_priority")
         if isinstance(value, MoSCoWPriority):
             return value

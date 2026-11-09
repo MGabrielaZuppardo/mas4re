@@ -12,6 +12,7 @@ import pytest
 
 from agents.agentic.classifier import AgenticClassifier
 from agents.agentic.prioritizer import AgenticPrioritizer
+from agents.agentic.runtime import DEFAULT_MAX_STEPS
 from domain.agent_actions import AgentEpisode
 from domain.enums import RequirementType
 from domain.messages import (
@@ -113,7 +114,9 @@ class TestC1NextStepIsTheModelsAction:
 class TestC2TheAgentDecidesWhenToFinish:
     def test_quem_termina_e_o_agente_e_o_orcamento_so_impede_o_excesso(self):
         finishing = _classifier([_submit()])
-        looping = _classifier([tool_call("lookup_nfr_taxonomy", category_code="PE")] * 5)
+        looping = _classifier(
+            [tool_call("lookup_nfr_taxonomy", category_code="PE")] * DEFAULT_MAX_STEPS
+        )
 
         finishing.classify_batch([Requirement(id="r1", text=_TEXT)])
         looping.classify_batch([Requirement(id="r1", text=_TEXT)])
@@ -124,7 +127,9 @@ class TestC2TheAgentDecidesWhenToFinish:
         assert summarize_episodes(looping._episodes)["classifier"]["budget_exhaustion_rate"] == 1.0
 
     def test_o_codigo_nunca_escreve_a_resposta_no_lugar_do_agente(self):
-        looping = _classifier([tool_call("lookup_nfr_taxonomy", category_code="PE")] * 5)
+        looping = _classifier(
+            [tool_call("lookup_nfr_taxonomy", category_code="PE")] * DEFAULT_MAX_STEPS
+        )
 
         classified = looping.classify_batch([Requirement(id="r1", text=_TEXT)])
 

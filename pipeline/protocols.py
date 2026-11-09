@@ -24,7 +24,7 @@ from agents.agentic.prioritizer import AgenticPrioritizer
 from domain.enums import CoordinationProtocol, Lang
 from domain.models import PipelineState
 from pipeline.graph import build_pipeline_graph
-from pipeline.mediation import DEFAULT_MAX_REQUESTS
+from pipeline.mediation import DEFAULT_MAX_REQUESTS, MUST_SHARE_LIMIT
 from pipeline.nodes.classifier_node import classifier_node
 from pipeline.nodes.cross_check_node import cross_check_node
 from pipeline.nodes.prioritizer_node import prioritizer_node
@@ -50,6 +50,7 @@ def build_protocol_graph(
     prioritizer: AgenticPrioritizer,
     lang: Lang = Lang.PT,
     max_requests: int = DEFAULT_MAX_REQUESTS,
+    must_limit: float = MUST_SHARE_LIMIT,
 ) -> CompiledStateGraph:
     if protocol is CoordinationProtocol.FIXED:
         return build_pipeline_graph(classifier, prioritizer)
@@ -75,7 +76,10 @@ def build_protocol_graph(
             ],
         )
 
-    graph.add_node("mediator", partial(mediator_node, lang=lang, max_requests=max_requests))
+    graph.add_node(
+        "mediator",
+        partial(mediator_node, lang=lang, max_requests=max_requests, must_limit=must_limit),
+    )
     graph.add_node("prioritizer_answers", partial(prioritizer_answers_node, agent=prioritizer))
     return _chain(
         graph, ["classifier", "prioritizer", "mediator", "prioritizer_answers", "cross_check"]

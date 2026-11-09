@@ -167,3 +167,6 @@ $RECYCLE.BIN/
 # Docker (manter Dockerfile, ignorar volumes locais)
 # -----------------------------------------------------------------------------
 .docker/
+
+# PrioReSpa (licence unconfirmed; fetch from Zenodo 10.5281/zenodo.15552978)
+datasets/data/priorespa/*.csv

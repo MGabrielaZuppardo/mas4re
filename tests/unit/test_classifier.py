@@ -244,6 +244,29 @@ class TestClassificationAgentAgentic:
         assert len(tool_messages) == 1
         assert "SE" in tool_messages[0].content
 
+    def test_toda_tool_call_paralela_recebe_resposta(self, agent):
+        req = Requirement(id="req-01", text="O sistema deve criptografar dados em repouso")
+        tool_call_response = MagicMock(
+            tool_calls=[
+                {"name": "lookup_nfr_taxonomy", "args": {"category_code": "SE"}, "id": "call-1"},
+                {"name": "lookup_nfr_taxonomy", "args": {"category_code": "PE"}, "id": "call-2"},
+            ]
+        )
+        tool_call_response.content = ""
+        agent._llm_with_tools.invoke = MagicMock(return_value=tool_call_response)
+        agent._llm.invoke = MagicMock(
+            return_value=_primary_response(
+                '{"requirement_type": "NF", "nfr_category": "SE", "confidence": 0.95,'
+                ' "justification": "confirmado via taxonomia"}'
+            )
+        )
+
+        agent._process_single(req)
+
+        followup_messages = agent._llm.invoke.call_args_list[0].args[0]
+        tool_messages = [m for m in followup_messages if isinstance(m, ToolMessage)]
+        assert [m.tool_call_id for m in tool_messages] == ["call-1", "call-2"]
+
     def test_memoria_injeta_few_shot_no_item_seguinte(self, agent):
         reqs = [
             Requirement(id="req-01", text="O sistema deve criptografar dados sensiveis"),

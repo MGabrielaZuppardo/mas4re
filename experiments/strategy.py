@@ -8,6 +8,7 @@ from agents.agentic.prioritizer import AgenticPrioritizer
 from agents.agentic.runtime import DEFAULT_MAX_STEPS
 from agents.baseline import BaselineAgent
 from agents.classifier import ClassificationAgent
+from agents.memory import WarmupSeed
 from agents.prioritizer import PrioritizationAgent
 from agents.two_call_baseline import TwoCallBaselineAgent
 from config.settings import settings
@@ -15,7 +16,8 @@ from domain.enums import CoordinationProtocol, Lang
 from domain.models import PipelineState, Requirement
 from pipeline.graph import build_mediated_pipeline_graph, build_pipeline_graph
 from pipeline.graph_streaming import build_streaming_pipeline_graph
-from pipeline.mediation import DEFAULT_MAX_REQUESTS
+from pipeline.mediation import DEFAULT_MAX_REQUESTS, MUST_SHARE_LIMIT
+from pipeline.protocol_spec import PROTOCOL_SPECS
 from pipeline.protocols import build_protocol_graph
 
 if TYPE_CHECKING:
@@ -153,6 +155,8 @@ class AgenticPipelineStrategy(OrchestrationStrategy):
         max_steps: int = DEFAULT_MAX_STEPS,
         protocol: CoordinationProtocol = CoordinationProtocol.FIXED,
         max_requests: int = DEFAULT_MAX_REQUESTS,
+        must_limit: float = MUST_SHARE_LIMIT,
+        prioritizer_warmup_seed: WarmupSeed | None = None,
     ) -> None:
         self._protocol = protocol
         self._classifier = AgenticClassifier(
@@ -168,9 +172,10 @@ class AgenticPipelineStrategy(OrchestrationStrategy):
             lang=lang,
             max_steps=max_steps,
             protocol=protocol,
+            warmup_seed=prioritizer_warmup_seed,
         )
         self._graph = build_protocol_graph(
-            protocol, self._classifier, self._prioritizer, lang, max_requests
+            protocol, self._classifier, self._prioritizer, lang, max_requests, must_limit
         )
 
     @property
@@ -186,6 +191,7 @@ class AgenticPipelineStrategy(OrchestrationStrategy):
         self._prioritizer._trace = trace_writer
         state = PipelineState(raw_requirements=requirements)
         state.metrics["protocol"] = self._protocol.value
+        state.metrics["architecture"] = PROTOCOL_SPECS[self._protocol].describe()
         return _coerce_state(self._graph.invoke(state))
 
 

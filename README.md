@@ -1,6 +1,6 @@
 # MAS4RE — Multi-Agent System for Requirements Engineering
 
-An empirical study comparing a multi-agent LLM pipeline against single-agent baselines across three Requirements Engineering tasks: **classification**, and **prioritization** of software requirements.
+An empirical study of how **coordination protocols** shape the behaviour and results of an LLM-based multi-agent system in Requirements Engineering. Two specialised agents (a classifier and a prioritizer, each an autonomous ReAct-style agent) are coordinated by one of three protocols, P0 (fixed), P2 (peers) or P3 (mediated); a non-agentic workflow is kept as an external architectural control. The tasks are FR/NFR classification and MoSCoW priority categorisation on the PrioReSpa benchmark, whose labels are the benchmark's automatic reference criteria, not independent human truth.
 
 The pipeline runs fully locally via [Ollama](https://ollama.com) — no external API calls required during experiments.
 
@@ -95,7 +95,7 @@ ollama pull mistral:7b
 
 ### 4. Place the dataset
 
-**PrioReSpa** (the dissertation's dataset: 401 requirements in Spanish with type, PROMISE category and a human MoSCoW label) is versioned at `datasets/data/priorespa/PrioReSpa.csv`. The Portuguese version (`PrioReSpa_pt.csv`) is produced and checked by two scripts, in batches of at most 100 items (each command stays under 10 minutes and resumes from a checkpoint):
+**PrioReSpa** (the dissertation's dataset: 401 requirements in Spanish with type, PROMISE category and an automatic MoSCoW reference label) is versioned at `datasets/data/priorespa/PrioReSpa.csv`. The Portuguese version (`PrioReSpa_pt.csv`) is produced and checked by two scripts, in batches of at most 100 items (each command stays under 10 minutes and resumes from a checkpoint):
 
 ```bash
 python scripts/translate_priorespa.py --model ollama/qwen2.5:7b --limit 25   # first batch
@@ -146,17 +146,64 @@ backlog.csv     — classification + priority of every processed requirement, be
 failed.csv      — requirements the agents could not process, with the recorded reason
                   (only written when there is at least one)
 actions.jsonl   — one episode per agent and requirement (goal, beliefs, the actions the agent
-                  chose, tokens); only for `pipeline_agentic*`
+                  chose and the ones on offer, tokens); only for `pipeline_agentic*`
+messages.jsonl  — every typed message exchanged (the classifier's report, the peer or mediator
+                  requests with their evidence, the replies); only when there was any
+```
+
+Switching the experiment's model is one edit: the `model:` field of `experiments/configs/confirmatory.yml`
+(`<provider>/<name>`, e.g. `ollama/qwen2.5:7b` or `foundry/gpt-4.1-mini`; providers are registered in
+`llm/factory.py` with `@provider`, so a new one needs no other change). Check a model before a long run,
+then run each arm exactly as frozen in the spec (`run` also checks the model first; `--no-preflight` skips it):
+
+```bash
+python -m cli.main check-model <provider>/<name>
+python -m cli.main run --arm p0        # p0 | p0-repeat | p2 | p3 | control
+```
+
+A run also writes `decisions.jsonl` (the first-pass and final decision of every requirement) and, in
+`metrics`, the protocol `conformance`, `interaction_failures` and the cost by phase. The analysis
+reports an `architecture_claim` per arm (ADR-015), and any run can be re-checked from its logs alone:
+
+```bash
+python -m experiments.replay_metrics <run_dir>
+```
+
+Exploratory studies (ADR-016) are kept apart from the confirmatory design: they write to
+`experiments/exploratory/`, their manifests say `exploratory`, and they never enter `analyze_protocols`.
+
+```bash
+python -m cli.main explore --list
+python -m cli.main explore --variant x2-mediator-active --arm p3
+python -m cli.main explore --variant x4-llama31 --arm p0
+python -m experiments.analyze_exploratory --warmup
+python -m experiments.analyze_exploratory --variant x2-mediator-active
+```
+
+Each run gets its own folder, `<strategy>_<models>_<data-lang>-<prompt-lang>_n<N>[_<tag>]_<YYYYMMDD-HHMMSS>`
+(the local start time; starting the same run twice in the same second fails instead of mixing files).
+`manifest.json` and `results.json` also record `started_at`/`executed_at` and `finished_at` (ISO 8601 with
+the time zone), and the trace file carries the same name.
+`--tag` labels a run in the folder name and in `manifest.json`; the second P0 run (the noise floor)
+must be run with `--tag p0-repeat`.
+
+Confirmatory analysis of the three protocols (ADR-014; needs the frozen design and the tagged second
+P0 run). It finds the confirmatory run of each arm in `--results-dir` (default `experiments/results`)
+and refuses to guess when an arm is missing or ambiguous; explicit `--p0/--p2/--p3/--p0-repeat`
+paths take precedence:
+
+```bash
+python -m experiments.analyze_protocols
 ```
 
 `backlog.csv` is UTF-8 with BOM and `;`-separated, so it opens correctly in Excel with Portuguese
 locale. One row per requirement: type, NFR category, confidence and justification from the
 classifier; priority, score and justification from the prioritizer; and, when the dataset has a
-gold label, `gold_type`, `gold_category` and `type_correct`. `failed.csv` adds the stage, mode and
+gold label, `reference_type`, `reference_category` and `type_correct`. `failed.csv` adds the stage, mode and
 evidence from `failure_detections`, plus every detection recorded for that requirement.
 
 ```bash
-python -m cli.main run --strategy pipeline --n 50 --backlog-delimiter "," --no-ground-truth
+python -m cli.main run --strategy pipeline --n 50 --backlog-delimiter "," --no-reference-labels
 python -m cli.main backlog experiments/results/<run_id>          # rebuild it for a finished run
 ```
 
@@ -165,7 +212,7 @@ python -m cli.main backlog experiments/results/<run_id>          # rebuild it fo
 called, episodes ended by budget instead of by the agent, entropy of the action sequences and
 tokens; the `manifest.json` records each agent's budget and tools. `interaction` counts the
 requests, agreements and refusals between agents, and `mediator` (P3) the findings and the Must
-share before and after. On a dataset with human MoSCoW labels, `prioritization` reports accuracy
+share before and after. On a dataset with MoSCoW reference labels, `prioritization` reports accuracy
 next to the majority-class baseline, weighted kappa, rank correlations, per-class precision/recall,
 the confusion matrix and coverage.
 
@@ -174,7 +221,7 @@ Languages: `--data-lang` picks the requirement text (`es` or `pt`) and `--lang` 
 protocols are only compared inside one cell.
 
 `backlog` rebuilds the CSV from a finished run's `results.json` (options `--delimiter`,
-`--no-ground-truth`, `--out`). The requirements the agents could not process are not stored there,
+`--no-reference-labels`, `--out`). The requirements the agents could not process are not stored there,
 so that command never writes `failed.csv`.
 
 Each run also writes a trace file per requirement:
@@ -278,6 +325,7 @@ pre-commit install
 | Model prefix | Provider | Example |
 |---|---|---|
 | `ollama/<name>` | Ollama (local) | `ollama/qwen2.5:7b` |
+| `deepseek/<model>` | DeepSeek API (OpenAI-compatible; needs `DEEPSEEK_API_KEY`) | `deepseek/deepseek-chat` |
 | `claude*` | Anthropic | `claude-haiku-4-5` |
 | `llama*`, `qwen*`, `mixtral*`, `gemma*` | Groq | `llama-3.3-70b-versatile` |
 

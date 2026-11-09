@@ -28,11 +28,11 @@ FAILED_FILENAME = "failed.csv"
 DEFAULT_DELIMITER = ";"
 
 _CSV_ENCODING = "utf-8-sig"
-_GROUND_TRUTH_FIELDS = (
-    "gold_type",
-    "gold_category",
+_REFERENCE_FIELDS = (
+    "reference_type",
+    "reference_category",
     "type_correct",
-    "gold_priority",
+    "reference_priority",
     "priority_correct",
 )
 
@@ -56,10 +56,10 @@ class BacklogRow(BaseModel):
     priority: str | None
     priority_score: float | None
     priority_justification: str
-    gold_type: str | None
-    gold_category: str | None
+    reference_type: str | None
+    reference_category: str | None
     type_correct: bool | None
-    gold_priority: str | None = None
+    reference_priority: str | None = None
     priority_correct: bool | None = None
 
 
@@ -75,8 +75,8 @@ class FailedRow(BaseModel):
     failure_severity: str | None
     failure_evidence: str
     detections: str
-    gold_type: str | None
-    gold_category: str | None
+    reference_type: str | None
+    reference_category: str | None
 
 
 @dataclass(frozen=True)
@@ -85,13 +85,13 @@ class Backlog:
     failed: list[FailedRow]
 
 
-def _ground_truth(requirement: Requirement) -> tuple[str | None, str | None]:
+def _reference_labels(requirement: Requirement) -> tuple[str | None, str | None]:
     return requirement.metadata.get("label_type"), requirement.metadata.get("label_category")
 
 
 def _backlog_row(run_id: str, source: Requirement, result: ClassifiedRequirement) -> BacklogRow:
-    gold_type, gold_category = _ground_truth(source)
-    gold_priority = source.gold_priority
+    reference_type, reference_category = _reference_labels(source)
+    reference_priority = source.reference_priority
     prioritized = result if isinstance(result, PrioritizedRequirement) else None
     priority = prioritized.priority if prioritized else None
     return BacklogRow(
@@ -108,12 +108,16 @@ def _backlog_row(run_id: str, source: Requirement, result: ClassifiedRequirement
         priority=priority.value if priority is not None else None,
         priority_score=prioritized.priority_score if prioritized else None,
         priority_justification=prioritized.priority_justification if prioritized else "",
-        gold_type=gold_type,
-        gold_category=gold_category,
-        type_correct=None if gold_type is None else result.requirement_type.value == gold_type,
-        gold_priority=gold_priority.value if gold_priority else None,
+        reference_type=reference_type,
+        reference_category=reference_category,
+        type_correct=None
+        if reference_type is None
+        else result.requirement_type.value == reference_type,
+        reference_priority=reference_priority.value if reference_priority else None,
         priority_correct=(
-            None if gold_priority is None or priority is None else priority == gold_priority
+            None
+            if reference_priority is None or priority is None
+            else priority == reference_priority
         ),
     )
 
@@ -124,7 +128,7 @@ def _describe_detection(record: dict[str, Any]) -> str:
 
 
 def _failed_row(run_id: str, source: Requirement, detections: list[dict[str, Any]]) -> FailedRow:
-    gold_type, gold_category = _ground_truth(source)
+    reference_type, reference_category = _reference_labels(source)
     fatal = next((d for d in detections if d.get("severity") == FailureSeverity.FATAL.value), {})
     return FailedRow(
         run_id=run_id,
@@ -136,8 +140,8 @@ def _failed_row(run_id: str, source: Requirement, detections: list[dict[str, Any
         failure_severity=fatal.get("severity"),
         failure_evidence=fatal.get("evidence", ""),
         detections=" | ".join(_describe_detection(d) for d in detections),
-        gold_type=gold_type,
-        gold_category=gold_category,
+        reference_type=reference_type,
+        reference_category=reference_category,
     )
 
 
@@ -190,13 +194,13 @@ def _cell(value: object) -> str:
 
 
 def _columns(
-    model: type[BaseModel], rows: Sequence[BaseModel], include_ground_truth: bool
+    model: type[BaseModel], rows: Sequence[BaseModel], include_reference: bool
 ) -> list[str]:
     columns = list(model.model_fields)
-    has_ground_truth = any(getattr(row, "gold_type", None) is not None for row in rows)
-    if include_ground_truth and has_ground_truth:
+    has_reference = any(getattr(row, "reference_type", None) is not None for row in rows)
+    if include_reference and has_reference:
         return columns
-    return [column for column in columns if column not in _GROUND_TRUTH_FIELDS]
+    return [column for column in columns if column not in _REFERENCE_FIELDS]
 
 
 def _write_csv(
@@ -204,11 +208,11 @@ def _write_csv(
     model: type[BaseModel],
     rows: Sequence[BaseModel],
     delimiter: str,
-    include_ground_truth: bool,
+    include_reference: bool,
 ) -> Path:
     if len(delimiter) != 1:
         raise ValueError(f"CSV delimiter must be a single character, got {delimiter!r}")
-    columns = _columns(model, rows, include_ground_truth)
+    columns = _columns(model, rows, include_reference)
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding=_CSV_ENCODING, newline="") as handle:
         writer = csv.writer(handle, delimiter=delimiter)
@@ -223,18 +227,18 @@ def write_backlog_csv(
     rows: Sequence[BacklogRow],
     path: Path,
     delimiter: str = DEFAULT_DELIMITER,
-    include_ground_truth: bool = True,
+    include_reference: bool = True,
 ) -> Path:
-    return _write_csv(path, BacklogRow, rows, delimiter, include_ground_truth)
+    return _write_csv(path, BacklogRow, rows, delimiter, include_reference)
 
 
 def write_failed_csv(
     rows: Sequence[FailedRow],
     path: Path,
     delimiter: str = DEFAULT_DELIMITER,
-    include_ground_truth: bool = True,
+    include_reference: bool = True,
 ) -> Path | None:
     """Written only when at least one requirement failed: no file means no failures."""
     if not rows:
         return None
-    return _write_csv(path, FailedRow, rows, delimiter, include_ground_truth)
+    return _write_csv(path, FailedRow, rows, delimiter, include_reference)

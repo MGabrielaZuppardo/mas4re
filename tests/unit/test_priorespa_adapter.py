@@ -63,7 +63,7 @@ class TestRealDataset:
         assert "1153" in ids
 
     def test_mapeia_o_moscow_numerico_para_o_gabarito(self, requirements):
-        counts = Counter(r.gold_priority for r in requirements)
+        counts = Counter(r.reference_priority for r in requirements)
 
         assert counts == {
             MoSCoWPriority.MUST_HAVE: 182,
