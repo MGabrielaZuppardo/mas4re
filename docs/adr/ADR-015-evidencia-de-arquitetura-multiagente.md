@@ -55,6 +55,29 @@ dizer, pelos dados de cada execução, se aquilo que rodou foi mesmo a arquitetu
 - Fora de escopo, para planos próprios: linha de base de agente único com ReAct, mediador como agente,
   negociação em várias rodadas e controle descentralizado.
 
+## Nota de rastreabilidade da coleta confirmatória (2026-11-09)
+
+As cinco execuções de n=401 (P0, P0 repetido, P2, P3 e o controle `pipeline`; ES/ES, `qwen2.5:7b`,
+18 e 19/10/2026) registram em seus manifestos o commit `f3d913e`, mas **não rodaram sobre esse commit
+puro**. O código deste ADR (`protocol_spec.py`, `protocol_conformance.py`, `decisions.py`,
+`architecture_claim.py`) foi escrito em 18/10, entre 11:56 e 12:07, antes da primeira execução (13:22),
+e só foi commitado depois, em `100eee8`. Os manifestos não gravam se a árvore estava limpa.
+
+O que sustenta que o código commitado equivale ao que rodou:
+
+- O hash do `confirmatory.yml` (`62db8664…`) é o mesmo nos cinco manifestos e hoje.
+- Os arquivos alterados depois da última execução (término em 19/10, 18:32; primeiras edições às 18:58)
+  só acrescentam parâmetros opcionais do estudo exploratório (ADR-016) com padrão idêntico ao anterior
+  (`must_limit=0.60` em `mediation.py` e `protocols.py`; `warmup_seed=None` em `prioritizer.py`).
+- `replay_metrics` reproduz atividade, interação, conformidade e falhas de interação de P0, P0 repetido,
+  P2 e P3 a partir dos logs, e os 826 testes unitários, o ruff e o mypy passam sobre `100eee8`.
+
+Esta equivalência foi estabelecida por leitura do diff e por testes, não por reexecução.
+
+**Consequência:** as execuções não são reproduzíveis por checkout de `f3d913e`. Use `100eee8`. Para
+coletas futuras, o manifesto deve gravar o estado da árvore e o hash do código (pendência de
+implementação, fora deste ADR).
+
 ## Referências
 
 - Arquivos: `pipeline/protocol_spec.py`, `evaluation/protocol_conformance.py`,
